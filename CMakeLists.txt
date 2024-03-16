@@ -14,7 +14,7 @@ set(SIZE /home/ludwig/arm/bin/arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
-project(Test C CXX ASM)
+project(Test C ASM)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
@@ -62,6 +62,10 @@ add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+
+add_subdirectory(Donkos)
+target_link_libraries(${PROJECT_NAME}.elf PRIVATE Donko)
+target_include_directories(${PROJECT_NAME}.elf PRIVATE Donkos/Inc )
 
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
