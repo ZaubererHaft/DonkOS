@@ -38,18 +38,21 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
     //stack grows downwards
     uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
 
-    //set initial SP to last address, 16 registers available
+    //set initial SP to last address
+    //stack is double word aligned -> save 8 registers but as 64 bit ? or why 16 * 4?
     PSP_array[task_id] = stack_first_address - 16 * 4;
     //Initial PC
     uint32_t pc = (uint32_t) task_main;
     //Initial XPSR
     uint32_t xpsr = 0x01000000;
 
-    stack[stack_size - 15] = pc;
-    stack[stack_size - 16] = xpsr;
+    stack[stack_size - 1] = xpsr;
+    stack[stack_size - 2] = pc;
 }
 
 void Donkos_MainLoop() {
+    SCB->CCR |= SCB_CCR_STKALIGN_Msk;
+
     InitStack(0, &task0, &task0_stack[0], 1024);
     InitStack(1, &task1, &task1_stack[0], 1024);
     InitStack(2, &task2, &task2_stack[0], 1024);
