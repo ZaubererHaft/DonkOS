@@ -39,8 +39,10 @@ void Error_Handler();
 #define KEYBOARD_S1_GPIO_Port GPIOA
 #define KEYBOARD_S2_Pin GPIO_PIN_7
 #define KEYBOARD_S2_GPIO_Port GPIOA
-#define LED_GREEN_Pin GPIO_PIN_10
-#define LED_GREEN_GPIO_Port GPIOB
+#define LED_1_Pin GPIO_PIN_10
+#define LED_1_GPIO_Port GPIOB
+#define LED_2_Pin GPIO_PIN_15
+#define LED_2_GPIO_Port GPIOB
 
 
 #ifdef __cplusplus

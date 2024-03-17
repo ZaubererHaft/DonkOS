@@ -51,9 +51,6 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
 }
 
 void Donkos_MainLoop() {
-    HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, ledState);
-    uint16_t buttonThreshold = 100;
-
     InitStack(0, &task0, &task0_stack[0], 1024);
     InitStack(1, &task1, &task1_stack[0], 1024);
     InitStack(2, &task2, &task2_stack[0], 1024);
@@ -97,22 +94,36 @@ void Donkos_MainLoop() {
 void task0(void) {
     while (1) {
         if (HAL_GetTick() & 0x80) {
-            HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
         } else {
-            HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
         }
     }
 }
 
-void task1(void) {}
+void task1(void) {
+    while (1) {
+        if (HAL_GetTick() & 0x100) {
+            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
+        } else {
+            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
+        }
+    }
+}
 
-void task2(void) {}
+void task2(void) {
+    while (1) {
 
-void task3(void) {}
+    }
+}
+
+void task3(void) {
+    while (1) {
+
+    }
+}
 
 static void onButtonPressed(uint8_t i) {
-    ledState = ledState == GPIO_PIN_RESET ? GPIO_PIN_SET : GPIO_PIN_RESET;
-    HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, ledState);
 }
 
 static uint16_t readAnalogIn() {
@@ -138,16 +149,18 @@ void Donkos_Init() {
 
 void SysTick_Handler(void) {
     HAL_IncTick();
+    next_task = (curr_task + 1) % 4;
+    if (curr_task != next_task) {
+        SCB->ICSR |= SCB_ICSR_ISRPENDING_Msk;
+    }
 }
 
 /**
   * @brief This function handles Pendable request for system service.
   */
-void PendSV_Handler(void)
-{
+void PendSV_Handler(void) {
     context_switch();
 }
-
 
 
 /**
@@ -207,7 +220,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOA, KEYBOARD_S0_Pin | KEYBOARD_S1_Pin | KEYBOARD_S2_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, LED_1_Pin | LED_2_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : KEYBOARD_S0_Pin KEYBOARD_S1_Pin KEYBOARD_S2_Pin */
     GPIO_InitStruct.Pin = KEYBOARD_S0_Pin | KEYBOARD_S1_Pin | KEYBOARD_S2_Pin;
@@ -216,13 +229,12 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /*Configure GPIO pin : LED_GREEN_Pin */
-    GPIO_InitStruct.Pin = LED_GREEN_Pin;
+    /*Configure GPIO pins : LED_1_Pin LED_2_Pin */
+    GPIO_InitStruct.Pin = LED_1_Pin | LED_2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(LED_GREEN_GPIO_Port, &GPIO_InitStruct);
-
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 /**
