@@ -2,28 +2,75 @@
 #include "stm32l4xx_hal_adc.h"
 #include "stm32l4xx_it.h"
 
+extern void context_switch();
+
 static void MX_ADC1_Init();
+
 static void MX_GPIO_Init();
+
 static void onButtonPressed(uint8_t i);
+
 static uint16_t readAnalogIn();
+
 static void SystemClock_Config();
 
 static ADC_HandleTypeDef hadc1;
 static GPIO_PinState ledState = GPIO_PIN_RESET;
 
-uint8_t task0_stack[1024];
-uint8_t task1_stack[1024];
-uint8_t task2_stack[1024];
+void task0(void);
+
+void task1(void);
+
+void task2(void);
+
+void task3(void);
+
+uint32_t task0_stack[1024];
+uint32_t task1_stack[1024];
+uint32_t task2_stack[1024];
+uint32_t task3_stack[1024];
+
 uint32_t curr_task = 0;
 uint32_t next_task = 1;
-uint32_t PSP_array[4];
+uint32_t PSP_array[2];
+
+void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint32_t stack_size) {
+    //stack grows downwards
+    uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
+
+    //set initial SP to last address, 16 registers available; ToDo: why are we saving ALL regs?
+    PSP_array[task_id] = stack_first_address - 16 * 4;
+    //Initial PC
+    uint32_t pc = (uint32_t) task_main;
+    //Initial XPSR
+    uint32_t xpsr = 0x01000000;
+
+    stack[stack_size - 1] = 0xFFFFFFFF;
+    stack[stack_size - 15] = pc;
+    stack[stack_size - 16] = xpsr;
+}
 
 void Donkos_MainLoop() {
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, ledState);
     uint16_t buttonThreshold = 100;
 
+    InitStack(0, &task0, &task0_stack[0], 1024);
+    InitStack(1, &task1, &task1_stack[0], 1024);
+    InitStack(2, &task2, &task2_stack[0], 1024);
+    InitStack(3, &task3, &task3_stack[0], 1024);
+
+    curr_task = 0;
+    __set_PSP(PSP_array[curr_task] + 16 * 4);
+    NVIC_SetPriority(PendSV_IRQn, 0xFF);
+    __set_CONTROL(0x3);
+    __ISB();
+    task0();
 
     while (1) {
+        __NOP();
+    };
+
+    /*while (1) {
         for (uint8_t i = 0; i <= 7; i++) {
             HAL_GPIO_WritePin(KEYBOARD_S0_GPIO_Port, KEYBOARD_S0_Pin, i & 0b00000001U);
             HAL_GPIO_WritePin(KEYBOARD_S1_GPIO_Port, KEYBOARD_S1_Pin, i & 0b00000010U);
@@ -44,8 +91,24 @@ void Donkos_MainLoop() {
             }
         }
 
+    }*/
+}
+
+void task0(void) {
+    while (1) {
+        if (HAL_GetTick() & 0x80) {
+            HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+        } else {
+            HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+        }
     }
 }
+
+void task1(void) {}
+
+void task2(void) {}
+
+void task3(void) {}
 
 static void onButtonPressed(uint8_t i) {
     ledState = ledState == GPIO_PIN_RESET ? GPIO_PIN_SET : GPIO_PIN_RESET;
@@ -73,10 +136,18 @@ void Donkos_Init() {
     MX_ADC1_Init();
 }
 
-void SysTick_Handler(void)
-{
+void SysTick_Handler(void) {
     HAL_IncTick();
 }
+
+/**
+  * @brief This function handles Pendable request for system service.
+  */
+void PendSV_Handler(void)
+{
+    context_switch();
+}
+
 
 
 /**
