@@ -15,7 +15,6 @@ static uint16_t readAnalogIn();
 static void SystemClock_Config();
 
 static ADC_HandleTypeDef hadc1;
-static GPIO_PinState ledState = GPIO_PIN_RESET;
 
 void task0(void);
 
@@ -25,10 +24,12 @@ void task2(void);
 
 void task3(void);
 
-uint32_t task0_stack[1024];
-uint32_t task1_stack[1024];
-uint32_t task2_stack[1024];
-uint32_t task3_stack[1024];
+#define STACK_SIZE 256
+
+static uint32_t task0_stack[STACK_SIZE];
+static uint32_t task1_stack[STACK_SIZE];
+static uint32_t task2_stack[STACK_SIZE];
+static uint32_t task3_stack[STACK_SIZE];
 
 uint32_t curr_task = 0;
 uint32_t next_task = 1;
@@ -53,10 +54,10 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    InitStack(0, &task0, &task0_stack[0], 1024);
-    InitStack(1, &task1, &task1_stack[0], 1024);
-    InitStack(2, &task2, &task2_stack[0], 1024);
-    InitStack(3, &task3, &task3_stack[0], 1024);
+    InitStack(0, &task0, &task0_stack[0], STACK_SIZE);
+    InitStack(1, &task1, &task1_stack[0], STACK_SIZE);
+    InitStack(2, &task2, &task2_stack[0], STACK_SIZE);
+    InitStack(3, &task3, &task3_stack[0], STACK_SIZE);
 
     curr_task = 0;
     __set_PSP(PSP_array[curr_task] + 16 * 4);
@@ -65,33 +66,10 @@ void Donkos_MainLoop() {
     __ISB();
     task0();
 
-    while (1) {
-        __NOP();
-    }
 }
 
 void task0(void) {
-    while (1) {
-        if (HAL_GetTick() & 0x80) {
-            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
-        } else {
-            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
-        }
-    }
-}
-
-void task1(void) {
-    while (1) {
-        if (HAL_GetTick() & 0x100) {
-            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
-        } else {
-            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
-        }
-    }
-}
-
-void task2(void) {
-    uint16_t buttonThreshold = 100;
+    int buttonThreshold = 100;
 
     while (1) {
         for (uint8_t i = 0; i <= 7; i++) {
@@ -112,6 +90,27 @@ void task2(void) {
                     onButtonPressed(i);
                 }
             }
+        }
+    }
+
+}
+
+void task1(void) {
+    while (1) {
+        if (HAL_GetTick() & 0x100) {
+            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
+        } else {
+            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
+        }
+    }
+}
+
+void task2(void) {
+    while (1) {
+        if (HAL_GetTick() & 0x80) {
+            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+        } else {
+            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
         }
     }
 }
