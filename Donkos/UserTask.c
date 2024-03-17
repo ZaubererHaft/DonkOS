@@ -32,20 +32,19 @@ uint32_t task3_stack[1024];
 
 uint32_t curr_task = 0;
 uint32_t next_task = 1;
-uint32_t PSP_array[2];
+uint32_t PSP_array[4];
 
 void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint32_t stack_size) {
     //stack grows downwards
     uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
 
-    //set initial SP to last address, 16 registers available; ToDo: why are we saving ALL regs?
+    //set initial SP to last address, 16 registers available
     PSP_array[task_id] = stack_first_address - 16 * 4;
     //Initial PC
     uint32_t pc = (uint32_t) task_main;
     //Initial XPSR
     uint32_t xpsr = 0x01000000;
 
-    stack[stack_size - 1] = 0xFFFFFFFF;
     stack[stack_size - 15] = pc;
     stack[stack_size - 16] = xpsr;
 }
@@ -151,7 +150,7 @@ void SysTick_Handler(void) {
     HAL_IncTick();
     next_task = (curr_task + 1) % 4;
     if (curr_task != next_task) {
-        SCB->ICSR |= SCB_ICSR_ISRPENDING_Msk;
+        SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
 }
 
