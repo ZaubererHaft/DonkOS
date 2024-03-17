@@ -64,35 +64,38 @@ void Donkos_MainLoop() {
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
     __set_CONTROL(0x3);
     __ISB();
+
     task0();
 
 }
 
 void task0(void) {
-    int buttonThreshold = 100;
+    uint16_t buttonThreshold = 4095;
+    uint32_t selectPins[3] = {KEYBOARD_S0_Pin, KEYBOARD_S1_Pin, KEYBOARD_S2_Pin};
 
     while (1) {
-        for (uint8_t i = 0; i <= 7; i++) {
-            HAL_GPIO_WritePin(KEYBOARD_S0_GPIO_Port, KEYBOARD_S0_Pin, i & 0b00000001U);
-            HAL_GPIO_WritePin(KEYBOARD_S1_GPIO_Port, KEYBOARD_S1_Pin, i & 0b00000010U);
-            HAL_GPIO_WritePin(KEYBOARD_S2_GPIO_Port, KEYBOARD_S2_Pin, i & 0b00000100U);
+        for (uint8_t muxPin = 0; muxPin <= 7; muxPin++) {
+            for (uint8_t selectPin = 0; selectPin < 3; ++selectPin) {
+                if (muxPin & (1 << selectPin)) {
+                    HAL_GPIO_WritePin(GPIOA, selectPins[selectPin], GPIO_PIN_SET);
+                } else {
+                    HAL_GPIO_WritePin(GPIOA, selectPins[selectPin], GPIO_PIN_RESET);
+                }
 
-            HAL_Delay(10);
-
-            uint16_t raw = readAnalogIn();
-
-            //any of the keys is pressed
-            if (raw >= buttonThreshold) {
-                HAL_Delay(25);
-                raw = readAnalogIn();
+                HAL_Delay(10);
+                uint16_t raw = readAnalogIn();
 
                 if (raw >= buttonThreshold) {
-                    onButtonPressed(i);
+                    HAL_Delay(10);
+                    raw = readAnalogIn();
+
+                    if (raw >= buttonThreshold) {
+                        onButtonPressed(muxPin);
+                    }
                 }
             }
         }
     }
-
 }
 
 void task1(void) {
@@ -128,6 +131,7 @@ static uint16_t readAnalogIn() {
     HAL_ADC_Start(&hadc1);
     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
     uint16_t raw = HAL_ADC_GetValue(&hadc1);
+    HAL_ADC_Stop(&hadc1);
     return raw;
 }
 
@@ -224,14 +228,14 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pin = KEYBOARD_S0_Pin | KEYBOARD_S1_Pin | KEYBOARD_S2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pins : LED_1_Pin LED_2_Pin */
     GPIO_InitStruct.Pin = LED_1_Pin | LED_2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
