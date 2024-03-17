@@ -11,9 +11,17 @@ static void SystemClock_Config();
 static ADC_HandleTypeDef hadc1;
 static GPIO_PinState ledState = GPIO_PIN_RESET;
 
+uint8_t task0_stack[1024];
+uint8_t task1_stack[1024];
+uint8_t task2_stack[1024];
+uint32_t curr_task = 0;
+uint32_t next_task = 1;
+uint32_t PSP_array[4];
+
 void Donkos_MainLoop() {
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, ledState);
     uint16_t buttonThreshold = 100;
+
 
     while (1) {
         for (uint8_t i = 0; i <= 7; i++) {
