@@ -39,7 +39,7 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
     uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
 
     //set initial SP to last address
-    //stack is double word aligned -> save 8 registers but as 64 bit ? or why 16 * 4?
+    //space for 16 regs? or why 16?
     PSP_array[task_id] = stack_first_address - 16 * 4;
     //Initial PC
     uint32_t pc = (uint32_t) task_main;
@@ -67,30 +67,7 @@ void Donkos_MainLoop() {
 
     while (1) {
         __NOP();
-    };
-
-    /*while (1) {
-        for (uint8_t i = 0; i <= 7; i++) {
-            HAL_GPIO_WritePin(KEYBOARD_S0_GPIO_Port, KEYBOARD_S0_Pin, i & 0b00000001U);
-            HAL_GPIO_WritePin(KEYBOARD_S1_GPIO_Port, KEYBOARD_S1_Pin, i & 0b00000010U);
-            HAL_GPIO_WritePin(KEYBOARD_S2_GPIO_Port, KEYBOARD_S2_Pin, i & 0b00000100U);
-
-            HAL_Delay(10);
-
-            uint16_t raw = readAnalogIn();
-
-            //any of the keys is pressed
-            if (raw >= buttonThreshold) {
-                HAL_Delay(25);
-                raw = readAnalogIn();
-
-                if (raw >= buttonThreshold) {
-                    onButtonPressed(i);
-                }
-            }
-        }
-
-    }*/
+    }
 }
 
 void task0(void) {
@@ -114,8 +91,28 @@ void task1(void) {
 }
 
 void task2(void) {
-    while (1) {
+    uint16_t buttonThreshold = 100;
 
+    while (1) {
+        for (uint8_t i = 0; i <= 7; i++) {
+            HAL_GPIO_WritePin(KEYBOARD_S0_GPIO_Port, KEYBOARD_S0_Pin, i & 0b00000001U);
+            HAL_GPIO_WritePin(KEYBOARD_S1_GPIO_Port, KEYBOARD_S1_Pin, i & 0b00000010U);
+            HAL_GPIO_WritePin(KEYBOARD_S2_GPIO_Port, KEYBOARD_S2_Pin, i & 0b00000100U);
+
+            HAL_Delay(10);
+
+            uint16_t raw = readAnalogIn();
+
+            //any of the keys is pressed
+            if (raw >= buttonThreshold) {
+                HAL_Delay(25);
+                raw = readAnalogIn();
+
+                if (raw >= buttonThreshold) {
+                    onButtonPressed(i);
+                }
+            }
+        }
     }
 }
 
