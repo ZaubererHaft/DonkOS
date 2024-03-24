@@ -1,8 +1,9 @@
 #include "UserTask.h"
 #include "stm32l4xx_hal_adc.h"
 #include "stm32l4xx_it.h"
+#include "Process.h"
 
-extern void context_switch();
+extern "C" void context_switch();
 
 static void MX_ADC1_Init();
 
@@ -35,6 +36,9 @@ uint32_t curr_task = 0;
 uint32_t next_task = 1;
 uint32_t PSP_array[4];
 
+uint32_t speedLed1 = 0;
+uint32_t speedLed2 = 0;
+
 void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint32_t stack_size) {
     //stack grows downwards
     uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
@@ -54,6 +58,8 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
+    Process p{};
+
     InitStack(0, &task0, &task0_stack[0], STACK_SIZE);
     InitStack(1, &task1, &task1_stack[0], STACK_SIZE);
     InitStack(2, &task2, &task2_stack[0], STACK_SIZE);
@@ -70,51 +76,36 @@ void Donkos_MainLoop() {
 }
 
 void task0(void) {
-    uint16_t buttonThreshold = 4095;
-    uint32_t selectPins[3] = {KEYBOARD_S0_Pin, KEYBOARD_S1_Pin, KEYBOARD_S2_Pin};
-
     while (1) {
         for (uint8_t muxPin = 0; muxPin <= 7; muxPin++) {
-            for (uint8_t selectPin = 0; selectPin < 3; ++selectPin) {
-                if (muxPin & (1 << selectPin)) {
-                    HAL_GPIO_WritePin(GPIOA, selectPins[selectPin], GPIO_PIN_SET);
-                } else {
-                    HAL_GPIO_WritePin(GPIOA, selectPins[selectPin], GPIO_PIN_RESET);
-                }
 
-                HAL_Delay(10);
-                uint16_t raw = readAnalogIn();
+            GPIO_PinState s1 = static_cast<GPIO_PinState>((muxPin & 0b00000001U) >> 0);
+            GPIO_PinState s2 = static_cast<GPIO_PinState>((muxPin & 0b00000010U) >> 1);
+            GPIO_PinState s3 = static_cast<GPIO_PinState>((muxPin & 0b00000100U) >> 2);
 
-                if (raw >= buttonThreshold) {
-                    HAL_Delay(10);
-                    raw = readAnalogIn();
-
-                    if (raw >= buttonThreshold) {
-                        onButtonPressed(muxPin);
-                    }
-                }
-            }
+            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S0_Pin, s1);
+            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S1_Pin, s2);
+            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S2_Pin, s3);
+            HAL_Delay(500);
         }
     }
 }
 
 void task1(void) {
     while (1) {
-        if (HAL_GetTick() & 0x100) {
-            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
-        } else {
-            HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
-        }
+        HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
+        HAL_Delay(400);
+        HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
+        HAL_Delay(400);
     }
 }
 
 void task2(void) {
     while (1) {
-        if (HAL_GetTick() & 0x80) {
-            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
-        } else {
-            HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
-        }
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+        HAL_Delay(500);
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
+        HAL_Delay(500);
     }
 }
 
@@ -124,7 +115,17 @@ void task3(void) {
     }
 }
 
-static void onButtonPressed(uint8_t i) {
+static void onButtonPressed(uint8_t buttonId) {
+    if (buttonId == 0 && speedLed1 < 200) {
+        speedLed1++;
+    } else if (buttonId == 6 && speedLed1 > 0) {
+        speedLed1--;
+    } else if (buttonId == 7 && speedLed2 < 200) {
+        speedLed2++;
+    } else if (buttonId == 5 && speedLed2 > 0) {
+        speedLed2--;
+    }
+
 }
 
 static uint16_t readAnalogIn() {
