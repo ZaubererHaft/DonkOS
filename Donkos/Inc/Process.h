@@ -3,7 +3,7 @@
 
 class Process {
 public:
-    void Start();
+    virtual void Execute();
 };
 
 

@@ -1,5 +1,7 @@
 add_library(Donko UserTask.cpp context_switch.S
         Process.cpp
-        Process.h
+        Processes/ProcessMutex.cpp
+        Processes/ProcessLed1.cpp
+        Processes/ProcessLed2.cpp
 )
-target_include_directories(Donko PUBLIC Inc)
+target_include_directories(Donko PUBLIC Inc Processes/Inc)

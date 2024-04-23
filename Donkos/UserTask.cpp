@@ -2,6 +2,9 @@
 #include "stm32l4xx_hal_adc.h"
 #include "stm32l4xx_it.h"
 #include "Process.h"
+#include "ProcessMutex.h"
+#include "ProcessLed2.h"
+#include "ProcessLed1.h"
 
 extern "C" void context_switch();
 
@@ -9,37 +12,34 @@ static void MX_ADC1_Init();
 
 static void MX_GPIO_Init();
 
-static void onButtonPressed(uint8_t i);
-
-static uint16_t readAnalogIn();
-
 static void SystemClock_Config();
 
 static ADC_HandleTypeDef hadc1;
 
-void task0(void);
-
-void task1(void);
-
-void task2(void);
-
-void task3(void);
-
 #define STACK_SIZE 256
+#define COUNT_PROCESSES 3
+
+static ProcessMutex mutexProcess{};
+static ProcessLed1 led1Process{};
+static ProcessLed2 led2Process{};
+
+static Process *processes[COUNT_PROCESSES];
 
 static uint32_t task0_stack[STACK_SIZE];
 static uint32_t task1_stack[STACK_SIZE];
 static uint32_t task2_stack[STACK_SIZE];
-static uint32_t task3_stack[STACK_SIZE];
 
 uint32_t curr_task = 0;
 uint32_t next_task = 1;
-uint32_t PSP_array[4];
+uint32_t PSP_array[COUNT_PROCESSES];
 
-uint32_t speedLed1 = 0;
-uint32_t speedLed2 = 0;
+void GenericMain()
+{
+    Process *p = processes[curr_task];
+    p->Execute();
+}
 
-void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint32_t stack_size) {
+void InitStack(uint32_t task_id, uint32_t *stack, uint32_t stack_size) {
     //stack grows downwards
     uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
 
@@ -47,7 +47,7 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
     //space for 16 regs? or why 16?
     PSP_array[task_id] = stack_first_address - 16 * 4;
     //Initial PC
-    uint32_t pc = (uint32_t) task_main;
+    uint32_t pc = (uint32_t) GenericMain;
     //Initial XPSR
     uint32_t xpsr = 0x01000000;
 
@@ -58,12 +58,13 @@ void InitStack(uint32_t task_id, void (*task_main)(void), uint32_t *stack, uint3
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    Process p{};
+    processes[0] = &mutexProcess;
+    processes[1] = &led1Process;
+    processes[2] = &led2Process;
 
-    InitStack(0, &task0, &task0_stack[0], STACK_SIZE);
-    InitStack(1, &task1, &task1_stack[0], STACK_SIZE);
-    InitStack(2, &task2, &task2_stack[0], STACK_SIZE);
-    InitStack(3, &task3, &task3_stack[0], STACK_SIZE);
+    InitStack(0, &task0_stack[0], STACK_SIZE);
+    InitStack(1, &task1_stack[0], STACK_SIZE);
+    InitStack(2, &task2_stack[0], STACK_SIZE);
 
     curr_task = 0;
     __set_PSP(PSP_array[curr_task] + 16 * 4);
@@ -71,69 +72,10 @@ void Donkos_MainLoop() {
     __set_CONTROL(0x3);
     __ISB();
 
-    task0();
-
-}
-
-void task0(void) {
-    while (1) {
-        for (uint8_t muxPin = 0; muxPin <= 7; muxPin++) {
-
-            GPIO_PinState s1 = static_cast<GPIO_PinState>((muxPin & 0b00000001U) >> 0);
-            GPIO_PinState s2 = static_cast<GPIO_PinState>((muxPin & 0b00000010U) >> 1);
-            GPIO_PinState s3 = static_cast<GPIO_PinState>((muxPin & 0b00000100U) >> 2);
-
-            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S0_Pin, s1);
-            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S1_Pin, s2);
-            HAL_GPIO_WritePin(GPIOA, KEYBOARD_S2_Pin, s3);
-            HAL_Delay(500);
-        }
-    }
-}
-
-void task1(void) {
-    while (1) {
-        HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
-        HAL_Delay(400);
-        HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
-        HAL_Delay(400);
-    }
-}
-
-void task2(void) {
-    while (1) {
-        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
-        HAL_Delay(500);
-        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
-        HAL_Delay(500);
-    }
-}
-
-void task3(void) {
-    while (1) {
-
-    }
-}
-
-static void onButtonPressed(uint8_t buttonId) {
-    if (buttonId == 0 && speedLed1 < 200) {
-        speedLed1++;
-    } else if (buttonId == 6 && speedLed1 > 0) {
-        speedLed1--;
-    } else if (buttonId == 7 && speedLed2 < 200) {
-        speedLed2++;
-    } else if (buttonId == 5 && speedLed2 > 0) {
-        speedLed2--;
+    while (true){
+        __NOP();
     }
 
-}
-
-static uint16_t readAnalogIn() {
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-    uint16_t raw = HAL_ADC_GetValue(&hadc1);
-    HAL_ADC_Stop(&hadc1);
-    return raw;
 }
 
 void Donkos_Init() {
@@ -152,7 +94,7 @@ void Donkos_Init() {
 
 void SysTick_Handler(void) {
     HAL_IncTick();
-    next_task = (curr_task + 1) % 4;
+    next_task = (curr_task + 1) % COUNT_PROCESSES;
     if (curr_task != next_task) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
