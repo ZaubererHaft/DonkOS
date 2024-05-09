@@ -20,7 +20,7 @@ context_switch:
     STR R3, [R0, R1, LSL #2]
 
     // R3 = stackPointers[pidNext]
-    LDR   R3, [R0, R2, LSL #2]
+    LDR R3, [R0, R2, LSL #2]
 
     // load R4-R11 from process stack (8 regs) to stack
     LDMIA R3!, {R4-R11}
@@ -28,6 +28,5 @@ context_switch:
     // update PSP to next stack pointer
     MSR PSP, R3
 
-    BX LR
-
-    .ALIGN 4
+BX LR
+.ALIGN 4
