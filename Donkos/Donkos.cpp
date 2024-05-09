@@ -1,12 +1,9 @@
-#include "UserTask.h"
-#include "stm32l4xx_hal_adc.h"
-#include "stm32l4xx_it.h"
-#include "Process.h"
+#include "Donkos.h"
+#include "DonkosInternal.h"
 #include "ProcessMutex.h"
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
 #include "Scheduler.h"
-
 
 static void MX_ADC1_Init();
 
@@ -16,66 +13,34 @@ static void SystemClock_Config();
 
 static ADC_HandleTypeDef hadc1;
 
-#define STACK_SIZE 256
-#define COUNT_PROCESSES 3
+namespace {
+    ProcessMutex mutexProcess{};
+    ProcessLed1 led1Process{};
+    ProcessLed2 led2Process{};
 
-static ProcessMutex mutexProcess{0};
-static ProcessLed1 led1Process{1};
-static ProcessLed2 led2Process{2};
+    Scheduler scheduler{};
+}
 
-static uint32_t task0_stack[STACK_SIZE];
-static uint32_t task1_stack[STACK_SIZE];
-static uint32_t task2_stack[STACK_SIZE];
-
-uint32_t curr_task = 0;
-uint32_t next_task = 1;
-uint32_t PSP_array[COUNT_PROCESSES];
-
-Scheduler scheduler{};
-
-void GenericMain()
-{
+void Donkos_GenericProcessMain() {
     Process *p = scheduler.GetCurrentProcess();
     p->Execute();
 }
 
-void InitStack(uint32_t task_id, uint32_t *stack, uint32_t stack_size) {
-    //stack grows downwards
-    uint32_t stack_first_address = (uint32_t) stack + stack_size * 4;
-
-    //set initial SP to last address
-    //space for 16 regs? or why 16?
-    PSP_array[task_id] = stack_first_address - 16 * 4;
-    //Initial PC
-    uint32_t pc = (uint32_t) GenericMain;
-    //Initial XPSR
-    uint32_t xpsr = 0x01000000;
-
-    stack[stack_size - 1] = xpsr;
-    stack[stack_size - 2] = pc;
-}
 
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    scheduler.RegisterProcess(&mutexProcess);
+    scheduler.SetInitialProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
 
-    InitStack(0, &task0_stack[0], STACK_SIZE);
-    InitStack(1, &task1_stack[0], STACK_SIZE);
-    InitStack(2, &task2_stack[0], STACK_SIZE);
-
-    curr_task = 0;
-    __set_PSP(PSP_array[curr_task] + 16 * 4);
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
     __set_CONTROL(0x3);
     __ISB();
 
-    while (true){
+    while (true) {
         __NOP();
     }
-
 }
 
 void Donkos_Init() {
@@ -104,7 +69,7 @@ void SysTick_Handler(void) {
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void) {
-    scheduler.ContextSwitch(&PSP_array[0]);
+    scheduler.ContextSwitch();
 }
 
 

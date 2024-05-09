@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "UserTask.h"
+#include "Donkos.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -60,7 +60,6 @@
   * @retval int
   */
 int main(void) {
-
     Donkos_Init();
     Donkos_MainLoop();
 }
