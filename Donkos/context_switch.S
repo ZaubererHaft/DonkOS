@@ -4,33 +4,30 @@
 /*
     The context switch is called from an interrupt handler
     Thus, we are using MSP for push / pop and are writing into the initial SP area.
+    void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext);
+    R0 : uint32_t * stackPointers
+    R1 : uint32_t pidCurr
+    R2 : uint32_t pidNext
 */
 context_switch:
-    // the current task uses the PSP as stack pointer. load it to R0
-    MRS R0, PSP
-    // R4-R11 are callee saved, thus they need to be saved when performing a context switch
-    // the instruction "pushes" R4-R11 to the PSP: SUB R0, #4 | STR R11, [R0] | SUB R0, #4 | STR R10, [R0], ...
-    STMDB R0!, {R4-R11}
+    // the current task uses the PSP as stack pointer. load it to R3
+    MRS R3, PSP
 
-    LDR R1, =curr_task //R1 = &curr_task
-    LDR R2, [R1]       //R2 = *curr_task
-    LDR R3, =PSP_array //R3 = &PSP_array[0]
+    // push R4-R11 to stack of current process
+    STMDB R3!, {R4-R11}
 
-    // Store R0 to R3 + (R2 << n) = R3 + R2 * 2^n
-    // translates to: *(R2 + curr_task * 4) = R0
-    // or more easily: PSP_array[*curr_task] = R0
-    // stores the stack pointer in the PSP array
-    STR R0, [R3, R2, LSL #2]
+    // stores updated stack pointer in the stackPointers array: stackPointers[pidCurr] = R3
+    STR R3, [R0, R1, LSL #2]
 
-    /*Load context*/
-    LDR   R4, =next_task //R4 = &next_task
-    LDR   R4, [R4]       //R4 = *next_task
-    STR   R4, [R1]       //*curr_task = next_task
+    // R3 = stackPointers[pidNext]
+    LDR   R3, [R0, R2, LSL #2]
 
-    LDR   R0, [R3, R4, LSL #2] // R0 = R3 + (R4 << n) = R3 + R4 * 2^n = PSP_array[*curr_task]
-    LDMIA R0!, {R4-R11}  //load R4-R11 from process stack (8 regs)
+    // load R4-R11 from process stack (8 regs) to stack
+    LDMIA R3!, {R4-R11}
 
-    MSR   PSP, R0 // update PSP
+    // update PSP to next stack pointer
+    MSR PSP, R3
+
     BX LR
 
     .ALIGN 4

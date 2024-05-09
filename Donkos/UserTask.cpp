@@ -6,7 +6,7 @@
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
 
-extern "C" void context_switch();
+extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext);
 
 static void MX_ADC1_Init();
 
@@ -104,7 +104,10 @@ void SysTick_Handler(void) {
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void) {
-    context_switch();
+    auto tmp_Curr = curr_task;
+    curr_task = next_task;
+
+    context_switch(&PSP_array[0], tmp_Curr, next_task);
 }
 
 
