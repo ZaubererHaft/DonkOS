@@ -5,8 +5,8 @@
 #include "ProcessMutex.h"
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
+#include "Scheduler.h"
 
-extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext);
 
 static void MX_ADC1_Init();
 
@@ -19,11 +19,9 @@ static ADC_HandleTypeDef hadc1;
 #define STACK_SIZE 256
 #define COUNT_PROCESSES 3
 
-static ProcessMutex mutexProcess{};
-static ProcessLed1 led1Process{};
-static ProcessLed2 led2Process{};
-
-static Process *processes[COUNT_PROCESSES];
+static ProcessMutex mutexProcess{0};
+static ProcessLed1 led1Process{1};
+static ProcessLed2 led2Process{2};
 
 static uint32_t task0_stack[STACK_SIZE];
 static uint32_t task1_stack[STACK_SIZE];
@@ -33,9 +31,11 @@ uint32_t curr_task = 0;
 uint32_t next_task = 1;
 uint32_t PSP_array[COUNT_PROCESSES];
 
+Scheduler scheduler{};
+
 void GenericMain()
 {
-    Process *p = processes[curr_task];
+    Process *p = scheduler.GetCurrentProcess();
     p->Execute();
 }
 
@@ -58,9 +58,9 @@ void InitStack(uint32_t task_id, uint32_t *stack, uint32_t stack_size) {
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    processes[0] = &mutexProcess;
-    processes[1] = &led1Process;
-    processes[2] = &led2Process;
+    scheduler.RegisterProcess(&mutexProcess);
+    scheduler.RegisterProcess(&led1Process);
+    scheduler.RegisterProcess(&led2Process);
 
     InitStack(0, &task0_stack[0], STACK_SIZE);
     InitStack(1, &task1_stack[0], STACK_SIZE);
@@ -94,8 +94,8 @@ void Donkos_Init() {
 
 void SysTick_Handler(void) {
     HAL_IncTick();
-    next_task = (curr_task + 1) % COUNT_PROCESSES;
-    if (curr_task != next_task) {
+    scheduler.Schedule();
+    if (scheduler.NeedsContextSwitch()) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
 }
@@ -104,10 +104,7 @@ void SysTick_Handler(void) {
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void) {
-    auto tmp_Curr = curr_task;
-    curr_task = next_task;
-
-    context_switch(&PSP_array[0], tmp_Curr, next_task);
+    scheduler.ContextSwitch(&PSP_array[0]);
 }
 
 

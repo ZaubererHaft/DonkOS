@@ -19,6 +19,8 @@ public:
 
     Process * GetCurrentProcess();
 
+    void ContextSwitch(uint32_t * pspArray);
+
 private:
     Process *processes[MaxProcesses];
     uint32_t index;

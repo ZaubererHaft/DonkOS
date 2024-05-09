@@ -6,6 +6,8 @@
 
 class ProcessMutex : public Process{
 public:
+    explicit ProcessMutex(uint32_t pid);
+
     void Execute() override;
 };
 

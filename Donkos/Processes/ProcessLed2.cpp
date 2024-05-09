@@ -13,3 +13,5 @@ void ProcessLed2::Execute() {
         HAL_Delay(500);
     }
 }
+
+ProcessLed2::ProcessLed2(uint32_t pid) : Process(pid) {}

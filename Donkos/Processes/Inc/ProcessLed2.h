@@ -10,6 +10,8 @@
 
 class ProcessLed2 : public Process {
 public:
+    explicit ProcessLed2(uint32_t pid);
+
     void Execute() override;
 };
 

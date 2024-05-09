@@ -9,3 +9,5 @@ void ProcessLed1::Execute() {
         HAL_Delay(400);
     }
 }
+
+ProcessLed1::ProcessLed1(uint32_t pid) : Process(pid) {}
