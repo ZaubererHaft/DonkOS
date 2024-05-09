@@ -5,7 +5,7 @@
 
 class ProcessMutex : public Process{
 public:
-    void Execute() override;
+    void Main() override;
 };
 
 

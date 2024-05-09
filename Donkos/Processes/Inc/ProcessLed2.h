@@ -5,7 +5,7 @@
 
 class ProcessLed2 : public Process {
 public:
-    void Execute() override;
+    void Main() override;
 };
 
 

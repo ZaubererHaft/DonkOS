@@ -7,7 +7,7 @@ class Process {
 public:
     explicit Process();
 
-    virtual void Execute();
+    virtual void Main();
 
     uint32_t InitStack();
 

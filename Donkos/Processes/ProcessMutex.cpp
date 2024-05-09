@@ -1,7 +1,7 @@
 #include "ProcessMutex.h"
 #include "main.h"
 
-void ProcessMutex::Execute() {
+void ProcessMutex::Main() {
     while (true) {
         for (uint8_t muxPin = 0; muxPin <= 7; muxPin++) {
 

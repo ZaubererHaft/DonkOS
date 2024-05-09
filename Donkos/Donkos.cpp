@@ -23,7 +23,7 @@ namespace {
 
 void Donkos_GenericProcessMain() {
     Process *p = scheduler.GetCurrentProcess();
-    p->Execute();
+    p->Main();
 }
 
 

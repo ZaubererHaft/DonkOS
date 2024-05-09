@@ -3,7 +3,7 @@
 
 Process::Process() : pid(0U), stack{0U} {}
 
-void Process::Execute() {
+void Process::Main() {
 }
 
 void Process::SetPid(uint32_t pid) {
