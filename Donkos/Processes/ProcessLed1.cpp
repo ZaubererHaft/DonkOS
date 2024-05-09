@@ -10,4 +10,3 @@ void ProcessLed1::Execute() {
     }
 }
 
-ProcessLed1::ProcessLed1(uint32_t pid) : Process(pid) {}

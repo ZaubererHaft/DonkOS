@@ -17,4 +17,3 @@ void ProcessMutex::Execute() {
     }
 }
 
-ProcessMutex::ProcessMutex(uint32_t pid) : Process(pid) {}

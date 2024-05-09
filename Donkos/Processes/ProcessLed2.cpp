@@ -14,4 +14,3 @@ void ProcessLed2::Execute() {
     }
 }
 
-ProcessLed2::ProcessLed2(uint32_t pid) : Process(pid) {}
