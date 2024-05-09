@@ -27,9 +27,11 @@ namespace {
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    scheduler.SetInitialProcess(&mutexProcess);
+    scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
+
+    scheduler.SetInitialProcess(&mutexProcess);
 
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
     __set_CONTROL(0x3);

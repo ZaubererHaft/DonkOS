@@ -8,10 +8,8 @@ Scheduler::Scheduler() : PSP_array{0U}, processes{nullptr}, index{0U}, currentPr
 }
 
 void Scheduler::SetInitialProcess(Process *process) {
-    if (index == 0) {
-        RegisterProcess(process);
-        __set_PSP(PSP_array[process->GetPid()] + 16 * 4);
-    }
+    __set_PSP(PSP_array[process->GetPid()]);
+    currentProcess = process->GetPid() <= 0U ? index : process->GetPid() - 1U;
 }
 
 
@@ -50,4 +48,3 @@ void Scheduler::ContextSwitch() {
     //after context switch, currentProcess = nextProcess, so no scheduling needed, as long as schedule() has not been called
     context_switch(&PSP_array[0], curr, next);
 }
-
