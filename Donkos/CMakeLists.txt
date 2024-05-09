@@ -1,12 +1,10 @@
-add_library(Donko Donkos.cpp context_switch.S
-        Process.cpp
+add_library(Donko Donkos.cpp
+        Processes/Process.cpp
         Processes/ProcessMutex.cpp
         Processes/ProcessLed1.cpp
         Processes/ProcessLed2.cpp
+        Scheduler/context_switch.S
         Scheduler/Scheduler.cpp
-        Scheduler/Inc/Scheduler.h
-        Inc/Donkos.h
-        Inc/DonkosInternal.h
-        Inc/DonkosSettings.h
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc)
+target_include_directories(Donko PRIVATE .)

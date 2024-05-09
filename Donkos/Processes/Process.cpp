@@ -1,5 +1,5 @@
 #include "Process.h"
-#include "DonkosInternal.h"
+#include "../DonkosInternal.h"
 
 Process::Process() : pid(0U), stack{0U} {}
 

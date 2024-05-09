@@ -1,8 +1,4 @@
-//
-// Created by ludwig on 4/23/24.
-//
-
-#include "Inc/ProcessLed2.h"
+#include "ProcessLed2.h"
 #include "main.h"
 
 void ProcessLed2::Execute() {
