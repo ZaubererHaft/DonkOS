@@ -1,5 +1,5 @@
 #include "Process.h"
-#include "../DonkosInternal.h"
+#include "DonkosInternal.h"
 
 Process::Process() : pid(0U), stack{0U} {}
 
@@ -27,8 +27,12 @@ uint32_t Process::InitStack() {
     //Initial XPSR
     uint32_t xpsr = 0x01000000;
 
+    uint32_t lr = (uint32_t) Donkos_RequestScheduling; //this currently results in an hard fault since we cannot directly request scheduling in unprivileged mode!
+
     stack[stackSize - 1] = xpsr;
     stack[stackSize - 2] = pc;
+    stack[stackSize - 3] = lr;
+
     return initialSp;
 }
 

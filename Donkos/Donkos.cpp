@@ -21,10 +21,7 @@ namespace {
     Scheduler scheduler{};
 }
 
-void Donkos_GenericProcessMain() {
-    Process *p = scheduler.GetCurrentProcess();
-    p->Main();
-}
+
 
 
 void Donkos_MainLoop() {
@@ -57,12 +54,21 @@ void Donkos_Init() {
     MX_ADC1_Init();
 }
 
-void SysTick_Handler(void) {
-    HAL_IncTick();
+void Donkos_GenericProcessMain() {
+    Process *p = scheduler.GetCurrentProcess();
+    p->Main();
+}
+
+void Donkos_RequestScheduling() {
     scheduler.Schedule();
     if (scheduler.NeedsContextSwitch()) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
+}
+
+void SysTick_Handler(void) {
+    HAL_IncTick();
+    Donkos_RequestScheduling();
 }
 
 /**
