@@ -48,3 +48,15 @@ void Scheduler::ContextSwitch() {
     //after context switch, currentProcess = nextProcess, so no scheduling needed, as long as schedule() has not been called
     context_switch(&PSP_array[0], curr, next);
 }
+
+void Scheduler::UnregisterProcess(Process *process) {
+    if (process->GetPid() < index) {
+        for (uint32_t i = process->GetPid(); i < index - 1; ++i) {
+            processes[i] = processes[i + 1];
+            processes[i]->SetPid(i);
+        }
+        processes[index - 1] = nullptr;
+        index--;
+    }
+
+}

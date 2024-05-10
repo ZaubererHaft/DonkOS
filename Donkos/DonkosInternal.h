@@ -3,6 +3,4 @@
 
 void Donkos_GenericProcessMain();
 
-void Donkos_RequestScheduling();
-
 #endif //TEST_DONKOSINTERNAL_H

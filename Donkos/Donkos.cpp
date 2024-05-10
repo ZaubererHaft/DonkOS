@@ -4,6 +4,10 @@
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
 #include "Scheduler.h"
+#include "ProcessNoLoop.h"
+
+extern "C" void svc_handler();
+extern "C" void SVC_Handler_C(uint32_t *);
 
 static void MX_ADC1_Init();
 
@@ -17,12 +21,10 @@ namespace {
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
+    ProcessNoLoop noloopProcess;
 
     Scheduler scheduler{};
 }
-
-
-
 
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
@@ -30,6 +32,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
+    scheduler.RegisterProcess(&noloopProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -56,16 +59,28 @@ void Donkos_Init() {
     MX_ADC1_Init();
 }
 
-void Donkos_GenericProcessMain() {
-    Process *p = scheduler.GetCurrentProcess();
-    p->Main();
-}
-
 void Donkos_RequestScheduling() {
     scheduler.Schedule();
     if (scheduler.NeedsContextSwitch()) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
+}
+
+void Donkos_EndProcess(Process *process) {
+    //ToDo: ending process should be executed privileged with interrupts disabled
+    //otherwise the Process might get interrupted while unregistering...
+    scheduler.UnregisterProcess(process);
+    //request scheduling again
+    asm("SVC #0x3;");
+    // wait for process to end
+    while (true) {
+    }
+}
+
+void Donkos_GenericProcessMain() {
+    Process *p = scheduler.GetCurrentProcess();
+    p->Main();
+    Donkos_EndProcess(p);
 }
 
 void SysTick_Handler(void) {
@@ -78,6 +93,19 @@ void SysTick_Handler(void) {
   */
 void PendSV_Handler(void) {
     scheduler.ContextSwitch();
+}
+
+/**
+  * @brief This function handles System service call via SWI instruction.
+  */
+void SVC_Handler(void) {
+    svc_handler();
+}
+
+void SVC_Handler_C(uint32_t *args) {
+    __disable_irq();
+
+    Donkos_RequestScheduling();
 }
 
 

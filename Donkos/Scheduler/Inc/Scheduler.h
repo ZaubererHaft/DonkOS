@@ -21,6 +21,8 @@ public:
 
     void ContextSwitch();
 
+    void UnregisterProcess(Process *process);
+
 private:
     uint32_t PSP_array[Donkos_MaxProcesses];
     Process *processes[Donkos_MaxProcesses];
