@@ -11,7 +11,7 @@ public:
 
     uint32_t InitStack();
 
-    void SetPid(uint32_t pid);
+    void SetPid(uint32_t newPid);
 
     uint32_t GetPid() const;
 

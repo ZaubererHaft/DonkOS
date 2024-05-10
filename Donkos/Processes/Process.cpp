@@ -1,12 +1,12 @@
 #include "Process.h"
 #include "DonkosInternal.h"
 
-Process::Process() : pid(0U), stack{0U} {}
+Process::Process() : pid{0U}, stack{0U} {}
 
 void Process::Main() {
 }
 
-void Process::SetPid(uint32_t pid) {
+void Process::SetPid(uint32_t newPid) {
     Process::pid = pid;
 }
 
