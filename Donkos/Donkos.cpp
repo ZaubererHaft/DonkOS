@@ -67,13 +67,11 @@ void Donkos_RequestScheduling() {
 }
 
 void Donkos_EndProcess(Process *process) {
-    //ToDo: ending process should be executed privileged with interrupts disabled
-    //otherwise the Process might get interrupted while unregistering...
-    scheduler.UnregisterProcess(process);
     //request scheduling again
-    asm("SVC #0x3;");
+    asm("SVC #0x0;");
     // wait for process to end
     while (true) {
+        __NOP();
     }
 }
 
@@ -99,12 +97,22 @@ void PendSV_Handler(void) {
   * @brief This function handles System service call via SWI instruction.
   */
 void SVC_Handler(void) {
-    svc_handler();
+    __asm(
+            ".global SVC_Handler_C\n"
+            "TST lr, #4\n"
+            "ITE EQ\n"
+            "MRSEQ r0, MSP\n"
+            "MRSNE r0, PSP\n"
+            "B SVC_Handler_C\n"
+            );
+    // svc_handler();
 }
 
 void SVC_Handler_C(uint32_t *args) {
-    __disable_irq();
-
+    //since PENDSV has a lower prio than SVC it is safe to unregister without IRQ disabling
+    // however since scheduling request is privileged -> SVC call
+    auto process = reinterpret_cast<Process *>(args[0]);
+    scheduler.UnregisterProcess(process);
     Donkos_RequestScheduling();
 }
 
