@@ -26,8 +26,8 @@ uint32_t Process::InitStack() {
     auto pc = (uint32_t) Donkos_GenericProcessMain;
     //Initial XPSR
     uint32_t xpsr = 0x01000000;
-
-    uint32_t lr = (uint32_t) Donkos_RequestScheduling; //this currently results in an hard fault since we cannot directly request scheduling in unprivileged mode!
+    //this currently results in an hard fault since we cannot directly request scheduling in unprivileged mode!
+    auto lr = (uint32_t) Donkos_RequestScheduling;
 
     stack[stackSize - 1] = xpsr;
     stack[stackSize - 2] = pc;

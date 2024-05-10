@@ -1,6 +1,6 @@
 add_library(Donko Donkos.cpp
         Processes/Process.cpp
-        Processes/ProcessMutex.cpp
+        Processes/Process7SegmentDisplay.cpp
         Processes/ProcessLed1.cpp
         Processes/ProcessLed2.cpp
         Scheduler/context_switch.S

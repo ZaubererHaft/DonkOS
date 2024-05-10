@@ -1,6 +1,6 @@
 #include "Donkos.h"
 #include "DonkosInternal.h"
-#include "ProcessMutex.h"
+#include "Process7SegmentDisplay.h"
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
 #include "Scheduler.h"
@@ -14,7 +14,7 @@ static void SystemClock_Config();
 static ADC_HandleTypeDef hadc1;
 
 namespace {
-    ProcessMutex mutexProcess{};
+    Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
 
