@@ -6,7 +6,6 @@
 #include "Scheduler.h"
 #include "ProcessNoLoop.h"
 
-extern "C" void svc_handler();
 extern "C" void SVC_Handler_C(uint32_t *);
 
 static void MX_ADC1_Init();
@@ -97,23 +96,29 @@ void PendSV_Handler(void) {
   * @brief This function handles System service call via SWI instruction.
   */
 void SVC_Handler(void) {
-    __asm(
-            ".global SVC_Handler_C\n"
-            "TST lr, #4\n"
-            "ITE EQ\n"
-            "MRSEQ r0, MSP\n"
-            "MRSNE r0, PSP\n"
-            "B SVC_Handler_C\n"
+    __asm( ".global SVC_Handler_C\n"
+           "TST lr, #4\n"
+           "ITE EQ\n"
+           "MRSEQ r0, MSP\n"
+           "MRSNE r0, PSP\n"
+           "B SVC_Handler_C\n"
             );
-    // svc_handler();
 }
 
 void SVC_Handler_C(uint32_t *args) {
-    //since PENDSV has a lower prio than SVC it is safe to unregister without IRQ disabling
-    // however since scheduling request is privileged -> SVC call
-    auto process = reinterpret_cast<Process *>(args[0]);
-    scheduler.UnregisterProcess(process);
-    Donkos_RequestScheduling();
+
+    uint32_t svcNumber = ((char *) args[6])[-2];
+
+    if (svcNumber == 0) {
+        //since PENDSV has a lower prio than SVC it would safe to unregister without IRQ disabling
+        // however since scheduling request is privileged -> SVC call
+        auto process = reinterpret_cast<Process *>(args[0]);
+        __disable_irq();
+        scheduler.UnregisterProcess(process);
+        __enable_irq();
+        Donkos_RequestScheduling();
+    }
+
 }
 
 
