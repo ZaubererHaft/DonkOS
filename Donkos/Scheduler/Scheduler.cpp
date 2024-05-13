@@ -1,7 +1,7 @@
 #include "Scheduler.h"
 #include "stm32l4xx_hal.h"
 
-extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext);
+extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext, uint32_t *savedRegs);
 
 Scheduler::Scheduler() : PSP_array{0U}, processes{nullptr}, index{0U}, currentProcess{0U}, nextProcess{0U} {
 
@@ -40,13 +40,13 @@ Process *Scheduler::GetCurrentProcess() {
     return processes[nextProcess];
 }
 
-void Scheduler::ContextSwitch() {
+void Scheduler::ContextSwitch(uint32_t * savedRegs) {
     auto curr = currentProcess;
     auto next = nextProcess;
     currentProcess = next; //this works "accidentally" because registers R4-11 are not used by assembler.
 
     //after context switch, currentProcess = nextProcess, so no scheduling needed, as long as schedule() has not been called
-    context_switch(&PSP_array[0], curr, next);
+    context_switch(&PSP_array[0], curr, next, savedRegs);
 }
 
 void Scheduler::UnregisterProcess(Process *process) {

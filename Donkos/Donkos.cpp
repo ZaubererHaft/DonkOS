@@ -33,8 +33,8 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-   // scheduler.RegisterProcess(&noloopProcess);
-   // scheduler.RegisterProcess(&pmd);
+     scheduler.RegisterProcess(&noloopProcess);
+    // scheduler.RegisterProcess(&pmd);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -92,8 +92,17 @@ void SysTick_Handler(void) {
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void) {
-    //ToDo: save regs here and pass them there
-    scheduler.ContextSwitch();
+    uint32_t *tmpArr;
+
+    __asm("SUB SP, #32;\n"
+          "STMIA SP, {R4-R11};\n"
+          "MOV %[arr], SP;\n"
+          : [arr] "=r"(tmpArr));
+
+    scheduler.ContextSwitch(tmpArr);
+
+    __asm("ADD SP, #32;");
+
 }
 
 /**

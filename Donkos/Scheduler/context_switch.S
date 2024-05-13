@@ -8,8 +8,12 @@
     R0 : uint32_t * stackPointers
     R1 : uint32_t pidCurr
     R2 : uint32_t pidNext
+    R3 : uint32_t * regs
 */
 context_switch:
+    // load regs from argument
+    LDMIA R3, {R4-R11}
+
     // the current task uses the PSP as stack pointer. load it to R3
     MRS R3, PSP
 

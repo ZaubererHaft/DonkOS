@@ -19,7 +19,7 @@ public:
 
     Process * GetCurrentProcess();
 
-    void ContextSwitch();
+    void ContextSwitch(uint32_t * savedRegs);
 
     void UnregisterProcess(Process *process);
 
