@@ -7,6 +7,8 @@ add_library(Donko Donkos.cpp
         Scheduler/Scheduler.cpp
         svc_handler.S
         Processes/ProcessNoLoop.cpp
+        Processes/ProcessMatrixDisplay.cpp
+        Processes/Inc/ProcessMatrixDisplay.h
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc)
 target_include_directories(Donko PRIVATE .)

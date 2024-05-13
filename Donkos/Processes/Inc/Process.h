@@ -16,7 +16,7 @@ public:
     uint32_t GetPid() const;
 
 private:
-    static constexpr uint32_t stackSize = 256;
+    static constexpr uint32_t stackSize = 64U;
 
     uint32_t pid;
     uint32_t stack[stackSize];

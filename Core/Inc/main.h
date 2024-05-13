@@ -31,6 +31,22 @@ extern "C" {
 
 void Error_Handler();
 
+/* USER CODE END EM */
+
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
+
+/* USER CODE BEGIN EFP */
+
+/* USER CODE END EFP */
+
+/* Private defines -----------------------------------------------------------*/
+#define DISPLAY_DOUT_Pin GPIO_PIN_13
+#define DISPLAY_DOUT_GPIO_Port GPIOC
+#define DISPLAY_CS_Pin GPIO_PIN_14
+#define DISPLAY_CS_GPIO_Port GPIOC
+#define DISPLAY_CLK_Pin GPIO_PIN_15
+#define DISPLAY_CLK_GPIO_Port GPIOC
 #define KEYBOARD_COM_Pin GPIO_PIN_1
 #define KEYBOARD_COM_GPIO_Port GPIOA
 #define KEYBOARD_S0_Pin GPIO_PIN_5

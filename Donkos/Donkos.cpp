@@ -5,6 +5,7 @@
 #include "ProcessLed1.h"
 #include "Scheduler.h"
 #include "ProcessNoLoop.h"
+#include "ProcessMatrixDisplay.h"
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -21,6 +22,7 @@ namespace {
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
     ProcessNoLoop noloopProcess;
+    ProcessMatrixDisplay pmd;
 
     Scheduler scheduler{};
 }
@@ -31,7 +33,8 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-    scheduler.RegisterProcess(&noloopProcess);
+   // scheduler.RegisterProcess(&noloopProcess);
+   // scheduler.RegisterProcess(&pmd);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -115,8 +118,8 @@ void SVC_Handler_C(uint32_t *args) {
         auto process = reinterpret_cast<Process *>(args[0]);
         __disable_irq();
         scheduler.UnregisterProcess(process);
-        __enable_irq();
         Donkos_RequestScheduling();
+        __enable_irq();
     }
 
 }
