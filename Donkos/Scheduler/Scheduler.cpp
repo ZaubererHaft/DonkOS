@@ -43,7 +43,7 @@ Process *Scheduler::GetCurrentProcess() {
 void Scheduler::ContextSwitch() {
     auto curr = currentProcess;
     auto next = nextProcess;
-    currentProcess = next;
+    currentProcess = next; //this works "accidentally" because registers R4-11 are not used by assembler.
 
     //after context switch, currentProcess = nextProcess, so no scheduling needed, as long as schedule() has not been called
     context_switch(&PSP_array[0], curr, next);
