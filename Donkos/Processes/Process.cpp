@@ -1,7 +1,10 @@
 #include "Process.h"
 #include "DonkosInternal.h"
 
-Process::Process() : pid{0U}, stack{0U} {}
+extern "C" void load_context(uint32_t, uint32_t *);
+extern "C" uint32_t store_context(uint32_t *);
+
+Process::Process() : pid{0U}, stack{0U}, stackPointer{0U} {}
 
 void Process::Main() {
 }
@@ -33,6 +36,22 @@ uint32_t Process::InitStack() {
     stack[stackSize - 2] = pc;
     stack[stackSize - 3] = lr;
 
+    stackPointer = initialSp;
+
     return initialSp;
+}
+
+void Process::SaveContext(uint32_t *regs) {
+    //saves the context stored in regs array of this process to the process' stack
+    stackPointer = store_context(regs);
+}
+
+void Process::LoadContext(uint32_t *regs) {
+    //loads the stored of this process to the regs array
+    load_context(stackPointer, regs);
+}
+
+uint32_t Process::GetStackPointer() const {
+    return stackPointer;
 }
 

@@ -33,7 +33,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-     scheduler.RegisterProcess(&noloopProcess);
+   //  scheduler.RegisterProcess(&noloopProcess);
     // scheduler.RegisterProcess(&pmd);
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -93,22 +93,28 @@ void SysTick_Handler(void) {
   */
 void PendSV_Handler(void) {
     uint32_t *tmpArr;
-
+    // Here we call the context switch
+    // First step: provide array for registers of the current running process (which however got interrupted now)
+    // since R4-R11 might be changed because of local variables we need to save them immediately
     __asm("SUB SP, #32;\n"
           "STMIA SP, {R4-R11};\n"
           "MOV %[arr], SP;\n"
           : [arr] "=r"(tmpArr));
 
+    //now call context switch: this will save the array in the current process stack
+    //and load the new variable into the provded array
     scheduler.ContextSwitch(tmpArr);
 
-    __asm("ADD SP, #32;");
-
+    //now finally apply the context switch by loading the R4-R11 from the array
+    __asm("LDMIA SP, {R4-R11};\n"
+          "ADD SP, #32;\n");
 }
 
 /**
   * @brief This function handles System service call via SWI instruction.
   */
 void SVC_Handler(void) {
+    //call the svc handler directly from assembly code
     __asm( ".global SVC_Handler_C\n"
            "TST lr, #4\n"
            "ITE EQ\n"

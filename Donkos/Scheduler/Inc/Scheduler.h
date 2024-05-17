@@ -24,11 +24,10 @@ public:
     void UnregisterProcess(Process *process);
 
 private:
-    uint32_t PSP_array[Donkos_MaxProcesses];
     Process *processes[Donkos_MaxProcesses];
     uint32_t index;
-    uint32_t currentProcess;
-    uint32_t nextProcess;
+    Process * currentProcess;
+    Process * nextProcess;
 };
 
 

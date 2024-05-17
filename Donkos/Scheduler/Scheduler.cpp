@@ -3,20 +3,20 @@
 
 extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext, uint32_t *savedRegs);
 
-Scheduler::Scheduler() : PSP_array{0U}, processes{nullptr}, index{0U}, currentProcess{0U}, nextProcess{0U} {
+Scheduler::Scheduler() : processes{nullptr}, index{0U}, currentProcess{nullptr}, nextProcess{nullptr} {
 
 }
 
 void Scheduler::SetInitialProcess(Process *process) {
-    __set_PSP(PSP_array[process->GetPid()]);
-    currentProcess = process->GetPid() <= 0U ? index : process->GetPid() - 1U;
+    __set_PSP(process->GetStackPointer());
+    nextProcess = process;
 }
 
 
 void Scheduler::RegisterProcess(Process *process) {
     if (index < Donkos_MaxProcesses) {
         process->SetPid(index);
-        PSP_array[process->GetPid()] = process->InitStack();
+        process->InitStack();
         processes[process->GetPid()] = process;
         index++;
     }
@@ -24,7 +24,11 @@ void Scheduler::RegisterProcess(Process *process) {
 
 void Scheduler::Schedule() {
     if (index > 0) {
-        nextProcess = (currentProcess + 1) % index;
+
+        if (currentProcess != nullptr) {
+            uint32_t nextPid = (currentProcess->GetPid() + 1) % index;
+            nextProcess = processes[nextPid];
+        }
     }
 }
 
@@ -37,16 +41,19 @@ bool Scheduler::NeedsContextSwitch() const {
 }
 
 Process *Scheduler::GetCurrentProcess() {
-    return processes[nextProcess];
+    return currentProcess;
 }
 
-void Scheduler::ContextSwitch(uint32_t * savedRegs) {
-    auto curr = currentProcess;
-    auto next = nextProcess;
-    currentProcess = next; //this works "accidentally" because registers R4-11 are not used by assembler.
+void Scheduler::ContextSwitch(uint32_t *savedRegs) {
+    if (currentProcess != nullptr) {
+        currentProcess->SaveContext(savedRegs);
+    }
 
-    //after context switch, currentProcess = nextProcess, so no scheduling needed, as long as schedule() has not been called
-    context_switch(&PSP_array[0], curr, next, savedRegs);
+    currentProcess = nextProcess;
+
+    if (nextProcess != nullptr) {
+        nextProcess->LoadContext(savedRegs);
+    }
 }
 
 void Scheduler::UnregisterProcess(Process *process) {
