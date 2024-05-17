@@ -41,12 +41,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DISPLAY_DOUT_Pin GPIO_PIN_13
-#define DISPLAY_DOUT_GPIO_Port GPIOC
-#define DISPLAY_CS_Pin GPIO_PIN_14
-#define DISPLAY_CS_GPIO_Port GPIOC
-#define DISPLAY_CLK_Pin GPIO_PIN_15
-#define DISPLAY_CLK_GPIO_Port GPIOC
 #define KEYBOARD_COM_Pin GPIO_PIN_1
 #define KEYBOARD_COM_GPIO_Port GPIOA
 #define KEYBOARD_S0_Pin GPIO_PIN_5
@@ -55,10 +49,16 @@ void Error_Handler(void);
 #define KEYBOARD_S1_GPIO_Port GPIOA
 #define KEYBOARD_S2_Pin GPIO_PIN_7
 #define KEYBOARD_S2_GPIO_Port GPIOA
+#define DISPLAY_DOUT_Pin GPIO_PIN_5
+#define DISPLAY_DOUT_GPIO_Port GPIOC
 #define LED_1_Pin GPIO_PIN_10
 #define LED_1_GPIO_Port GPIOB
 #define LED_2_Pin GPIO_PIN_15
 #define LED_2_GPIO_Port GPIOB
+#define DISPLAY_CS_Pin GPIO_PIN_6
+#define DISPLAY_CS_GPIO_Port GPIOC
+#define DISPLAY_CLK_Pin GPIO_PIN_8
+#define DISPLAY_CLK_GPIO_Port GPIOC
 
 
 #ifdef __cplusplus
