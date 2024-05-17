@@ -33,14 +33,16 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-   //  scheduler.RegisterProcess(&noloopProcess);
-    // scheduler.RegisterProcess(&pmd);
+    scheduler.RegisterProcess(&noloopProcess);
+    scheduler.RegisterProcess(&pmd);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
+
     __set_CONTROL(0x3);
     __ISB();
+    __WFI();
 
     while (true) {
         __NOP();

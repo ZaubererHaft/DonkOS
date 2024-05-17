@@ -57,6 +57,7 @@ void Scheduler::ContextSwitch(uint32_t *savedRegs) {
 }
 
 void Scheduler::UnregisterProcess(Process *process) {
+    // remove process from list
     if (process->GetPid() < index) {
         for (uint32_t i = process->GetPid(); i < index - 1; ++i) {
             processes[i] = processes[i + 1];
@@ -65,5 +66,4 @@ void Scheduler::UnregisterProcess(Process *process) {
         processes[index - 1] = nullptr;
         index--;
     }
-
 }
