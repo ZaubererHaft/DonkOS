@@ -39,21 +39,7 @@ private:
     SPI_HandleTypeDef hspi1;
     uint8_t decodeMode;
 
-    void PrintDigit(MAX7219_Digits position, MAX7219_Numeric numeric, bool point);
-
-    void TurnOn();
-
-    void TurnOff();
-
-    void Clean();
-
-    void SetIntensivity(uint8_t intensivity);
-
     void SendData(uint8_t addr, uint8_t data);
-
-    void CS_Set();
-
-    void CS_Reset();
 };
 
 
