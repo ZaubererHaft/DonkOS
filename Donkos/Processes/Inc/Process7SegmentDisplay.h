@@ -16,9 +16,9 @@ public:
     void Write(uint8_t number);
 
 private:
-    static constexpr uint32_t pinSHCPShiftClock = KEYBOARD_S0_Pin;   // white jumper (clock)
-    static constexpr uint32_t pinSTCPStorageClock = KEYBOARD_S1_Pin; // gray jumper (latch)
-    static constexpr uint32_t pinDSSER = KEYBOARD_S2_Pin;  // purple jumper (data)
+    static constexpr uint32_t pinSHCPShiftClock = SHCP_Pin;   // white jumper (clock)
+    static constexpr uint32_t pinSTCPStorageClock = STCP_Pin; // gray jumper (latch)
+    static constexpr uint32_t pinDSSER = DSSER_Pin;  // purple jumper (data)
 
     uint8_t num;
     uint8_t mapping[10];

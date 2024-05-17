@@ -29,7 +29,23 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 
-void Error_Handler();
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
+
+/* USER CODE END ET */
+
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+
+/* USER CODE END EC */
+
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
 
@@ -41,25 +57,26 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define KEYBOARD_COM_Pin GPIO_PIN_1
-#define KEYBOARD_COM_GPIO_Port GPIOA
-#define KEYBOARD_S0_Pin GPIO_PIN_5
-#define KEYBOARD_S0_GPIO_Port GPIOA
-#define KEYBOARD_S1_Pin GPIO_PIN_6
-#define KEYBOARD_S1_GPIO_Port GPIOA
-#define KEYBOARD_S2_Pin GPIO_PIN_7
-#define KEYBOARD_S2_GPIO_Port GPIOA
-#define DISPLAY_DOUT_Pin GPIO_PIN_5
-#define DISPLAY_DOUT_GPIO_Port GPIOC
+#define SHCP_Pin GPIO_PIN_5
+#define SHCP_GPIO_Port GPIOA
+#define STCP_Pin GPIO_PIN_6
+#define STCP_GPIO_Port GPIOA
+#define DSSER_Pin GPIO_PIN_7
+#define DSSER_GPIO_Port GPIOA
 #define LED_1_Pin GPIO_PIN_10
 #define LED_1_GPIO_Port GPIOB
-#define LED_2_Pin GPIO_PIN_15
-#define LED_2_GPIO_Port GPIOB
-#define DISPLAY_CS_Pin GPIO_PIN_6
-#define DISPLAY_CS_GPIO_Port GPIOC
-#define DISPLAY_CLK_Pin GPIO_PIN_8
-#define DISPLAY_CLK_GPIO_Port GPIOC
+#define LED2_Pin GPIO_PIN_15
+#define LED2_GPIO_Port GPIOB
+#define DISPLAY_CLK_Pin GPIO_PIN_3
+#define DISPLAY_CLK_GPIO_Port GPIOB
+#define DISPLAY_CS_Pin GPIO_PIN_4
+#define DISPLAY_CS_GPIO_Port GPIOB
+#define DISPLAY_DOUT_Pin GPIO_PIN_5
+#define DISPLAY_DOUT_GPIO_Port GPIOB
 
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

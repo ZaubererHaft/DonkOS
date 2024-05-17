@@ -2,7 +2,6 @@
 #define TEST_DONKOS_H
 
 #include "main.h"
-#include "stm32l4xx_hal_adc.h"
 #include "stm32l4xx_it.h"
 
 void Donkos_Init();
