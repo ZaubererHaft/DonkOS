@@ -15,9 +15,7 @@ private:
     ADC_HandleTypeDef hadc1;
     ProcessMatrixDisplay *display;
 
-    static constexpr uint32_t countTemperatures = 10;
-    uint8_t lastTemperatures [countTemperatures];
-    uint8_t index;
+    static constexpr uint32_t countTemperatures = 1000;
 };
 
 

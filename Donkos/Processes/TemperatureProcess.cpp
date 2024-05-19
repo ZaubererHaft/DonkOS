@@ -2,7 +2,7 @@
 #include "TemperatureProcess.h"
 #include "main.h"
 
-TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{}, display{display}, lastTemperatures{0U}, index{0U} {
+TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{}, display{display}  {
 
     /* USER CODE BEGIN ADC1_Init 0 */
 
@@ -63,24 +63,22 @@ TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{},
 
 void TemperatureProcess::Main() {
     while (true) {
-        float cal = 40;
+        float cal = 70;
         float offset = 1000;
 
-        HAL_ADC_Start(&hadc1);
-        HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-        uint32_t raw = HAL_ADC_GetValue(&hadc1);
-        float temp = (static_cast<float>(raw) - offset) / cal;
-        lastTemperatures[index] = static_cast<uint8_t>(std::round(temp));
-        index = (index + 1) % countTemperatures;
-
-        uint32_t sum = 0;
-        for (uint8_t &lastTemperature : lastTemperatures) {
-            sum += lastTemperature;
+        float temp = 0;
+        for (int i = 0; i < countTemperatures; ++i) {
+            HAL_ADC_Start(&hadc1);
+            HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+            uint32_t raw = HAL_ADC_GetValue(&hadc1);
+            temp += (static_cast<float>(raw) - offset) / cal;
         }
-        sum /= countTemperatures;
 
-        if (sum >= 0 && sum <= 99) {
-            display->Display(sum);
+        temp /= countTemperatures;
+        uint8_t casted = std::roundf(temp);
+
+        if (casted >= 0 && casted <= 99) {
+            display->Display(casted);
         }
         else
         {
