@@ -37,7 +37,7 @@ void Process7SegmentDisplay::Main() {
 
     while (1) {
         Write(mapping[num]);
-        HAL_Delay(1000);
+        wait(1000);
         num = (num + 1) % 10;
     }
 }

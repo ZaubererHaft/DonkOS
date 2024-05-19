@@ -44,14 +44,46 @@ uint32_t Process::InitStack() {
 void Process::SaveContext(uint32_t *regs) {
     //saves the context stored in regs array of this process to the process' stack
     stackPointer = store_context(regs);
+    if (state == ProcessState::RUNNING) {
+        state = ProcessState::READY;
+    }
 }
 
 void Process::LoadContext(uint32_t *regs) {
-    //loads the stored of this process to the regs array
+    //loads the context of this process to the regs array
     load_context(stackPointer, regs);
+    state = ProcessState::RUNNING;
 }
 
 uint32_t Process::GetStackPointer() const {
     return stackPointer;
+}
+
+ProcessState Process::GetState() const {
+    return state;
+}
+
+void Process::UpdateTimer() {
+    if (timer > 0) {
+        timer--;
+
+        if (timer <= 0) {
+            if (state == ProcessState::WAITING) {
+                state = ProcessState::READY;
+            }
+            timer = -1;
+        }
+
+    }
+}
+
+/*
+ * waits asynchronously (at least) n milliseconds until the process continues
+ * This will set the process to waiting state until the timer elapses
+ */
+void Process::wait(int32_t milliseconds) {
+    timer = milliseconds;
+    state = ProcessState::WAITING;
+    Donkos_BlockProcess(this);
 }
 

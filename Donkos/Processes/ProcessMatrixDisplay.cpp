@@ -38,11 +38,11 @@ void ProcessMatrixDisplay::Main() {
     while (true) {
         for (int i = 1; i <= 8; ++i) {
             SendData(i, 0x81);
-            HAL_Delay(250);
+            wait(250);
         }
         for (int i = 8; i >= 1; --i) {
             SendData(i, 0x00);
-            HAL_Delay(250);
+            wait(250);
         }
     }
 }

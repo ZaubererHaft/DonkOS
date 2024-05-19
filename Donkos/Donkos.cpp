@@ -63,6 +63,15 @@ void Donkos_RequestScheduling() {
     }
 }
 
+void Donkos_BlockProcess(Process *process) {
+    //request scheduling again
+    asm("SVC #0x1;");
+    // now wait until interrupt has been served
+    while (process->GetState() == ProcessState::WAITING) {
+        __NOP();
+    }
+}
+
 void Donkos_EndProcess(Process *process) {
     //request scheduling again
     asm("SVC #0x0;");
@@ -80,6 +89,7 @@ void Donkos_GenericProcessMain() {
 
 void SysTick_Handler(void) {
     HAL_IncTick();
+    scheduler.Tick();
     Donkos_RequestScheduling();
 }
 
@@ -123,12 +133,19 @@ void SVC_Handler_C(uint32_t *args) {
 
     uint32_t svcNumber = ((char *) args[6])[-2];
 
+    //unregister & reschedule
     if (svcNumber == 0) {
         //since PENDSV has a lower prio than SVC it would safe to unregister without IRQ disabling
         // however since scheduling request is privileged -> SVC call
         auto process = reinterpret_cast<Process *>(args[0]);
         __disable_irq();
         scheduler.UnregisterProcess(process);
+        Donkos_RequestScheduling();
+        __enable_irq();
+    }
+        //reschedule only
+    else if (svcNumber == 1) {
+        __disable_irq();
         Donkos_RequestScheduling();
         __enable_irq();
     }
@@ -192,20 +209,20 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, SHCP_Pin|STCP_Pin|DSSER_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, SHCP_Pin | STCP_Pin | DSSER_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : SHCP_Pin STCP_Pin DSSER_Pin */
-    GPIO_InitStruct.Pin = SHCP_Pin|STCP_Pin|DSSER_Pin;
+    GPIO_InitStruct.Pin = SHCP_Pin | STCP_Pin | DSSER_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pins : LED_1_Pin LED2_Pin DISPLAY_CS_Pin */
-    GPIO_InitStruct.Pin = LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin;
+    GPIO_InitStruct.Pin = LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

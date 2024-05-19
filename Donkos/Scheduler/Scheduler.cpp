@@ -24,10 +24,23 @@ void Scheduler::RegisterProcess(Process *process) {
 
 void Scheduler::Schedule() {
     if (index > 0) {
-
         if (currentProcess != nullptr) {
-            uint32_t nextPid = (currentProcess->GetPid() + 1) % index;
-            nextProcess = processes[nextPid];
+            uint32_t pidStart = currentProcess->GetPid();
+            uint32_t iterations = 0;
+            do {
+                pidStart++;
+                uint32_t nextPid = pidStart % index;
+                nextProcess = processes[nextPid];
+                iterations++;
+                //ignore processes that wait for a resource and continue until all processes where iterated
+            } while (nextProcess->GetState() == ProcessState::WAITING && iterations < index);
+
+            // if no next non-waiting process found -> no context switch
+            // in the worst case the system is idling with NOPs of the current process
+            // idea for improvement: go to sleep mode
+            if (iterations >= index) {
+                nextProcess = currentProcess;
+            }
         }
     }
 }
@@ -65,5 +78,11 @@ void Scheduler::UnregisterProcess(Process *process) {
         }
         processes[index - 1] = nullptr;
         index--;
+    }
+}
+
+void Scheduler::Tick() {
+    for (uint32_t i = 0; i < index; ++i) {
+        processes[i]->UpdateTimer();
     }
 }

@@ -23,6 +23,8 @@ public:
 
     void UnregisterProcess(Process *process);
 
+    void Tick();
+
 private:
     Process *processes[Donkos_MaxProcesses];
     uint32_t index;
