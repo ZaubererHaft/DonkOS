@@ -20,7 +20,7 @@ namespace {
     ProcessLed2 led2Process{};
     ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{};
-    TemperatureProcess temp{};
+    TemperatureProcess temp{&pmd};
 
     Scheduler scheduler{};
 }

@@ -1,7 +1,8 @@
+#include <cmath>
 #include "TemperatureProcess.h"
 #include "main.h"
 
-TemperatureProcess::TemperatureProcess() : hadc1{} {
+TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{}, display{display}, lastTemperatures{0U}, index{0U} {
 
     /* USER CODE BEGIN ADC1_Init 0 */
 
@@ -31,6 +32,7 @@ TemperatureProcess::TemperatureProcess() : hadc1{} {
     hadc1.Init.DMAContinuousRequests = DISABLE;
     hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     hadc1.Init.OversamplingMode = DISABLE;
+
     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
         Error_Handler();
     }
@@ -47,7 +49,7 @@ TemperatureProcess::TemperatureProcess() : hadc1{} {
     sConfig.Channel = ADC_CHANNEL_4;
     sConfig.Rank = ADC_REGULAR_RANK_1;
     sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
-    sConfig.SingleDiff = ADC_DIFFERENTIAL_ENDED;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
     sConfig.OffsetNumber = ADC_OFFSET_NONE;
     sConfig.Offset = 0;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
@@ -68,8 +70,20 @@ void TemperatureProcess::Main() {
         HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
         uint32_t raw = HAL_ADC_GetValue(&hadc1);
         float temp = (static_cast<float>(raw) - offset) / cal;
+        lastTemperatures[index] = static_cast<uint8_t>(std::round(temp));
+        index = (index + 1) % countTemperatures;
 
-        if (temp > 80) {
+        uint32_t sum = 0;
+        for (uint8_t &lastTemperature : lastTemperatures) {
+            sum += lastTemperature;
+        }
+        sum /= countTemperatures;
+
+        if (sum >= 0 && sum <= 99) {
+            display->Display(sum);
+        }
+        else
+        {
             Error_Handler();
         }
     }

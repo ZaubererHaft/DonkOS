@@ -1,7 +1,32 @@
 #include "ProcessMatrixDisplay.h"
 #include "stm32l4xx_hal.h"
 
-ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{} {
+namespace {
+    uint8_t s0[] = {0x1F, 0x11, 0x1F};
+    uint8_t s1[] = {0x00, 0x00, 0x1F};
+    uint8_t s2[] = {0x1D, 0x15, 0x17};
+    uint8_t s3[] = {0x15, 0x15, 0x1F};
+    uint8_t s4[] = {0x07, 0x04, 0x1F};
+    uint8_t s5[] = {0x17, 0x15, 0x1D};
+    uint8_t s6[] = {0x1F, 0x15, 0x1D};
+    uint8_t s7[] = {0x01, 0x01, 0x1F};
+    uint8_t s8[] = {0x1F, 0x15, 0x1F};
+    uint8_t s9[] = {0x17, 0x15, 0x1F};
+    uint8_t *numbers[] = {&s0[0],
+                          &s1[0],
+                          &s2[0],
+                          &s3[0],
+                          &s4[0],
+                          &s5[0],
+                          &s6[0],
+                          &s7[0],
+                          &s8[0],
+                          &s9[0]};
+    uint8_t display1 = 1;
+    uint8_t display2 = 5;
+}
+
+ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{}, numDisplay1{}, numDisplay2{} {
 
     hspi1.Instance = SPI1;
     hspi1.Init.Mode = SPI_MODE_MASTER;
@@ -25,6 +50,7 @@ ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{} {
     SendData(0x0C, 0x00); // turn off
 }
 
+
 void ProcessMatrixDisplay::Main() {
     //SendData(0x0F, 0x01); // display test -> turn all LEDs on
     SendData(0x0F, 0x00); // normal mode
@@ -39,14 +65,8 @@ void ProcessMatrixDisplay::Main() {
     SendData(0x0C, 0x01); // turn on
 
     while (true) {
-        for (int i = 1; i <= 8; ++i) {
-            SendData(i, 0x81);
-            wait(250);
-        }
-        for (int i = 8; i >= 1; --i) {
-            SendData(i, 0x00);
-            wait(250);
-        }
+        Display(display1, numDisplay1);
+        Display(display2, numDisplay2);
     }
 }
 
@@ -62,4 +82,21 @@ void ProcessMatrixDisplay::SendData(uint8_t addr, uint8_t data) {
 
     HAL_GPIO_WritePin(DISPLAY_CS_GPIO_Port, DISPLAY_CS_Pin, GPIO_PIN_RESET);
 
+}
+
+void ProcessMatrixDisplay::Display(uint8_t display, uint8_t number) {
+    if (number > 9 || display > 5) {
+        Error_Handler();
+    }
+
+    uint8_t *segments = numbers[number];
+
+    for (int i = 0; i < 3; ++i) {
+        SendData(display + i, segments[i]);
+    }
+}
+
+void ProcessMatrixDisplay::Display(uint8_t number) {
+    numDisplay2 = number % 10;
+    numDisplay1 = number / 10;
 }
