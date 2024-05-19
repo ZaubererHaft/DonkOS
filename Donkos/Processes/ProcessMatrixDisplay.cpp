@@ -1,7 +1,7 @@
 #include "ProcessMatrixDisplay.h"
 #include "stm32l4xx_hal.h"
 
-ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{}, decodeMode{0U} {
+ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{} {
 
     hspi1.Instance = SPI1;
     hspi1.Init.Mode = SPI_MODE_MASTER;
