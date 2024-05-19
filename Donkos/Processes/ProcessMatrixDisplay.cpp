@@ -21,14 +21,14 @@ ProcessMatrixDisplay::ProcessMatrixDisplay() : hspi1{} {
     if (HAL_SPI_Init(&hspi1) != HAL_OK) {
         Error_Handler();
     }
+    SendData(0x0F, 0x01); // display test -> turn all LEDs on
 }
 
 void ProcessMatrixDisplay::Main() {
-
-    SendData(0x0F, 0x00); // display test
+    SendData(0x0F, 0x00); // normal mode
     SendData(0x0B, 0x07); // scan limit
     SendData(0x09, 0x00); // no decode
-    SendData(0x0A, 0x00); // low intensity
+    SendData(0x0A, 0x00); // intensity
 
     for (int i = 1; i <= 8; ++i) {
         SendData(i, 0x00); // clear display
