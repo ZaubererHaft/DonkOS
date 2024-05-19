@@ -6,6 +6,7 @@
 #include "Scheduler.h"
 #include "ProcessNoLoop.h"
 #include "ProcessMatrixDisplay.h"
+#include "TemperatureProcess.h"
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -17,8 +18,9 @@ namespace {
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
-    ProcessNoLoop noloopProcess;
-    ProcessMatrixDisplay pmd;
+    ProcessNoLoop noloopProcess{};
+    ProcessMatrixDisplay pmd{};
+    TemperatureProcess temp{};
 
     Scheduler scheduler{};
 }
@@ -31,6 +33,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&noloopProcess);
     scheduler.RegisterProcess(&pmd);
+    scheduler.RegisterProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
 

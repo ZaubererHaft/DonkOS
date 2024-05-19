@@ -11,6 +11,8 @@ add_library(Donko Donkos.cpp
         Processes/Inc/ProcessMatrixDisplay.h
         Processes/store_context.S
         Processes/load_context.S
+        Processes/TemperatureProcess.cpp
+        Processes/Inc/TemperatureProcess.h
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc)
 target_include_directories(Donko PRIVATE .)
