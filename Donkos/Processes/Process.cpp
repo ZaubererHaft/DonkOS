@@ -4,7 +4,7 @@
 extern "C" void load_context(uint32_t, uint32_t *);
 extern "C" uint32_t store_context(uint32_t *);
 
-Process::Process() : pid{0U}, stack{0U}, stackPointer{0U} {}
+Process::Process() : pid{0U}, stack{0U}, stackPointer{0U}, state{ProcessState::CREATED} {}
 
 void Process::Main() {
 }
@@ -41,18 +41,18 @@ uint32_t Process::InitStack() {
     return initialSp;
 }
 
+void Process::SetState(ProcessState newState) {
+    state = newState;
+}
+
 void Process::SaveContext(uint32_t *regs) {
     //saves the context stored in regs array of this process to the process' stack
     stackPointer = store_context(regs);
-    if (state == ProcessState::RUNNING) {
-        state = ProcessState::READY;
-    }
 }
 
 void Process::LoadContext(uint32_t *regs) {
     //loads the context of this process to the regs array
     load_context(stackPointer, regs);
-    state = ProcessState::RUNNING;
 }
 
 uint32_t Process::GetStackPointer() const {

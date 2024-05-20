@@ -15,6 +15,7 @@ void Scheduler::SetInitialProcess(Process *process) {
 
 void Scheduler::RegisterProcess(Process *process) {
     if (index < Donkos_MaxProcesses) {
+        process->SetState(ProcessState::READY);
         process->SetPid(index);
         process->InitStack();
         processes[process->GetPid()] = process;
@@ -60,12 +61,18 @@ Process *Scheduler::GetCurrentProcess() {
 void Scheduler::ContextSwitch(uint32_t *savedRegs) {
     if (currentProcess != nullptr) {
         currentProcess->SaveContext(savedRegs);
+
+        //if process ended up waiting do not override its state s.t. it won't get scheduled until it is not waiting anymore
+        if (currentProcess->GetState() == ProcessState::RUNNING) {
+            currentProcess->SetState(ProcessState::READY);
+        }
     }
 
     currentProcess = nextProcess;
 
     if (nextProcess != nullptr) {
         nextProcess->LoadContext(savedRegs);
+        nextProcess->SetState(ProcessState::RUNNING);
     }
 }
 

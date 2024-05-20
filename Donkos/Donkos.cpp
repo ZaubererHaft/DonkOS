@@ -30,12 +30,12 @@ namespace {
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    Donkos_StartProcess(&mutexProcess);
-    Donkos_StartProcess(&led1Process);
-    Donkos_StartProcess(&led2Process);
-    Donkos_StartProcess(&noloopProcess);
-    Donkos_StartProcess(&pmd);
-    Donkos_StartProcess(&temp);
+    scheduler.RegisterProcess(&mutexProcess);
+    scheduler.RegisterProcess(&led1Process);
+    scheduler.RegisterProcess(&led2Process);
+    scheduler.RegisterProcess(&noloopProcess);
+    scheduler.RegisterProcess(&pmd);
+    scheduler.RegisterProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -69,13 +69,20 @@ void Donkos_RequestScheduling() {
 }
 
 void Donkos_StartProcess(Process *process) {
-    scheduler.RegisterProcess(process);
+    asm("SVC #0x2;");
+    //wait until task is registered to the scheduler
+    //with that we should make sure that the argument on the stack is still valid
+    //but not 100 % sure yet
+    while (process->GetState() == ProcessState::CREATED) {
+        __NOP();
+    }
 }
 
 void Donkos_BlockProcess(Process *process) {
-    //request scheduling again
     asm("SVC #0x1;");
     // now wait until interrupt has been served
+    // process will not be scheduled again until the resource the process was waiting for was freed
+    // it will then continue executing after the while loop
     while (process->GetState() == ProcessState::WAITING) {
         __NOP();
     }
@@ -160,6 +167,12 @@ void SVC_Handler_C(uint32_t *args) {
     else if (svcNumber == 1) {
         __disable_irq();
         Donkos_RequestScheduling();
+        __enable_irq();
+        //start a new process
+    } else if (svcNumber == 2) {
+        auto process = reinterpret_cast<Process *>(args[0]);
+        __disable_irq();
+        scheduler.RegisterProcess(process);
         __enable_irq();
     }
 

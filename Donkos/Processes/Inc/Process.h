@@ -4,7 +4,7 @@
 #include <cstdint>
 
 enum class ProcessState {
-    READY, WAITING, RUNNING
+    CREATED, READY, WAITING, RUNNING, DESTROYED
 };
 
 class Process {
@@ -28,6 +28,8 @@ public:
     ProcessState GetState() const;
 
     void UpdateTimer();
+
+    void SetState(ProcessState state);
 
 protected:
     void wait(int32_t milliseconds);
