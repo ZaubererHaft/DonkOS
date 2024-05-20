@@ -1,8 +1,9 @@
 #include <cmath>
 #include "TemperatureProcess.h"
 #include "main.h"
+#include "DonkosInternal.h"
 
-TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{}, display{display}  {
+TemperatureProcess::TemperatureProcess() : hadc1{} {
 
     /* USER CODE BEGIN ADC1_Init 0 */
 
@@ -55,18 +56,14 @@ TemperatureProcess::TemperatureProcess(ProcessMatrixDisplay *display) : hadc1{},
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
-    /* USER CODE BEGIN ADC1_Init 2 */
-
-    /* USER CODE END ADC1_Init 2 */
-
 }
 
 void TemperatureProcess::Main() {
     while (true) {
-        float cal = 70;
-        float offset = 1000;
+        float cal = 70.0;
+        float offset = 1000.0;
+        float temp = 0.0;
 
-        float temp = 0;
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc1);
             HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
@@ -78,10 +75,8 @@ void TemperatureProcess::Main() {
         uint8_t casted = std::roundf(temp);
 
         if (casted >= 0 && casted <= 99) {
-            display->Display(casted);
-        }
-        else
-        {
+            Donkos_DisplayNumber(casted);
+        } else {
             Error_Handler();
         }
     }

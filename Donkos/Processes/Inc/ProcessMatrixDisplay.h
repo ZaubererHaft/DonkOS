@@ -4,24 +4,16 @@
 
 #include "Process.h"
 #include "main.h"
+#include "Display.h"
 
 class ProcessMatrixDisplay : public Process {
 public:
-    ProcessMatrixDisplay();
+    ProcessMatrixDisplay(Display *display);
 
     void Main() override;
 
-    void Display(uint8_t number);
-
 private:
-    SPI_HandleTypeDef hspi1;
-    uint8_t numDisplay1;
-    uint8_t numDisplay2;
-
-    void SendData(uint8_t addr, uint8_t data);
-
-    void Display(uint8_t display, uint8_t number);
-
+    Display *display;
 };
 
 

@@ -15,12 +15,14 @@ static void MX_GPIO_Init();
 static void SystemClock_Config();
 
 namespace {
+    Display dotMatrix{};
+
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
     ProcessNoLoop noloopProcess{};
-    ProcessMatrixDisplay pmd{};
-    TemperatureProcess temp{&pmd};
+    ProcessMatrixDisplay pmd{&dotMatrix};
+    TemperatureProcess temp{};
 
     Scheduler scheduler{};
 }
@@ -82,6 +84,10 @@ void Donkos_EndProcess(Process *process) {
     while (true) {
         __NOP();
     }
+}
+
+void Donkos_DisplayNumber(uint8_t number) {
+    dotMatrix.Show(number);
 }
 
 void Donkos_GenericProcessMain() {

@@ -3,16 +3,13 @@ add_library(Donko Donkos.cpp
         Processes/Process7SegmentDisplay.cpp
         Processes/ProcessLed1.cpp
         Processes/ProcessLed2.cpp
-        Scheduler/context_switch.S
         Scheduler/Scheduler.cpp
-        svc_handler.S
         Processes/ProcessNoLoop.cpp
         Processes/ProcessMatrixDisplay.cpp
-        Processes/Inc/ProcessMatrixDisplay.h
         Processes/store_context.S
         Processes/load_context.S
         Processes/TemperatureProcess.cpp
-        Processes/Inc/TemperatureProcess.h
+        Services/Display.cpp
 )
-target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc)
+target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc)
 target_include_directories(Donko PRIVATE .)

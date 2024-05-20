@@ -7,13 +7,12 @@
 
 class TemperatureProcess : public Process {
 public:
-    TemperatureProcess(ProcessMatrixDisplay *display);
+    explicit TemperatureProcess();
 
     void Main() override;
 
 private:
     ADC_HandleTypeDef hadc1;
-    ProcessMatrixDisplay *display;
 
     static constexpr uint32_t countTemperatures = 1000;
 };
