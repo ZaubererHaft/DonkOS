@@ -2,25 +2,25 @@
 
 namespace {
     uint8_t bitmap_s0[] = {0x1F, 0x11, 0x1F};
-    uint8_t bitmap_ss1[] = {0x00, 0x00, 0x1F};
-    uint8_t bitmap_ss2[] = {0x1D, 0x15, 0x17};
-    uint8_t bitmap_ss3[] = {0x15, 0x15, 0x1F};
-    uint8_t bitmap_ss4[] = {0x07, 0x04, 0x1F};
-    uint8_t bitmap_ss5[] = {0x17, 0x15, 0x1D};
-    uint8_t bitmap_ss6[] = {0x1F, 0x15, 0x1D};
-    uint8_t bitmap_ss7[] = {0x01, 0x01, 0x1F};
-    uint8_t bitmap_ss8[] = {0x1F, 0x15, 0x1F};
-    uint8_t bitmap_ss9[] = {0x17, 0x15, 0x1F};
+    uint8_t bitmap_s1[] = {0x00, 0x00, 0x1F};
+    uint8_t bitmap_s2[] = {0x1D, 0x15, 0x17};
+    uint8_t bitmap_s3[] = {0x15, 0x15, 0x1F};
+    uint8_t bitmap_s4[] = {0x07, 0x04, 0x1F};
+    uint8_t bitmap_s5[] = {0x17, 0x15, 0x1D};
+    uint8_t bitmap_s6[] = {0x1F, 0x15, 0x1D};
+    uint8_t bitmap_s7[] = {0x01, 0x01, 0x1F};
+    uint8_t bitmap_s8[] = {0x1F, 0x15, 0x1F};
+    uint8_t bitmap_s9[] = {0x17, 0x15, 0x1F};
     uint8_t *numbers[] = {&bitmap_s0[0],
-                          &bitmap_ss1[0],
-                          &bitmap_ss2[0],
-                          &bitmap_ss3[0],
-                          &bitmap_ss4[0],
-                          &bitmap_ss5[0],
-                          &bitmap_ss6[0],
-                          &bitmap_ss7[0],
-                          &bitmap_ss8[0],
-                          &bitmap_ss9[0]};
+                          &bitmap_s1[0],
+                          &bitmap_s2[0],
+                          &bitmap_s3[0],
+                          &bitmap_s4[0],
+                          &bitmap_s5[0],
+                          &bitmap_s6[0],
+                          &bitmap_s7[0],
+                          &bitmap_s8[0],
+                          &bitmap_s9[0]};
     uint8_t halfLeftOffset = 1;
     uint8_t halfRightOffset = 5;
 }
@@ -49,7 +49,6 @@ void Display::Initialize() {
     }
 
     sendData(0x0C, 0x00); // turn off
-    //SendData(0x0F, 0x01); // display test -> turn all LEDs on
     sendData(0x0F, 0x00); // normal mode
     sendData(0x0B, 0x07); // scan limit
     sendData(0x09, 0x00); // no decode

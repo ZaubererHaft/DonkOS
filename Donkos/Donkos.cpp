@@ -30,18 +30,18 @@ namespace {
 void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
-    scheduler.RegisterProcess(&mutexProcess);
-    scheduler.RegisterProcess(&led1Process);
-    scheduler.RegisterProcess(&led2Process);
-    scheduler.RegisterProcess(&noloopProcess);
-    scheduler.RegisterProcess(&pmd);
-    scheduler.RegisterProcess(&temp);
+    Donkos_StartProcess(&mutexProcess);
+    Donkos_StartProcess(&led1Process);
+    Donkos_StartProcess(&led2Process);
+    Donkos_StartProcess(&noloopProcess);
+    Donkos_StartProcess(&pmd);
+    Donkos_StartProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
 
-    __set_CONTROL(0x3);
+    __set_CONTROL(0x3); //unprivileged mode starting here
     __ISB();
     __WFI();
 
@@ -66,6 +66,10 @@ void Donkos_RequestScheduling() {
     if (scheduler.NeedsContextSwitch()) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
+}
+
+void Donkos_StartProcess(Process *process) {
+    scheduler.RegisterProcess(process);
 }
 
 void Donkos_BlockProcess(Process *process) {

@@ -5,6 +5,8 @@
 
 void Donkos_GenericProcessMain();
 
+void Donkos_StartProcess(Process *process);
+
 void Donkos_BlockProcess(Process *process);
 
 void Donkos_EndProcess(Process *process);

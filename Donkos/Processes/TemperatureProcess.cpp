@@ -5,18 +5,11 @@
 
 TemperatureProcess::TemperatureProcess() : hadc1{} {
 
-    /* USER CODE BEGIN ADC1_Init 0 */
-
-    /* USER CODE END ADC1_Init 0 */
-
     ADC_MultiModeTypeDef multimode = {0};
     ADC_ChannelConfTypeDef sConfig = {0};
 
-    /* USER CODE BEGIN ADC1_Init 1 */
-
-    /* USER CODE END ADC1_Init 1 */
-
-    /** Common config
+    /**
+     * Common config
     */
     hadc1.Instance = ADC1;
     hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
