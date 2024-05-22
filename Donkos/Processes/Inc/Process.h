@@ -4,7 +4,7 @@
 #include <cstdint>
 
 enum class ProcessState {
-    CREATED, READY, WAITING, RUNNING, DESTROYED
+    CREATED, READY, WAITING, RUNNING
 };
 
 class Process {
