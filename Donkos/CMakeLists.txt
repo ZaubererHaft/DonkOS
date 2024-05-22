@@ -11,5 +11,5 @@ add_library(Donko Donkos.cpp
         Processes/TemperatureProcess.cpp
         Services/Display.cpp
 )
-target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc)
+target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc)
 target_include_directories(Donko PRIVATE .)
