@@ -10,25 +10,29 @@ public:
     BinaryHeap() : used{0U}, data{} {
     }
 
-    bool Capacity() {
+    int32_t Capacity() {
         return L;
     }
 
-    bool Length() {
+    int32_t Length() {
         return used;
     }
 
     void Insert(const T &value) {
         data[used] = value;
-        sift(used);
+        if (used > 0) {
+            sift(used);
+        }
         used++;
     }
 
     T PopMax() {
         auto ret = data[0];
         used--;
-        data[0] = data[used];
-        Heapify(0);
+        if (used > 0) {
+            data[0] = data[used];
+            Heapify(0);
+        }
         return ret;
     }
 
@@ -37,15 +41,19 @@ public:
         uint32_t r = 2 * i + 2;
         uint32_t largest = i;
 
-        if (l < used && data[l] > data[i])
+        if (l < used && data[l]->operator>(data[i]))
             largest = l;
-        if (r < used && data[r] > data[largest])
+        if (r < used && data[r]->operator>(data[largest]))
             largest = r;
 
         if (largest != i) {
             std::swap(data[i], data[largest]);
             Heapify(largest);
         }
+    }
+
+    std::pair<T *, int32_t> GetArrayRepresentation() {
+        return {&data[0], used};
     }
 
 
@@ -56,7 +64,7 @@ private:
     void sift(int32_t index) {
         int32_t parentIndex = (index - 1) / 2;
 
-        while (index > 0 && data[parentIndex] < data[index]) {
+        while (index > 0 && data[parentIndex]->operator<(data[index])) {
             std::swap(data[index], data[parentIndex]);
             index = parentIndex;
             parentIndex = (index - 1) / 2;
