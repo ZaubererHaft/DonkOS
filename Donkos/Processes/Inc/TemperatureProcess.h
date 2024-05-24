@@ -12,9 +12,9 @@ public:
     void Main() override;
 
 private:
-    ADC_HandleTypeDef hadc1;
-
     static constexpr uint32_t countTemperatures = 1000;
+
+    ADC_HandleTypeDef hadc1;
 };
 
 
