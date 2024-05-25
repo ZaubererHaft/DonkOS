@@ -1,13 +1,13 @@
-#ifndef TEST_TEMPERATUREPROCESS_H
-#define TEST_TEMPERATUREPROCESS_H
+#ifndef TEST_CLIMATEPROCESS_H
+#define TEST_CLIMATEPROCESS_H
 
 #include "Process.h"
 #include "main.h"
 #include "ProcessMatrixDisplay.h"
 
-class TemperatureProcess : public Process {
+class ClimateProcess : public Process {
 public:
-    explicit TemperatureProcess();
+    explicit ClimateProcess();
 
     void Main() override;
 
@@ -18,4 +18,4 @@ private:
 };
 
 
-#endif //TEST_TEMPERATUREPROCESS_H
+#endif //TEST_CLIMATEPROCESS_H

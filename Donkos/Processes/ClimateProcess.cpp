@@ -1,9 +1,9 @@
 #include <cmath>
-#include "TemperatureProcess.h"
+#include "ClimateProcess.h"
 #include "main.h"
 #include "DonkosInternal.h"
 
-TemperatureProcess::TemperatureProcess() : hadc1{} {
+ClimateProcess::ClimateProcess() : hadc1{} {
     ADC_MultiModeTypeDef multimode = {0};
 
     hadc1.Instance = ADC1;
@@ -56,12 +56,15 @@ TemperatureProcess::TemperatureProcess() : hadc1{} {
     }
 }
 
-void TemperatureProcess::Main() {
+void ClimateProcess::Main() {
     bool channel = false;
     int temps = 0;
     float cal = 70.0;
     float offset = 1000.0;
     float temp = 0.0;
+
+    volatile uint32_t keyValue = 0.0;
+    volatile uint32_t keys = 0;
 
     while (true) {
         HAL_StatusTypeDef st = HAL_ADC_Start(&hadc1);
@@ -74,7 +77,8 @@ void TemperatureProcess::Main() {
         }
 
         if (channel) {
-            volatile uint32_t raw = HAL_ADC_GetValue(&hadc1);
+            keyValue += HAL_ADC_GetValue(&hadc1);
+
         } else {
             uint32_t raw = HAL_ADC_GetValue(&hadc1);
             temp += (static_cast<float>(raw) - offset) / cal;
@@ -97,4 +101,3 @@ void TemperatureProcess::Main() {
         channel = !channel;
     }
 }
-
