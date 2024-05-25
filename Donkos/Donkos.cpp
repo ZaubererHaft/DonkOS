@@ -7,6 +7,7 @@
 #include "ProcessNoLoop.h"
 #include "ProcessMatrixDisplay.h"
 #include "NTCTemperatureProcess.h"
+#include "DHTProcess.h"
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -23,6 +24,7 @@ namespace {
     ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{&dotMatrix};
     NTCTemperatureProcess temp{};
+    DHTProcess dht{};
 
     Scheduler scheduler{};
 }
@@ -36,6 +38,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&noloopProcess);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
+    scheduler.RegisterProcess(&dht);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
