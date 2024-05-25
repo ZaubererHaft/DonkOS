@@ -8,7 +8,7 @@ add_library(Donko Donkos.cpp
         Processes/ProcessMatrixDisplay.cpp
         Processes/store_context.S
         Processes/load_context.S
-        Processes/ClimateProcess.cpp
+        Processes/NTCTemperatureProcess.cpp
         Services/Display.cpp
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc)

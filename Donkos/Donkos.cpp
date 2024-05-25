@@ -6,7 +6,7 @@
 #include "Scheduler.h"
 #include "ProcessNoLoop.h"
 #include "ProcessMatrixDisplay.h"
-#include "ClimateProcess.h"
+#include "NTCTemperatureProcess.h"
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -22,7 +22,7 @@ namespace {
     ProcessLed2 led2Process{};
     ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{&dotMatrix};
-    ClimateProcess temp{};
+    NTCTemperatureProcess temp{};
 
     Scheduler scheduler{};
 }

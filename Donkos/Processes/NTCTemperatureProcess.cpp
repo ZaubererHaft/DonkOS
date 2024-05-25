@@ -1,9 +1,26 @@
 #include <cmath>
-#include "ClimateProcess.h"
+#include "NTCTemperatureProcess.h"
 #include "main.h"
 #include "DonkosInternal.h"
 
-ClimateProcess::ClimateProcess() : hadc1{} {
+
+void ClimateData::AddRawNTC(uint32_t raw) {
+    ntcTemperature += (static_cast<float>(raw) - offset) / cal;
+    ntcMeasures += 1;
+}
+
+float ClimateData::AverageNTCAndReset() {
+    ntcTemperature /= static_cast<float>(ntcMeasures);
+    ntcMeasures = 0;
+    return ntcTemperature;
+}
+
+uint32_t ClimateData::NTCMeasures() {
+    return ntcMeasures;
+}
+
+
+NTCTemperatureProcess::NTCTemperatureProcess() : hadc1{}, data{} {
     ADC_MultiModeTypeDef multimode = {0};
 
     hadc1.Instance = ADC1;
@@ -56,16 +73,7 @@ ClimateProcess::ClimateProcess() : hadc1{} {
     }
 }
 
-void ClimateProcess::Main() {
-    bool channel = false;
-    int temps = 0;
-    float cal = 70.0;
-    float offset = 1000.0;
-    float temp = 0.0;
-
-    volatile uint32_t keyValue = 0.0;
-    volatile uint32_t keys = 0;
-
+void NTCTemperatureProcess::Main() {
     while (true) {
         HAL_StatusTypeDef st = HAL_ADC_Start(&hadc1);
         if (st != HAL_OK) {
@@ -75,29 +83,24 @@ void ClimateProcess::Main() {
         if (st != HAL_OK) {
             Error_Handler();
         }
+        processNTC();
 
-        if (channel) {
-            keyValue += HAL_ADC_GetValue(&hadc1);
-
-        } else {
-            uint32_t raw = HAL_ADC_GetValue(&hadc1);
-            temp += (static_cast<float>(raw) - offset) / cal;
-            temps++;
-
-            if (temps == countTemperatures) {
-                temps = 0;
-                temp /= countTemperatures;
-                uint8_t casted = std::roundf(temp);
-                if (casted >= 0 && casted <= 99) {
-                    Donkos_DisplayNumber(casted);
-                } else {
-                    Error_Handler();
-                }
-                temp = 0;
-            }
+        st = HAL_ADC_Stop(&hadc1);
+        if (st != HAL_OK) {
+            Error_Handler();
         }
+    }
+}
 
-        HAL_ADC_Stop(&hadc1);
-        channel = !channel;
+void NTCTemperatureProcess::processNTC() {
+    data.AddRawNTC(HAL_ADC_GetValue(&hadc1));
+
+    if (data.NTCMeasures() >= countTemperatures) {
+        auto averagedRoundedTemperature = static_cast<int32_t>(std::roundf(data.AverageNTCAndReset()));
+        if (averagedRoundedTemperature >= 0 && averagedRoundedTemperature <= 99) {
+            Donkos_DisplayNumber(averagedRoundedTemperature);
+        } else {
+            Error_Handler();
+        }
     }
 }
