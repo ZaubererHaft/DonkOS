@@ -88,22 +88,13 @@ uint8_t DHTProcess::Read() {
             i&= ~(1<<(7-j));   // write 0
         }
         else i|= (1<<(7-j));  // if the pin is high, write 1
-        while ((HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));  // wait for the pin to go low
+        while ((HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));  // wait for the pin to go low ToDo: this does not return :(
     }
     return i;
 }
 
-volatile uint32_t diff = 0;
 
 void DHTProcess::Main() {
-    HAL_GPIO_WritePin(DHT_GPIO_Port, DHT_Pin, GPIO_PIN_SET);
-
-    auto start = HAL_GetTick();
-    microDelay(50000);
-    auto end = HAL_GetTick();
-
-    diff = end - start;
-
     uint8_t hum1, hum2, tempC1, tempC2, SUM, CHECK;
     volatile float temp_Celsius = 0;
     volatile float temp_Fahrenheit = 0;
