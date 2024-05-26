@@ -21,6 +21,9 @@ private:
 
     uint8_t Read();
 
+    void setDataOutput();
+    void setDataInput();
+
 };
 
 
