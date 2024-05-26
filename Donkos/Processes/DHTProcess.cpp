@@ -78,25 +78,19 @@ uint8_t DHTProcess::Start() {
 
 
 uint8_t DHTProcess::Read() {
-    uint8_t x = 0, y = 0;
-    for (x = 0; x < 8; x++) {
-        pMillis = HAL_GetTick();
-        cMillis = HAL_GetTick();
-        while (!(HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)) && pMillis + 2 > cMillis) {
-            cMillis = HAL_GetTick();
+    uint8_t i,j;
+    for (j=0;j<8;j++)
+    {
+        while (!(HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));   // wait for the pin to go high
+        microDelay(20);   // wait for 40 us
+        if (!(HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)))   // if the pin is low
+        {
+            i&= ~(1<<(7-j));   // write 0
         }
-        microDelay(30);
-        if (!(HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)))   // if the pin is low
-            y &= ~(1 << (7 - x));
-        else
-            y |= (1 << (7 - x));
-        pMillis = HAL_GetTick();
-        cMillis = HAL_GetTick();
-        while ((HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)) && pMillis + 2 > cMillis) {  // wait for the pin to go low
-            cMillis = HAL_GetTick();
-        }
+        else i|= (1<<(7-j));  // if the pin is high, write 1
+        while ((HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));  // wait for the pin to go low
     }
-    return y;
+    return i;
 }
 
 volatile uint32_t diff = 0;
