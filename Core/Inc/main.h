@@ -57,8 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DHT_Pin GPIO_PIN_0
-#define DHT_GPIO_Port GPIOC
 #define NTC_Pin GPIO_PIN_3
 #define NTC_GPIO_Port GPIOC
 #define SHCP_Pin GPIO_PIN_5
@@ -77,6 +75,8 @@ void Error_Handler(void);
 #define DISPLAY_CS_GPIO_Port GPIOB
 #define DISPLAY_DOUT_Pin GPIO_PIN_5
 #define DISPLAY_DOUT_GPIO_Port GPIOB
+#define DHT_Pin GPIO_PIN_7
+#define DHT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -15,7 +15,7 @@ public:
     uint32_t NTCMeasures();
 
 private:
-    static constexpr float cal = 70.0;
+    static constexpr float cal = 50.0;
     static constexpr float offset = 1000.0;
 
     float ntcTemperature;
@@ -29,14 +29,12 @@ public:
     void Main() override;
 
 private:
-    static constexpr uint32_t countTemperatures = 750;
+    static constexpr uint32_t countTemperatures = 1000;
 
     ADC_HandleTypeDef hadc1;
     ClimateData data;
 
     void processNTC();
-
-    void processDHT();
 };
 
 

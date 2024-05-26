@@ -11,8 +11,10 @@ void ClimateData::AddRawNTC(uint32_t raw) {
 
 float ClimateData::AverageNTCAndReset() {
     ntcTemperature /= static_cast<float>(ntcMeasures);
+    auto ret = ntcTemperature;
+    ntcTemperature = 0;
     ntcMeasures = 0;
-    return ntcTemperature;
+    return ret;
 }
 
 uint32_t ClimateData::NTCMeasures() {

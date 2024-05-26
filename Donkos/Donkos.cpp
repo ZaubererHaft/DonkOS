@@ -234,6 +234,7 @@ static void MX_GPIO_Init(void) {
 /* USER CODE END MX_GPIO_Init_1 */
 
     /* GPIO Ports Clock Enable */
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -241,7 +242,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOA, SHCP_Pin|STCP_Pin|DSSER_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : SHCP_Pin STCP_Pin DSSER_Pin */
     GPIO_InitStruct.Pin = SHCP_Pin|STCP_Pin|DSSER_Pin;
@@ -250,12 +251,15 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : LED_1_Pin LED2_Pin DISPLAY_CS_Pin */
-    GPIO_InitStruct.Pin = LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin;
+    /*Configure GPIO pins : LED_1_Pin LED2_Pin DISPLAY_CS_Pin DHT_Pin */
+    GPIO_InitStruct.Pin = LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /**
