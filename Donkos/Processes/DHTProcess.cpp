@@ -54,41 +54,43 @@ void DHTProcess::setDataInput() {
 
 
 uint8_t DHTProcess::Start() {
+    uint8_t Response = 0;
+
+    //send start signal by pull down voltage at least 18 ms
     setDataOutput();
     HAL_GPIO_WritePin(DHT_GPIO_Port, DHT_Pin, GPIO_PIN_RESET);
     microDelay(19000);
+
+    //now pull up voltage and wait for DHT response 20-40 mu s
     HAL_GPIO_WritePin(DHT_GPIO_Port, DHT_Pin, GPIO_PIN_SET);
     setDataInput();
-
-    uint8_t Response = 0;
     microDelay(30);
+
+    //DHT should send out response signal for 80 ms...
     if (!(HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin))) {
         microDelay(80);
+
+        // and DHT pulls up voltage and keeps it for 80 ms
         if ((HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin))) {
             Response = 1;
         }
     }
-    pMillis = HAL_GetTick();
-    cMillis = HAL_GetTick();
-    while ((HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)) && pMillis + 2 > cMillis) {
-        cMillis = HAL_GetTick();
-    }
+    microDelay(80);
+
     return Response;
 }
 
 
 uint8_t DHTProcess::Read() {
-    uint8_t i,j;
-    for (j=0;j<8;j++)
-    {
-        while (!(HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));   // wait for the pin to go high
+    uint8_t i, j;
+    for (j = 0; j < 8; j++) {
+        while (!(HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)));   // wait for the pin to go high
         microDelay(20);   // wait for 40 us
-        if (!(HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)))   // if the pin is low
+        if (!(HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)))   // if the pin is low
         {
-            i&= ~(1<<(7-j));   // write 0
-        }
-        else i|= (1<<(7-j));  // if the pin is high, write 1
-        while ((HAL_GPIO_ReadPin (DHT_GPIO_Port, DHT_Pin)));  // wait for the pin to go low ToDo: this does not return :(
+            i &= ~(1 << (7 - j));   // write 0
+        } else i |= (1 << (7 - j));  // if the pin is high, write 1
+        while ((HAL_GPIO_ReadPin(DHT_GPIO_Port, DHT_Pin)));  // wait for the pin to go low ToDo: this does not return :(
     }
     return i;
 }
@@ -96,12 +98,12 @@ uint8_t DHTProcess::Read() {
 
 void DHTProcess::Main() {
     uint8_t hum1, hum2, tempC1, tempC2, SUM, CHECK;
-    volatile float temp_Celsius = 0;
-    volatile float temp_Fahrenheit = 0;
-    volatile float Humidity = 0;
+    float temp_Celsius = 0;
+    float temp_Fahrenheit = 0;
+    float Humidity = 0;
 
-    if (Start()) {
-        while (true) {
+    while (true) {
+        if (Start()) {
             hum1 = Read();
             hum2 = Read();
             tempC1 = Read();
@@ -119,9 +121,6 @@ void DHTProcess::Main() {
 
             wait(2000);
         }
-    } else {
-        Error_Handler();
     }
-
 
 }

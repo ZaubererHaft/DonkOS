@@ -13,4 +13,8 @@ void Donkos_EndProcess(Process *process);
 
 void Donkos_DisplayNumber(uint8_t number);
 
+void Donkos_DisableIRQ();
+
+void Donkos_EnableIRQ();
+
 #endif //TEST_DONKOSINTERNAL_H

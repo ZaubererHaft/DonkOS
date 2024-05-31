@@ -100,6 +100,7 @@ void Donkos_EndProcess(Process *process) {
     }
 }
 
+
 void Donkos_DisplayNumber(uint8_t number) {
     dotMatrix.Show(number);
 }
@@ -113,7 +114,10 @@ void Donkos_GenericProcessMain() {
 void SysTick_Handler(void) {
     HAL_IncTick();
     scheduler.Tick();
-    Donkos_RequestScheduling();
+    if(HAL_GetTick() % 1 == 0)
+    {
+        Donkos_RequestScheduling();
+    }
 }
 
 /**

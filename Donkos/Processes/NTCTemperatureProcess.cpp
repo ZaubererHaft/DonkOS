@@ -4,25 +4,7 @@
 #include "DonkosInternal.h"
 
 
-void ClimateData::AddRawNTC(uint32_t raw) {
-    ntcTemperature += (static_cast<float>(raw) - offset) / cal;
-    ntcMeasures += 1;
-}
-
-float ClimateData::AverageNTCAndReset() {
-    ntcTemperature /= static_cast<float>(ntcMeasures);
-    auto ret = ntcTemperature;
-    ntcTemperature = 0;
-    ntcMeasures = 0;
-    return ret;
-}
-
-uint32_t ClimateData::NTCMeasures() {
-    return ntcMeasures;
-}
-
-
-NTCTemperatureProcess::NTCTemperatureProcess() : hadc1{}, data{} {
+NTCTemperatureProcess::NTCTemperatureProcess() : hadc1{}  {
     ADC_MultiModeTypeDef multimode = {0};
 
     hadc1.Instance = ADC1;
@@ -77,30 +59,22 @@ NTCTemperatureProcess::NTCTemperatureProcess() : hadc1{}, data{} {
 
 void NTCTemperatureProcess::Main() {
     while (true) {
-        HAL_StatusTypeDef st = HAL_ADC_Start(&hadc1);
-        if (st != HAL_OK) {
-            Error_Handler();
-        }
-        st = HAL_ADC_PollForConversion(&hadc1, 5);
-        if (st != HAL_OK) {
-            Error_Handler();
-        }
-        processNTC();
+        float cal = 70.0;
+        float offset = 1000.0;
+        float temp = 0.0;
 
-        st = HAL_ADC_Stop(&hadc1);
-        if (st != HAL_OK) {
-            Error_Handler();
+        for (int i = 0; i < countTemperatures; ++i) {
+            HAL_ADC_Start(&hadc1);
+            HAL_ADC_PollForConversion(&hadc1, 5);
+            uint32_t raw = HAL_ADC_GetValue(&hadc1);
+            temp += (static_cast<float>(raw) - offset) / cal;
         }
-    }
-}
 
-void NTCTemperatureProcess::processNTC() {
-    data.AddRawNTC(HAL_ADC_GetValue(&hadc1));
+        temp /= countTemperatures;
+        uint8_t casted = std::roundf(temp);
 
-    if (data.NTCMeasures() >= countTemperatures) {
-        auto averagedRoundedTemperature = static_cast<int32_t>(std::roundf(data.AverageNTCAndReset()));
-        if (averagedRoundedTemperature >= 0 && averagedRoundedTemperature <= 99) {
-            Donkos_DisplayNumber(averagedRoundedTemperature);
+        if (casted >= 0 && casted <= 99) {
+            Donkos_DisplayNumber(casted);
         } else {
             Error_Handler();
         }
