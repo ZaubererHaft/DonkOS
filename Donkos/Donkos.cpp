@@ -8,6 +8,8 @@
 #include "ProcessMatrixDisplay.h"
 #include "NTCTemperatureProcess.h"
 #include "DHTProcess.h"
+#include "SSD1306Process.h"
+
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -25,6 +27,7 @@ namespace {
     ProcessMatrixDisplay pmd{&dotMatrix};
     NTCTemperatureProcess temp{};
     DHTProcess dht{};
+    SSD1306Process ssd1306Process{};
 
     Scheduler scheduler{};
 }
@@ -39,6 +42,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
     scheduler.RegisterProcess(&dht);
+    scheduler.RegisterProcess(&ssd1306Process);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -62,6 +66,7 @@ void Donkos_Init() {
 
     //Digital
     MX_GPIO_Init();
+
 }
 
 void Donkos_RequestScheduling() {
@@ -114,8 +119,7 @@ void Donkos_GenericProcessMain() {
 void SysTick_Handler(void) {
     HAL_IncTick();
     scheduler.Tick();
-    if(HAL_GetTick() % 1 == 0)
-    {
+    if (HAL_GetTick() % 1 == 0) {
         Donkos_RequestScheduling();
     }
 }
@@ -243,20 +247,20 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, SHCP_Pin|STCP_Pin|DSSER_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, SHCP_Pin | STCP_Pin | DSSER_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin | DHT_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : SHCP_Pin STCP_Pin DSSER_Pin */
-    GPIO_InitStruct.Pin = SHCP_Pin|STCP_Pin|DSSER_Pin;
+    GPIO_InitStruct.Pin = SHCP_Pin | STCP_Pin | DSSER_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pins : LED_1_Pin LED2_Pin DISPLAY_CS_Pin DHT_Pin */
-    GPIO_InitStruct.Pin = LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin;
+    GPIO_InitStruct.Pin = LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin | DHT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
