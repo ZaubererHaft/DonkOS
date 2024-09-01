@@ -41,17 +41,6 @@ NTCTemperatureProcess::NTCTemperatureProcess() : hadc1{}  {
     sConfigChannel4.OffsetNumber = ADC_OFFSET_NONE;
     sConfigChannel4.Offset = 0;
 
-    ADC_ChannelConfTypeDef sConfigChannel1;
-    sConfigChannel1.Channel = ADC_CHANNEL_1;
-    sConfigChannel1.Rank = ADC_REGULAR_RANK_1;
-    sConfigChannel1.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
-    sConfigChannel1.SingleDiff = ADC_SINGLE_ENDED;
-    sConfigChannel1.OffsetNumber = ADC_OFFSET_NONE;
-    sConfigChannel1.Offset = 0;
-
-    if (HAL_ADC_ConfigChannel(&hadc1, &sConfigChannel1) != HAL_OK) {
-        Error_Handler();
-    }
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfigChannel4) != HAL_OK) {
         Error_Handler();
     }
@@ -67,6 +56,7 @@ void NTCTemperatureProcess::Main() {
             HAL_ADC_Start(&hadc1);
             HAL_ADC_PollForConversion(&hadc1, 5);
             uint32_t raw = HAL_ADC_GetValue(&hadc1);
+            HAL_ADC_Stop(&hadc1);
             temp += (static_cast<float>(raw) - offset) / cal;
         }
 

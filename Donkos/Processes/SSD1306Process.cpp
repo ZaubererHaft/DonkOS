@@ -136,13 +136,10 @@ void SSD1306Process::Main() {
     ssd1306_WriteCommand(0x14);   //
     ssd1306_WriteCommand(0xAF);   // Turn on SSD1306 panel
 
+    ssd1306_Fill(Black);
+    ssd1306_UpdateScreen();
 
     while (true) {
-        ssd1306_Fill(White);
-        ssd1306_UpdateScreen();
-        wait(1000);
-        ssd1306_Fill(Black);
-        ssd1306_UpdateScreen();
-        wait(1000);
+
     }
 }
