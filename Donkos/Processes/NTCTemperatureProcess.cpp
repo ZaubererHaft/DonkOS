@@ -47,13 +47,9 @@ void NTCTemperatureProcess::InitADC() {
     }
 }
 
-
-float getRefVoltage() {
-    auto ref = VREFBUF->CSR;
-    auto reftype = ref & 0b100;
-    return reftype == 0 ? 2.048 : 2.5;
+float getADCRefVoltageInV() {
+    return (VREFBUF->CSR & 0b100) == 0 ? 2.048 : 2.5;
 }
-
 
 void NTCTemperatureProcess::Main() {
 
@@ -75,8 +71,9 @@ void NTCTemperatureProcess::Main() {
         }
         raw /= countTemperatures;
 
-        double voltref_ADC = getRefVoltage();
-        double v0 = (voltref_ADC / ADC_MAX) * raw;
+        // Formula inspired from texas instrument: https://www.ti.com/lit/an/sbaa338a/sbaa338a.pdf?ts=1725297395650&ref_url=https%253A%252F%252Fwww.google.com%252F
+        // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
+        double v0 = (getADCRefVoltageInV() / ADC_MAX) * raw; //voltage measured by ADC
         double as_Temp = (1.0 / ((1.0 / T25) + (1.0 / beta) * std::log((R1 * v0) / (R25 * (voltref_Circuit - v0))))) -
                          OFFSET_KELVIN;
         auto casted = static_cast<int32_t>(std::round(as_Temp));
