@@ -48,38 +48,44 @@ void NTCTemperatureProcess::InitADC() {
 }
 
 
+float getRefVoltage() {
+    auto ref = VREFBUF->CSR;
+    auto reftype = ref & 0b100;
+    return reftype == 0 ? 2.048 : 2.5;
+}
+
+
 void NTCTemperatureProcess::Main() {
 
-    volatile auto ref = VREFBUF->CSR;
-    volatile auto reftype = ref & 0b100;
-    volatile float refvolt = reftype == 0 ? 2.048 : 2.5;
-    volatile double refCurrent_mA = refvolt / 12.0;
+    static constexpr double OFFSET_KELVIN = 273.15;
+    static constexpr double R25 = 10'000;
+    static constexpr double T25 = 25 + OFFSET_KELVIN;
+    static constexpr double R1 = 10'000;
+    static constexpr double beta = 3835.51;
+    static constexpr double voltref_Circuit = 3.3;
+    static constexpr double ADC_MAX = 4095;
 
     while (true) {
-        double temperature = 0;
-
+        volatile uint32_t raw = 0;
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc3);
             HAL_ADC_PollForConversion(&hadc3, 5);
-
-            volatile uint32_t raw = HAL_ADC_GetValue(&hadc3);
+            raw += HAL_ADC_GetValue(&hadc3);
             HAL_ADC_Stop(&hadc3);
+        }
+        raw /= countTemperatures;
 
-            double voltage_V = (refvolt / 4095.0) * static_cast<double>(raw);
-            double resistance_kOhm = (refvolt - voltage_V) / refCurrent_mA;
+        double voltref_ADC = getRefVoltage();
+        double v0 = (voltref_ADC / ADC_MAX) * raw;
+        double as_Temp = (1.0 / ((1.0 / T25) + (1.0 / beta) * std::log((R1 * v0) / (R25 * (voltref_Circuit - v0))))) -
+                         OFFSET_KELVIN;
+        auto casted = static_cast<int32_t>(std::round(as_Temp));
 
-            double as_Temp = 1.0 / ((std::log(resistance_kOhm / 14.5) / 4300.0) + 1.0 / 289.0) - 273.0;
-
-            temperature += as_Temp;
+        if (casted < 0 || casted > 99) {
+            casted = 0;
         }
 
-        temperature /= countTemperatures;
-        uint32_t casted = std::roundf(temperature);
+        Donkos_DisplayNumber(casted);
 
-        if (casted >= 0 && casted <= 99) {
-            Donkos_DisplayNumber(casted);
-        } else {
-            Error_Handler();
-        }
     }
 }
