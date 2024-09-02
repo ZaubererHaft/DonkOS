@@ -57,7 +57,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define NTC_Pin GPIO_PIN_3
+#define NTC_Pin GPIO_PIN_0
 #define NTC_GPIO_Port GPIOC
 #define SHCP_Pin GPIO_PIN_5
 #define SHCP_GPIO_Port GPIOA

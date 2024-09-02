@@ -64,6 +64,8 @@ void Donkos_Init() {
     //Clock Init
     SystemClock_Config();
 
+    temp.InitADC();
+
     //Digital
     MX_GPIO_Init();
 
