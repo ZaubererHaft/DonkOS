@@ -10,6 +10,8 @@
 // I2C
 class SSD1306Process  : public Process {
 public:
+    void Init();
+
     void Main() override;
 };
 

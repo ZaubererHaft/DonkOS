@@ -14,6 +14,10 @@ add_library(Donko Donkos.cpp
         Processes/Inc/DHTProcess.h
         Processes/SSD1306Process.cpp
         Processes/Inc/SSD1306Process.h
+        Drivers/SSD1306/fonts.cpp
+        Drivers/SSD1306/ssd1306.cpp
+        Drivers/SSD1306/Inc/fonts.h
+        Drivers/SSD1306/Inc/ssd1306.h
 )
-target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc)
+target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc  Drivers/SSD1306/Inc)
 target_include_directories(Donko PRIVATE .)

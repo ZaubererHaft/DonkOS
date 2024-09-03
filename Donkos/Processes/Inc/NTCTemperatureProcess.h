@@ -18,6 +18,7 @@ private:
 
     ADC_HandleTypeDef hadc3;
 
+    static float getADCRefVoltageInV();
 };
 
 

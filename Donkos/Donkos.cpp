@@ -69,6 +69,7 @@ void Donkos_Init() {
     //Digital
     MX_GPIO_Init();
 
+    ssd1306Process.Init();
 }
 
 void Donkos_RequestScheduling() {

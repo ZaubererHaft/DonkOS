@@ -47,7 +47,7 @@ void NTCTemperatureProcess::InitADC() {
     }
 }
 
-float getADCRefVoltageInV() {
+float NTCTemperatureProcess::getADCRefVoltageInV() {
     return (VREFBUF->CSR & 0b100) == 0 ? 2.048 : 2.5;
 }
 
