@@ -135,9 +135,14 @@ void PendSV_Handler(void) {
     // Here we call the context switch
     // First step: provide array for registers of the current running process (which however got interrupted now)
     // since R4-R11 might be changed because of local variables we need to save them immediately
-    __asm("SUB SP, #32;\n"
-          "STMIA SP, {R4-R11};\n"
-          "MOV %[arr], SP;\n"
+    __asm(
+            "STMDB SP!, {R4-R11};\n"
+            "SUB SP, #4\n"
+            "STR LR, [SP]\n"
+            "SUB SP, #4\n"
+            "MRS R0, CONTROL\n"
+            "STR R0, [SP]\n"
+            "MOV %[arr], SP;\n"
             : [arr] "=r"(tmpArr));
 
     //now call context switch: this will save the array in the current process stack
@@ -145,8 +150,16 @@ void PendSV_Handler(void) {
     scheduler.ContextSwitch(tmpArr);
 
     //now finally apply the context switch by loading the R4-R11 from the array
-    __asm("LDMIA SP, {R4-R11};\n"
-          "ADD SP, #32;\n");
+
+    __asm(
+            "LDR R0, [SP]\n"
+            "MSR CONTROL, R0 \n"
+            "ADD SP, #4\n"
+            "LDR LR, [SP]\n"
+            "ISB\n"
+            "ADD SP, #4\n"
+            "LDMIA SP!, {R4-R11};\n"
+            );
 }
 
 /**
