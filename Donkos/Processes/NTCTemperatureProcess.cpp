@@ -3,13 +3,15 @@
 #include "main.h"
 #include "DonkosInternal.h"
 
+namespace {
+    constexpr float ADC_MAX = 4095.0f;
+}
 
-NTCTemperatureProcess::NTCTemperatureProcess() : hadc3{} {
+NTCTemperatureProcess::NTCTemperatureProcess() : hadc3{}, sensor{{10'000.0f, 3835.51}} {
 }
 
 void NTCTemperatureProcess::InitADC() {
 
-    ADC_ChannelConfTypeDef sConfig = {0};
 
     hadc3.Instance = ADC3;
     hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV128;
@@ -33,6 +35,8 @@ void NTCTemperatureProcess::InitADC() {
     if (HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED) != HAL_OK) {
         Error_Handler();
     }
+
+    ADC_ChannelConfTypeDef sConfig = {0};
 
     /** Configure Regular Channel
     */
@@ -59,30 +63,25 @@ void NTCTemperatureProcess::Main() {
     static constexpr double R1 = 10'000;
     static constexpr double beta = 3835.51;
     static constexpr double voltref_Circuit = 3.3;
-    static constexpr double ADC_MAX = 4095;
 
     while (true) {
-        volatile uint32_t raw = 0;
+        volatile uint32_t rawValueTemperature = 0;
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc3);
             HAL_ADC_PollForConversion(&hadc3, 5);
-            raw += HAL_ADC_GetValue(&hadc3);
+            rawValueTemperature += HAL_ADC_GetValue(&hadc3);
             HAL_ADC_Stop(&hadc3);
         }
-        raw /= countTemperatures;
+        rawValueTemperature /= countTemperatures;
 
-        // Formula inspired from texas instrument: https://www.ti.com/lit/an/sbaa338a/sbaa338a.pdf?ts=1725297395650&ref_url=https%253A%252F%252Fwww.google.com%252F
         // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
-        double v0 = (getADCRefVoltageInV() / ADC_MAX) * raw; //voltage measured by ADC
-        double as_Temp = (1.0 / ((1.0 / T25) + (1.0 / beta) * std::log((R1 * v0) / (R25 * (voltref_Circuit - v0))))) -
-                         OFFSET_KELVIN;
-        auto casted = static_cast<int32_t>(std::round(as_Temp));
+        auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);
+        auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
 
+        auto casted = static_cast<int32_t>(std::round(measuredTemperature));
         if (casted < 0 || casted > 99) {
             casted = 0;
         }
-
         Donkos_DisplayNumber(casted);
-
     }
 }

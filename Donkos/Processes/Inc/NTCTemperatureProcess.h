@@ -4,6 +4,7 @@
 #include "Process.h"
 #include "main.h"
 #include "ProcessMatrixDisplay.h"
+#include "NTCSensor.h"
 
 class NTCTemperatureProcess : public Process {
 public:
@@ -17,7 +18,7 @@ private:
     static constexpr uint32_t countTemperatures = 100;
 
     ADC_HandleTypeDef hadc3;
-
+    NTCSensor sensor;
     static float getADCRefVoltageInV();
 };
 
