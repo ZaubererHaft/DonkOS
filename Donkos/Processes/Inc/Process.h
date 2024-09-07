@@ -35,7 +35,7 @@ protected:
     void wait(int32_t milliseconds);
 
 private:
-    static constexpr uint32_t stackSizeInByte = 64U;
+    static constexpr uint32_t stackSizeInByte = 512U;
 
     uint32_t pid;
     uint32_t stack[stackSizeInByte];

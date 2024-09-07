@@ -11,6 +11,7 @@ add_library(Donko Donkos.cpp
         Processes/NTCTemperatureProcess.cpp
         Services/Display.cpp
         Services/LedDisplay.cpp
+        Services/NTCSensor.cpp
         Processes/DHTProcess.cpp
         Processes/Inc/DHTProcess.h
         Processes/SSD1306Process.cpp
