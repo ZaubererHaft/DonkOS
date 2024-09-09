@@ -76,7 +76,7 @@ void NTCTemperatureProcess::Main() {
         volatile auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
 
         snprintf(floatAsText, 10, "%.2f", measuredTemperature);
-        char output[17] = "Temp: ";
+        char output[20] = "Temp: ";
         strcat(output, floatAsText);
         Donkos_Display(output);
     }
