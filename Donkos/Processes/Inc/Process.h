@@ -35,13 +35,15 @@ protected:
     void wait(int32_t milliseconds);
 
 private:
-    static constexpr uint32_t stackSizeInByte = 512U;
+    static constexpr uint32_t stackSizeInByte = 1024;
 
     uint32_t pid;
     uint32_t stack[stackSizeInByte];
     uint32_t stackPointer;
     ProcessState state;
     int32_t timer;
+
+    void setReg(uint32_t &indexer, uint32_t reg);
 };
 
 

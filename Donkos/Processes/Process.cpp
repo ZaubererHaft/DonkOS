@@ -33,6 +33,17 @@ uint32_t Process::InitStack() {
     uint32_t R1 = 0;
     uint32_t R0 = 0;
 
+    uint32_t indexer = stackSizeInByte - 1;
+
+    setReg(indexer, xpsr);
+    setReg(indexer, pc);
+    setReg(indexer, lr);
+    setReg(indexer, R12);
+    setReg(indexer, R3);
+    setReg(indexer, R2);
+    setReg(indexer, R1);
+    setReg(indexer, R0);
+
     //initial callee register values; in a context switch, they get updated by the OS
     uint32_t R11 = 0;
     uint32_t R10 = 0;
@@ -42,29 +53,19 @@ uint32_t Process::InitStack() {
     uint32_t R6 = 0;
     uint32_t R5 = 0;
     uint32_t R4 = 0;
-    uint32_t exec_return = 0xFFFFFFFD;
+    uint32_t exec_return = 0xFFFFFFFD;  //NO FPU
     uint32_t control = 0x3;
 
-    stack[stackSizeInByte - 1] = xpsr;
-    stack[stackSizeInByte - 2] = pc;
-    stack[stackSizeInByte - 3] = lr;
-    stack[stackSizeInByte - 4] = R12;
-    stack[stackSizeInByte - 5] = R3;
-    stack[stackSizeInByte - 6] = R2;
-    stack[stackSizeInByte - 7] = R1;
-    stack[stackSizeInByte - 8] = R0;
-
-    stack[stackSizeInByte - 9] = R11;
-    stack[stackSizeInByte - 10] = R10;
-    stack[stackSizeInByte - 11] = R9;
-    stack[stackSizeInByte - 12] = R8;
-    stack[stackSizeInByte - 13] = R7;
-    stack[stackSizeInByte - 14] = R6;
-    stack[stackSizeInByte - 15] = R5;
-    stack[stackSizeInByte - 16] = R4;
-
-    stack[stackSizeInByte - 17] = exec_return;
-    stack[stackSizeInByte - 18] = control;
+    setReg(indexer, R11);
+    setReg(indexer, R10);
+    setReg(indexer, R9);
+    setReg(indexer, R8);
+    setReg(indexer, R7);
+    setReg(indexer, R6);
+    setReg(indexer, R5);
+    setReg(indexer, R4);
+    setReg(indexer, exec_return);
+    setReg(indexer, control);
 
     //set initial SP to last address
     //space for 16 regs? or why 16?
@@ -117,5 +118,10 @@ void Process::wait(int32_t milliseconds) {
     timer = milliseconds;
     state = ProcessState::WAITING;
     Donkos_BlockProcess(this);
+}
+
+void Process::setReg(uint32_t &indexer, uint32_t reg) {
+    stack[indexer] = reg;
+    indexer--;
 }
 
