@@ -1,4 +1,6 @@
 #include <cmath>
+#include <string>
+#include <cstring>
 #include "NTCTemperatureProcess.h"
 #include "main.h"
 #include "DonkosInternal.h"
@@ -56,15 +58,10 @@ float NTCTemperatureProcess::getADCRefVoltageInV() {
 }
 
 void NTCTemperatureProcess::Main() {
-
-    static constexpr double OFFSET_KELVIN = 273.15;
-    static constexpr double R25 = 10'000;
-    static constexpr double T25 = 25 + OFFSET_KELVIN;
-    static constexpr double R1 = 10'000;
-    static constexpr double beta = 3835.51;
-    static constexpr double voltref_Circuit = 3.3;
+    char floatAsText[10];
 
     while (true) {
+
         volatile uint32_t rawValueTemperature = 0;
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc3);
@@ -76,12 +73,11 @@ void NTCTemperatureProcess::Main() {
 
         // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);
-        auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
+        volatile auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
 
-        auto casted = static_cast<int32_t>(std::round(measuredTemperature));
-        if (casted < 0 || casted > 99) {
-            casted = 0;
-        }
-        Donkos_DisplayNumber(casted);
+        snprintf(floatAsText, 10, "%.2f", measuredTemperature);
+        char output[17] = "Temp: ";
+        strcat(output, floatAsText);
+        Donkos_Display(output);
     }
 }

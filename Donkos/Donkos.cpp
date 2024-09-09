@@ -9,6 +9,7 @@
 #include "NTCTemperatureProcess.h"
 #include "DHTProcess.h"
 #include "SSD1306Process.h"
+#include "LedDisplay.h"
 
 
 extern "C" void SVC_Handler_C(uint32_t *);
@@ -19,6 +20,7 @@ static void SystemClock_Config();
 
 namespace {
     Display dotMatrix{};
+    LedDisplay ledDisplay{};
 
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
@@ -27,7 +29,7 @@ namespace {
     ProcessMatrixDisplay pmd{&dotMatrix};
     NTCTemperatureProcess temp{};
     DHTProcess dht{};
-    SSD1306Process ssd1306Process{};
+    //SSD1306Process ssd1306Process{};
 
     Scheduler scheduler{};
 }
@@ -42,7 +44,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
     scheduler.RegisterProcess(&dht);
-    scheduler.RegisterProcess(&ssd1306Process);
+   // scheduler.RegisterProcess(&ssd1306Process);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -69,7 +71,7 @@ void Donkos_Init() {
     //Digital
     MX_GPIO_Init();
 
-    ssd1306Process.Init();
+    ledDisplay.Init();
 }
 
 void Donkos_RequestScheduling() {
@@ -109,8 +111,8 @@ void Donkos_EndProcess(Process *process) {
 }
 
 
-void Donkos_DisplayNumber(uint8_t number) {
-    dotMatrix.Show(number);
+void Donkos_Display(const char *text) {
+    ledDisplay.Display(text);
 }
 
 void Donkos_GenericProcessMain() {

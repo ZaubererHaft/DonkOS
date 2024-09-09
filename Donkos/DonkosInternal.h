@@ -11,7 +11,7 @@ void Donkos_BlockProcess(Process *process);
 
 void Donkos_EndProcess(Process *process);
 
-void Donkos_DisplayNumber(uint8_t number);
+void Donkos_Display(const char* text);
 
 void Donkos_DisableIRQ();
 
