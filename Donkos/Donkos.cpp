@@ -41,7 +41,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&noloopProcess);
-    scheduler.RegisterProcess(&pmd);
+  //  scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -69,6 +69,7 @@ void Donkos_Init() {
     //Digital
     MX_GPIO_Init();
 
+    dotMatrix.Initialize();
     ledDisplay.Init();
 }
 
