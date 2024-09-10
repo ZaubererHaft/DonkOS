@@ -20,6 +20,8 @@ private:
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
     static float getADCRefVoltageInV();
+
+    static void concatToString(char *output, float measuredTemperature) ;
 };
 
 

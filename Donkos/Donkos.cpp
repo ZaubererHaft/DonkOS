@@ -41,7 +41,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&noloopProcess);
-  //  scheduler.RegisterProcess(&pmd);
+    //scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -135,7 +135,7 @@ void PendSV_Handler(void) {
     uint32_t *tmpArr;
     // Here we call the context switch
     // First step: provide array for registers of the current running process (which however got interrupted now)
-    // since R4-R11 might be changed because of local variables we need to save them immediately
+    // since R4-R11 and LR and CONTROL might be changed because of local variables we need to save them immediately
     __asm(
             "STMDB SP!, {R4-R11};\n"
             "SUB SP, #4\n"
@@ -150,7 +150,7 @@ void PendSV_Handler(void) {
     //and load the new variable into the provded array
     scheduler.ContextSwitch(tmpArr);
 
-    //now finally apply the context switch by loading the R4-R11 from the array
+    //now finally apply the context switch by loading the R4-R11 and LR and CONTROL  from the array
 
     __asm(
             "LDR R0, [SP]\n"

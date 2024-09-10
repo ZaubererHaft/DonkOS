@@ -58,11 +58,10 @@ float NTCTemperatureProcess::getADCRefVoltageInV() {
 }
 
 void NTCTemperatureProcess::Main() {
-    char floatAsText[10];
+    char output[12] = "Temp: ";
 
     while (true) {
-
-        volatile uint32_t rawValueTemperature = 0;
+        uint32_t rawValueTemperature = 0;
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc3);
             HAL_ADC_PollForConversion(&hadc3, 5);
@@ -73,11 +72,28 @@ void NTCTemperatureProcess::Main() {
 
         // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);
-        volatile auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
+        auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
+        concatToString(output, measuredTemperature);
 
-        snprintf(floatAsText, 10, "%.2f", measuredTemperature);
-        char output[20] = "Temp: ";
-        strcat(output, floatAsText);
-        Donkos_Display(output);
+        Donkos_Display(&output[0]);
     }
+}
+
+void NTCTemperatureProcess::concatToString(char *output, float measuredTemperature) {
+    //cut decimal places and take max. two digits of the integral part
+    uint32_t tmp_AsInt = measuredTemperature;
+    uint32_t firstPlace = tmp_AsInt / 10;
+    uint32_t sndPlace = tmp_AsInt % 10;
+
+    //now take two decimal places and cut rest; suggestion: round number here
+    auto workingTemp = measuredTemperature - tmp_AsInt;
+    uint32_t firstPlaceAfterDot = workingTemp * 10;
+    uint32_t sndPlaceAfterDot = workingTemp * 100 - firstPlaceAfterDot * 10;
+
+    output[6] = 48 + firstPlace;
+    output[7] = 48 + sndPlace;
+    output[8] = '.';
+    output[9] = 48 + firstPlaceAfterDot;
+    output[10] = 48 + sndPlaceAfterDot;
+    output[11] = '\0';
 }

@@ -19,8 +19,8 @@ uint32_t Process::GetPid() const {
 }
 
 uint32_t Process::InitStack() {
-    //stack grows downwards
-    uint32_t stack_first_address = (uint32_t) stack + stackSizeInByte * sizeof(uint32_t);
+    //Note: stack grows downwards from high to low addresses
+    //I.e., in C++, the top of the stack is the last position in the array
 
     //initial caller register values; in a context switch, they get updated by HW
     //this is just a reminder how it works; will be optimized anyway
@@ -54,7 +54,7 @@ uint32_t Process::InitStack() {
     uint32_t R5 = 0;
     uint32_t R4 = 0;
     uint32_t exec_return = 0xFFFFFFFD;  //NO FPU
-    uint32_t control = 0x3;
+    uint32_t control = 0x3; // No FPU, use PSP, unprivileged
 
     setReg(indexer, R11);
     setReg(indexer, R10);
