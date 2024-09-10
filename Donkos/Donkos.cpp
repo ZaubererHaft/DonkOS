@@ -28,7 +28,7 @@ namespace {
     ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{&dotMatrix};
     NTCTemperatureProcess temp{};
-    DHTProcess dht{};
+    //DHTProcess dht{};
     //SSD1306Process ssd1306Process{};
 
     Scheduler scheduler{};
@@ -43,8 +43,6 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&noloopProcess);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
-    scheduler.RegisterProcess(&dht);
-   // scheduler.RegisterProcess(&ssd1306Process);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -161,6 +159,7 @@ void PendSV_Handler(void) {
             "ISB\n"
             "ADD SP, #4\n"
             "LDMIA SP!, {R4-R11};\n"
+            "BX LR\n"
             );
 }
 

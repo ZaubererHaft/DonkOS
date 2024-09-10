@@ -14,10 +14,10 @@ store_context:
     // the current task uses the PSP as stack pointer. load it to R0\n"
     MRS R0, PSP
 
-    //TST R3, #0x10
-    //BNE SKIP_FPS
-//    VSTMDB R0!, {S16-S31}
-   // SKIP_FPS:
+    TST R3, #0x10
+    BNE .SKIP_FPS
+    VSTMDB R0!, {S16-S31}
+.SKIP_FPS:
 
     // push R2-R11 to stack of current process\n"
     STMDB R0!, {R2-R11}
