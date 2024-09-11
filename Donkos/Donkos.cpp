@@ -162,7 +162,7 @@ void PendSV_Handler(void) {
             "ISB\n"
             "ADD R1, #4\n"
             "LDMIA R1!, {R4-R11};\n"
-            "BX LR\n"
+            "BX LR\n" //this should not be necessary
             );
 }
 
