@@ -33,7 +33,7 @@ uint32_t Process::InitStack() {
     uint32_t R1 = 0;
     uint32_t R0 = 0;
 
-    uint32_t indexer = stackSizeInByte - 1;
+    uint32_t indexer = stackSizeInMultipleOf4 - 1;
 
     setReg(indexer, xpsr);
     setReg(indexer, pc);
@@ -68,8 +68,7 @@ uint32_t Process::InitStack() {
     setReg(indexer, control);
 
     //set initial SP to last address
-    //space for 16 regs? or why 16?
-    auto initialSp = (uint32_t) &stack[stackSizeInByte - 18];
+    auto initialSp = (uint32_t) &stack[stackSizeInMultipleOf4 - 18];
     stackPointer = initialSp;
     return stackPointer;
 }
@@ -123,5 +122,9 @@ void Process::wait(int32_t milliseconds) {
 void Process::setReg(uint32_t &indexer, uint32_t reg) {
     stack[indexer] = reg;
     indexer--;
+}
+
+bool Process::StackPtrValid() {
+    return stackPointer >= (uint32_t) &stack[0] && stackPointer < (uint32_t) &stack[stackSizeInMultipleOf4];
 }
 

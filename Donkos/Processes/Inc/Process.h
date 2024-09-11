@@ -31,14 +31,16 @@ public:
 
     void SetState(ProcessState state);
 
+    bool StackPtrValid();
+
 protected:
     void wait(int32_t milliseconds);
 
 private:
-    static constexpr uint32_t stackSizeInByte = 1024;
+    static constexpr uint32_t stackSizeInMultipleOf4 = 1024;
 
     uint32_t pid;
-    uint32_t stack[stackSizeInByte];
+    uint32_t stack[stackSizeInMultipleOf4];
     uint32_t stackPointer;
     ProcessState state;
     int32_t timer;

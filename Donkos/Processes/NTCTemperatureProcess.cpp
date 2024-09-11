@@ -74,7 +74,6 @@ void NTCTemperatureProcess::Main() {
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);
         auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
         concatToString(output, measuredTemperature);
-
         Donkos_Display(&output[0]);
     }
 }

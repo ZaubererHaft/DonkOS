@@ -11,6 +11,7 @@
 #include "SSD1306Process.h"
 #include "LedDisplay.h"
 
+extern "C" void ContextSwitch();
 
 extern "C" void SVC_Handler_C(uint32_t *);
 
@@ -38,10 +39,10 @@ void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
     scheduler.RegisterProcess(&mutexProcess);
-    scheduler.RegisterProcess(&led1Process);
-    scheduler.RegisterProcess(&led2Process);
-    scheduler.RegisterProcess(&noloopProcess);
-    //scheduler.RegisterProcess(&pmd);
+    // scheduler.RegisterProcess(&led1Process);
+    // scheduler.RegisterProcess(&led2Process);
+    // scheduler.RegisterProcess(&noloopProcess);
+    scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -128,38 +129,39 @@ void SysTick_Handler(void) {
     }
 }
 
+uint32_t regArray[10];
+
+void ContextSwitch() {
+    scheduler.ContextSwitch(regArray);
+}
+
 /**
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void) {
-    uint32_t *tmpArr;
-    // Here we call the context switch
-    // First step: provide array for registers of the current running process (which however got interrupted now)
-    // since R4-R11 and LR and CONTROL might be changed because of local variables we need to save them immediately
     __asm(
-            "STMDB SP!, {R4-R11};\n"
-            "SUB SP, #4\n"
-            "STR LR, [SP]\n"
-            "SUB SP, #4\n"
+            // Here we call the context switch
+            // First step: provide array for registers of the current running process (which however got interrupted now)
+            // since R4-R11 and LR and CONTROL might be changed because of subroutines we need to save them immediately
+            "LDR R1, =regArray\n"
+            "ADD R1, #40\n"
+            "STMDB R1!, {R4-R11};\n"
+            "SUB R1, #4\n"
+            "STR LR, [R1]\n"
             "MRS R0, CONTROL\n"
-            "STR R0, [SP]\n"
-            "MOV %[arr], SP;\n"
-            : [arr] "=r"(tmpArr));
-
-    //now call context switch: this will save the array in the current process stack
-    //and load the new variable into the provded array
-    scheduler.ContextSwitch(tmpArr);
-
-    //now finally apply the context switch by loading the R4-R11 and LR and CONTROL  from the array
-
-    __asm(
-            "LDR R0, [SP]\n"
-            "MSR CONTROL, R0 \n"
-            "ADD SP, #4\n"
-            "LDR LR, [SP]\n"
+            "SUB R1, #4\n"
+            "STR R0, [R1]\n"
+            //now call context switch: this will save the array in the current process stack
+            //and load the new variable into the provded array
+            "BL ContextSwitch \n"
+            //now finally apply the context switch by loading the R4-R11 and LR and CONTROL  from the array
+            "LDR R1, =regArray\n"
+            "MSR CONTROL, R1 \n"
+            "ADD R1, #4\n"
+            "LDR LR, [R1]\n"
             "ISB\n"
-            "ADD SP, #4\n"
-            "LDMIA SP!, {R4-R11};\n"
+            "ADD R1, #4\n"
+            "LDMIA R1!, {R4-R11};\n"
             "BX LR\n"
             );
 }
