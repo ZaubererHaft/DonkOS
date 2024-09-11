@@ -39,9 +39,9 @@ void Donkos_MainLoop() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
     scheduler.RegisterProcess(&mutexProcess);
-    // scheduler.RegisterProcess(&led1Process);
-    // scheduler.RegisterProcess(&led2Process);
-    // scheduler.RegisterProcess(&noloopProcess);
+    scheduler.RegisterProcess(&led1Process);
+    scheduler.RegisterProcess(&led2Process);
+    scheduler.RegisterProcess(&noloopProcess);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
 
