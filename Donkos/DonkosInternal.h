@@ -13,6 +13,8 @@ void Donkos_EndProcess(Process *process);
 
 void Donkos_Display(const char* text);
 
+void Donkos_SetDisplayLine(uint32_t line);
+
 void Donkos_DisableIRQ();
 
 void Donkos_EnableIRQ();

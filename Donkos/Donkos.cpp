@@ -6,7 +6,7 @@
 #include "Scheduler.h"
 #include "ProcessNoLoop.h"
 #include "ProcessMatrixDisplay.h"
-#include "NTCTemperatureProcess.h"
+#include "ADC3Process.h"
 #include "DHTProcess.h"
 #include "SSD1306Process.h"
 #include "LedDisplay.h"
@@ -28,7 +28,7 @@ namespace {
     ProcessLed2 led2Process{};
     ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{&dotMatrix};
-    NTCTemperatureProcess temp{};
+    ADC3Process temp{};
     //DHTProcess dht{};
     //SSD1306Process ssd1306Process{};
 
@@ -114,6 +114,11 @@ void Donkos_EndProcess(Process *process) {
 void Donkos_Display(const char *text) {
     ledDisplay.Display(text);
 }
+
+void Donkos_SetDisplayLine(uint32_t line) {
+    ledDisplay.SetLine(line);
+}
+
 
 void Donkos_GenericProcessMain() {
     Process *p = scheduler.GetCurrentProcess();

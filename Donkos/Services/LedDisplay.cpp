@@ -37,12 +37,21 @@ void LedDisplay::Init() {
 }
 
 void LedDisplay::Display(const char *text) {
-    ssd1306_SetCursor(0, 0);
     ssd1306_WriteString(text, Font_11x18, White);
     Refresh();
 }
 
 void LedDisplay::Refresh() {
     ssd1306_UpdateScreen(&hi2c2);
+}
+
+void LedDisplay::SetLine(uint32_t line) {
+    if (line == 0) {
+        ssd1306_SetCursor(0, 0);
+    } else if (line == 1) {
+        ssd1306_SetCursor(0, 20);
+    } else {
+        ssd1306_SetCursor(0, 40);
+    }
 }
 

@@ -1,14 +1,14 @@
-#ifndef TEST_NTCTEMPERATUREPROCESS_H
-#define TEST_NTCTEMPERATUREPROCESS_H
+#ifndef TEST_ADC3PROCESS_H
+#define TEST_ADC3PROCESS_H
 
 #include "Process.h"
 #include "main.h"
 #include "ProcessMatrixDisplay.h"
 #include "NTCSensor.h"
 
-class NTCTemperatureProcess : public Process {
+class ADC3Process : public Process {
 public:
-    explicit NTCTemperatureProcess();
+    explicit ADC3Process();
 
     void Main() override;
 
@@ -25,4 +25,4 @@ private:
 };
 
 
-#endif //TEST_NTCTEMPERATUREPROCESS_H
+#endif //TEST_ADC3PROCESS_H

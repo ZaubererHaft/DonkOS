@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define NTC_Pin GPIO_PIN_0
 #define NTC_GPIO_Port GPIOC
+#define PHOTO_Pin GPIO_PIN_1
+#define PHOTO_GPIO_Port GPIOC
 #define SHCP_Pin GPIO_PIN_5
 #define SHCP_GPIO_Port GPIOA
 #define STCP_Pin GPIO_PIN_6

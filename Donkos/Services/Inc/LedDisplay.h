@@ -17,6 +17,8 @@ public:
 
     void Refresh();
 
+    void SetLine(uint32_t line);
+
 private:
     I2C_HandleTypeDef hi2c2;
 };

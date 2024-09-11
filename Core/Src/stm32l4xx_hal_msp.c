@@ -115,11 +115,12 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_GPIOC_CLK_ENABLE();
     /**ADC3 GPIO Configuration
     PC0     ------> ADC3_IN1
+    PC1     ------> ADC3_IN2
     */
-    GPIO_InitStruct.Pin = NTC_Pin;
+    GPIO_InitStruct.Pin = NTC_Pin|PHOTO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(NTC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC3_MspInit 1 */
 
@@ -146,8 +147,9 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
     /**ADC3 GPIO Configuration
     PC0     ------> ADC3_IN1
+    PC1     ------> ADC3_IN2
     */
-    HAL_GPIO_DeInit(NTC_GPIO_Port, NTC_Pin);
+    HAL_GPIO_DeInit(GPIOC, NTC_Pin|PHOTO_Pin);
 
   /* USER CODE BEGIN ADC3_MspDeInit 1 */
 
