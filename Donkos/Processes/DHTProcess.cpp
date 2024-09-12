@@ -2,6 +2,10 @@
 
 //check https://microcontrollerslab.com/dht22-stm32-blue-pill-stm32cubeide/
 DHTProcess::DHTProcess() {
+
+}
+
+void DHTProcess::Init() {
     TIM_ClockConfigTypeDef sClockSourceConfig = {0};
     TIM_MasterConfigTypeDef sMasterConfig = {0};
 

@@ -20,6 +20,8 @@ add_library(Donko Donkos.cpp
         Drivers/SSD1306/ssd1306.cpp
         Drivers/SSD1306/Inc/fonts.h
         Drivers/SSD1306/Inc/ssd1306.h
+        Processes/BuzzerProcess.cpp
+        Processes/Inc/BuzzerProcess.h
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc  Drivers/SSD1306/Inc)
 target_include_directories(Donko PRIVATE .)

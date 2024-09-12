@@ -9,6 +9,8 @@ class DHTProcess : public Process {
 public:
     DHTProcess();
 
+    void Init();
+
     void Main() override;
 
 private:

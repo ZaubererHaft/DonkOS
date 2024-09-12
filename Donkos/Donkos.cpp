@@ -10,6 +10,7 @@
 #include "DHTProcess.h"
 #include "SSD1306Process.h"
 #include "LedDisplay.h"
+#include "BuzzerProcess.h"
 
 extern "C" void ContextSwitch();
 
@@ -31,6 +32,7 @@ namespace {
     ADC3Process temp{};
     //DHTProcess dht{};
     //SSD1306Process ssd1306Process{};
+    BuzzerProcess buzz{};
 
     Scheduler scheduler{};
 }
@@ -44,6 +46,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&noloopProcess);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
+    scheduler.RegisterProcess(&buzz);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -72,6 +75,7 @@ void Donkos_Init() {
 
     dotMatrix.Initialize();
     ledDisplay.Init();
+    buzz.Init();
 }
 
 void Donkos_RequestScheduling() {
