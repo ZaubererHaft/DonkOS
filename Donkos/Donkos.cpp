@@ -11,8 +11,6 @@
 #include "LedDisplay.h"
 #include "BuzzerProcess.h"
 
-#include <errno.h>
-
 extern "C" void ContextSwitch();
 
 extern "C" void SVC_Handler_C(uint32_t *);
@@ -75,6 +73,10 @@ void Donkos_Init() {
     dotMatrix.Initialize();
     ledDisplay.Init();
     buzz.Init();
+}
+
+Scheduler &Donkos_GetScheduler() {
+    return scheduler;
 }
 
 void Donkos_RequestScheduling() {
@@ -148,9 +150,9 @@ void ContextSwitch() {
   */
 void PendSV_Handler(void) {
     __asm(
-            // Here we call the context switch
-            // First step: provide array for registers of the current running process (which however got interrupted now)
-            // since R4-R11 and LR and CONTROL might be changed because of subroutines we need to save them immediately
+        // Here we call the context switch
+        // First step: provide array for registers of the current running process (which however got interrupted now)
+        // since R4-R11 and LR and CONTROL might be changed because of subroutines we need to save them immediately
             "LDR R1, =regArray\n"
             "ADD R1, #40\n"
             "STMDB R1!, {R4-R11};\n"
@@ -228,8 +230,7 @@ static void SystemClock_Config() {
 
     /** Configure the main internal regulator output voltage
     */
-    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-    {
+    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK) {
         Error_Handler();
     }
 
@@ -247,22 +248,20 @@ static void SystemClock_Config() {
     RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
     RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
     RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
         Error_Handler();
     }
 
     /** Initializes the CPU, AHB and APB buses clocks
     */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                                  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+                                  | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
-    {
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -318,57 +317,3 @@ void Error_Handler(void) {
     }
 }
 
-
-/**
- * Pointer to the current high watermark of the heap usage
- */
-static uint8_t *__sbrk_heap_end = NULL;
-
-/**
- * @brief _sbrk() allocates memory to the newlib heap and is used by malloc
- *        and others from the C library
- *
- * @verbatim
- * ############################################################################
- * #  .data  #  .bss  #       newlib heap       #          MSP stack          #
- * #         #        #                         # Reserved by _Min_Stack_Size #
- * ############################################################################
- * ^-- RAM start      ^-- _end                             _estack, RAM end --^
- * @endverbatim
- *
- * This implementation starts allocating at the '_end' linker symbol
- * The '_Min_Stack_Size' linker symbol reserves a memory for the MSP stack
- * The implementation considers '_estack' linker symbol to be RAM end
- * NOTE: If the MSP stack, at any point during execution, grows larger than the
- * reserved size, please increase the '_Min_Stack_Size'.
- *
- * @param incr Memory size
- * @return Pointer to allocated memory
- */
-extern "C" void *_sbrk(ptrdiff_t incr)
-{
-    extern uint8_t _end; /* Symbol defined in the linker script */
-    extern uint8_t _estack; /* Symbol defined in the linker script */
-    extern uint32_t _Min_Stack_Size; /* Symbol defined in the linker script */
-    const uint32_t stack_limit = (uint32_t)&_estack - (uint32_t)&_Min_Stack_Size;
-    const uint8_t *max_heap = (uint8_t *)stack_limit;
-    uint8_t *prev_heap_end;
-
-    /* Initialize heap end at first call */
-    if (NULL == __sbrk_heap_end)
-    {
-        __sbrk_heap_end = &_end;
-    }
-
-    /* Protect heap from growing into the reserved MSP stack */
-    if (__sbrk_heap_end + incr > max_heap)
-    {
-        errno = ENOMEM;
-        return (void *)-1;
-    }
-
-    prev_heap_end = __sbrk_heap_end;
-    __sbrk_heap_end += incr;
-
-    return (void *)prev_heap_end;
-}
