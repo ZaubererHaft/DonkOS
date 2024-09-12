@@ -86,7 +86,7 @@ void Donkos_RequestScheduling() {
     }
 }
 
-void Donkos_StartProcess(Process *process) {
+void Donkos_StartNewProcess(Process *process) {
     asm("SVC #0x2;");
     //wait until task is registered to the scheduler
     //with that we should make sure that the argument on the stack is still valid
@@ -94,6 +94,11 @@ void Donkos_StartProcess(Process *process) {
     while (process->GetState() == ProcessState::CREATED) {
         __NOP();
     }
+}
+
+void Donkos_YieldProcess(Process *process) {
+    //reschedule only. Here, a process can manually request a context switch
+    asm("SVC #0x1;");
 }
 
 void Donkos_BlockProcess(Process *process) {
@@ -107,7 +112,7 @@ void Donkos_BlockProcess(Process *process) {
 }
 
 void Donkos_EndProcess(Process *process) {
-    //request scheduling again
+    //unregister and request scheduling again
     asm("SVC #0x0;");
     // wait for process to end
     while (true) {
@@ -191,6 +196,7 @@ void SVC_Handler(void) {
 }
 
 void SVC_Handler_C(uint32_t *args) {
+    __disable_irq();
 
     uint32_t svcNumber = ((char *) args[6])[-2];
 
@@ -199,24 +205,18 @@ void SVC_Handler_C(uint32_t *args) {
         //since PENDSV has a lower prio than SVC it would safe to unregister without IRQ disabling
         // however since scheduling request is privileged -> SVC call
         auto process = reinterpret_cast<Process *>(args[0]);
-        __disable_irq();
         scheduler.UnregisterProcess(process);
         Donkos_RequestScheduling();
-        __enable_irq();
     }
-        //reschedule only
+    //reschedule only
     else if (svcNumber == 1) {
-        __disable_irq();
         Donkos_RequestScheduling();
-        __enable_irq();
-        //start a new process
+    //start a new process
     } else if (svcNumber == 2) {
         auto process = reinterpret_cast<Process *>(args[0]);
-        __disable_irq();
         scheduler.RegisterProcess(process);
-        __enable_irq();
     }
-
+    __enable_irq();
 }
 
 
