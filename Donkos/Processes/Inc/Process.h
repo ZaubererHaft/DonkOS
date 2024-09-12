@@ -2,6 +2,7 @@
 #define TEST_PROCESS_H
 
 #include <cstdint>
+#include "MemoryListAllocator.h"
 
 enum class ProcessState {
     CREATED, READY, WAITING, RUNNING
@@ -9,9 +10,6 @@ enum class ProcessState {
 
 class Process {
 public:
-    static constexpr uint32_t stackSizeInMultipleOf4 = 1024;
-    static constexpr uint32_t heapSizeInMultipleOf4 = 32;
-
     explicit Process();
 
     virtual void Main();
@@ -36,18 +34,22 @@ public:
 
     bool StackPtrValid();
 
-    std::uintptr_t *GetHeap();
+    OUtlMemListAllocator &GetHeapAllocator();
 
 protected:
     void wait(int32_t milliseconds);
 
 private:
+    static constexpr uint32_t stackSizeInMultipleOf4 = 1024;
+    static constexpr uint32_t heapSizeInMultipleOf4 = 32;
+
     uint32_t pid;
     std::uintptr_t heap[heapSizeInMultipleOf4];
     uint32_t stack[stackSizeInMultipleOf4];
     uint32_t stackPointer;
     ProcessState state;
     int32_t timer;
+    OUtlMemListAllocator heapAllocator;
 
     void setReg(uint32_t &indexer, uint32_t reg);
 };

@@ -4,7 +4,8 @@
 extern "C" void load_context(uint32_t, uint32_t *);
 extern "C" uint32_t store_context(uint32_t *);
 
-Process::Process() : pid{0U}, heap{0U}, stack{0U}, stackPointer{0U}, state{ProcessState::CREATED} {}
+Process::Process() : pid{0U}, heap{0U}, stack{0U}, stackPointer{0U}, state{ProcessState::CREATED},
+                     heapAllocator{&heap[0], heapSizeInMultipleOf4} {}
 
 void Process::Main() {
 }
@@ -128,7 +129,6 @@ bool Process::StackPtrValid() {
     return stackPointer >= (uint32_t) &stack[0] && stackPointer < (uint32_t) &stack[stackSizeInMultipleOf4];
 }
 
-std::uintptr_t *Process::GetHeap() {
-    return &heap[0];
+OUtlMemListAllocator &Process::GetHeapAllocator() {
+    return heapAllocator;
 }
-

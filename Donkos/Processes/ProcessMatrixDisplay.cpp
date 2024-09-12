@@ -8,5 +8,6 @@ ProcessMatrixDisplay::ProcessMatrixDisplay(Display *display) : display{display} 
 void ProcessMatrixDisplay::Main() {
     while (true) {
         display->Refresh();
+        wait(10);
     }
 }

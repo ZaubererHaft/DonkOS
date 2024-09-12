@@ -25,6 +25,9 @@
 #include <stdint.h>
 #include <malloc.h>
 #include <new>
+#include <cstdlib>
+#include "main.h"
+#include "../../Donkos/DonkosInternal.h"
 
 /**
  * Pointer to the current high watermark of the heap usage
@@ -54,8 +57,6 @@ static uint8_t *__sbrk_heap_end = NULL;
  */
 extern "C" void *_sbrk(ptrdiff_t incr) {
 
-   // __get_CONTROL
-
     extern uint8_t _end; /* Symbol defined in the linker script */
     extern uint8_t _estack; /* Symbol defined in the linker script */
     extern uint32_t _Min_Stack_Size; /* Symbol defined in the linker script */
@@ -76,6 +77,51 @@ extern "C" void *_sbrk(ptrdiff_t incr) {
 
     prev_heap_end = __sbrk_heap_end;
     __sbrk_heap_end += incr;
-
     return (void *) prev_heap_end;
+
+}
+
+void *MyNew(std::size_t arg_Size) {
+    bool useMSP = (__get_CONTROL() & 0b10) == 0;
+    void *tmp_pPtr;
+
+    if (useMSP) {
+        tmp_pPtr = std::malloc(arg_Size);
+    } else {
+        tmp_pPtr = Donkos_GetScheduler().GetCurrentProcess()->GetHeapAllocator().Malloc(arg_Size);
+    }
+    return tmp_pPtr;
+}
+
+void MyDelete(void *arg_pPtr) {
+    bool useMSP = (__get_CONTROL() & 0b10) == 0;
+    if (useMSP) {
+        std::free(arg_pPtr);
+    } else {
+        Donkos_GetScheduler().GetCurrentProcess()->GetHeapAllocator().Free(arg_pPtr);
+    }
+}
+
+void *operator new(std::size_t arg_Size) {
+    return MyNew(arg_Size);
+}
+
+void *operator new[](std::size_t arg_Size) {
+    return MyNew(arg_Size);
+}
+
+void operator delete(void *arg_pPtr) noexcept {
+    MyDelete(arg_pPtr);
+}
+
+void operator delete(void *arg_pPtr, std::size_t arg_Size) noexcept {
+    MyDelete(arg_pPtr);
+}
+
+void operator delete[](void *arg_pPtr) noexcept {
+    MyDelete(arg_pPtr);
+}
+
+void operator delete[](void *arg_pPtr, std::size_t arg_Size) noexcept {
+    MyDelete(arg_pPtr);
 }
