@@ -15,7 +15,7 @@ void BuzzerProcess::Init() {
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = 0;
     htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim1.Init.Period = 1000;
+    htim1.Init.Period = 999;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -66,7 +66,8 @@ void BuzzerProcess::Init() {
 
 uint32_t BuzzerProcess::prescalerValueForFrequency(uint32_t frequency) {
     if (frequency == 0) return 0;
-    return ((TimerClock / (1000 * frequency)) - 1);  // 1 is added in the register
+    //Resulting from formula below
+    return (TimerClock / ((htim1.Init.Period + 1) * frequency)) - 1;
 }
 
 
@@ -75,17 +76,21 @@ void BuzzerProcess::Main() {
         Error_Handler();
     }
 
+    //CCR -> Set By "Pulse", here 500
+    //ARR -> Set by "Period", here 999
+    //Duty Cycle: % of period the PWM is in state high -> CCR / ARR = 0.5
+    //PWM Freq = (TimerClock) / ((ARR + 1) * (PRESCALER + 1))
+    //Period (in s) = 1 / PWMFreq
     while (1) {
-        volatile int val = prescalerValueForFrequency(1000);
-        __HAL_TIM_SET_PRESCALER(&htim1, val);
+        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(1000)); //Pres = 3, Period: 1 Ms
         wait(250);
-        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(200));
+        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(200)); //Pres = 19, Period: 5 Ms
         wait(250);
-        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(400));
+        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(400)); //Pres = 9, Period: 2.5 Ms
         wait(250);
-        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(600));
+        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(600)); //Pres = 5, Period: 1.5 Ms
         wait(250);
-        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(800));
+        __HAL_TIM_SET_PRESCALER(&htim1, prescalerValueForFrequency(800)); // Pes = 4, Period: 1.25 Ms
         wait(250);
     }
 }
