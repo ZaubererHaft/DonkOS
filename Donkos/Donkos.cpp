@@ -4,7 +4,6 @@
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
 #include "Scheduler.h"
-#include "ProcessNoLoop.h"
 #include "ProcessMatrixDisplay.h"
 #include "ADC3Process.h"
 #include "DHTProcess.h"
@@ -27,7 +26,6 @@ namespace {
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
-    ProcessNoLoop noloopProcess{};
     ProcessMatrixDisplay pmd{&dotMatrix};
     ADC3Process temp{};
     //DHTProcess dht{};
@@ -43,12 +41,11 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-    scheduler.RegisterProcess(&noloopProcess);
+    scheduler.RegisterProcess(&buzz);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
-    scheduler.RegisterProcess(&buzz);
 
-    scheduler.SetInitialProcess(&mutexProcess);
+    scheduler.SetInitialProcess(&buzz);
 
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
 

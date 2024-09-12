@@ -15,7 +15,7 @@ void BuzzerProcess::Init() {
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = 0;
     htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim1.Init.Period = 9999;
+    htim1.Init.Period = 999;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -36,7 +36,7 @@ void BuzzerProcess::Init() {
         Error_Handler();
     }
     sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = 5000;
+    sConfigOC.Pulse = 500;
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
@@ -66,7 +66,13 @@ void BuzzerProcess::Init() {
 
 uint32_t BuzzerProcess::prescalerValueForFrequency(uint32_t frequency) {
     if (frequency == 0) return 0;
-    //Resulting from formula below
+    //CCRx -> Set By "Pulse"
+    //ARRx -> Set by "Period"
+    //Duty Cycle: % of period the PWM is in state high -> CCRx / ARRx = 0.5
+    //PWM Freq = (TimerClock) / ((ARR + 1) * (PRESCALER + 1))
+    //Period (in s) = 1 / PWMFreq
+
+    //Resulting from formula above
     return (TimerClock / ((htim1.Init.Period + 1) * frequency)) - 1;
 }
 
@@ -76,18 +82,16 @@ void BuzzerProcess::Main() {
         Error_Handler();
     }
 
-    //CCRx -> Set By "Pulse"
-    //ARRx -> Set by "Period"
-    //Duty Cycle: % of period the PWM is in state high -> CCRx / ARRx = 0.5
-    //PWM Freq = (TimerClock) / ((ARR + 1) * (PRESCALER + 1))
-    //Period (in s) = 1 / PWMFreq
-    while (1) {
+    tone(523, 800); //c
+    tone(660, 400); //e
+    tone(783, 400); //g
+    tone(493, 600); //e
+    tone(523, 100); //c
+    tone(587, 100); //d
+    tone(523, 450); //c
 
-        tone(440, 400);
-        tone(660, 200);
-        tone(523, 200);
-        tone(660, 200);
-        noTone(1000);
+    if (HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2) != HAL_OK) {
+        Error_Handler();
     }
 }
 
