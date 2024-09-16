@@ -15,7 +15,7 @@
 
 #include <cstdint>
 
-class OUtlMemBlock {
+class MemoryBlock {
 public:
     /**
      * \details Creates a new block of memory belonging to an allocator.
@@ -24,7 +24,7 @@ public:
      * @param arg_Len  The global length of the provided buffer.
      * @param arg_pAddress The address of memory in the \p arg_pBuffer where this block will be located at.
      */
-    OUtlMemBlock(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len, std::uintptr_t *arg_pAddress);
+    MemoryBlock(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len, std::uintptr_t *arg_pAddress);
 
     /**
      * \brief Returns true if there is a neighboring block.
@@ -36,7 +36,7 @@ public:
      * \brief Returns the next block of memory.
      * \details This method DOES NOT check if the block exists or not. Use HasNext() for that purpose.
      */
-    OUtlMemBlock Next() const;
+    MemoryBlock Next() const;
 
     /**
      * \brief Returns true if this block has enough memory available for the requested size in bytes and is unused.
@@ -71,7 +71,7 @@ public:
     /**
      * \brief Returns the previous block. this does NOT check if the block exists.
      */
-    OUtlMemBlock Previous();
+    MemoryBlock Previous();
 
     /**
      * \brief Returns the memory address that is maintained by this block
@@ -111,7 +111,7 @@ private:
     /**
      * \brief Tries to merge this block with a (right) neighboring.
      */
-    void tryMergeWith(OUtlMemBlock &arg_Block);
+    void tryMergeWith(MemoryBlock &arg_Block);
 };
 
 #endif // OUTLMEMBLOCK_H_

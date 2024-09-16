@@ -15,12 +15,12 @@
 
 #include <cstdint>
 
-class OUtlMemListAllocator {
+class MemoryListAllocator {
 public:
     /**
      * \brief Creates a new linked-list allocator for the given \p arg_pBuffer and \p arg_Len.
      */
-    OUtlMemListAllocator(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len);
+    MemoryListAllocator(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len);
 
     /**
      * \brief Allocates at least \p arg_RequestedSizeInBytes

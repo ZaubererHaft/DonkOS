@@ -1,11 +1,11 @@
 #include "MemoryBlock.h"
 #include "MemoryListAllocatorConstants.h"
 
-OUtlMemBlock::OUtlMemBlock(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len, std::uintptr_t *arg_pAddress)
+MemoryBlock::MemoryBlock(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len, std::uintptr_t *arg_pAddress)
         : pBufferAddress{arg_pBuffer}, bufferLenInBytes{arg_Len}, pMyAddress{arg_pAddress} {
 }
 
-bool OUtlMemBlock::HasNext() const {
+bool MemoryBlock::HasNext() const {
     bool tmp_Ret = false;
     std::uintptr_t *tmp_pNextAddr = nextAddress();
     std::uintptr_t *tmp_pLastAddr = pBufferAddress + bufferLenInBytes / OUtlMemConstants::st_cPtrSize;
@@ -17,23 +17,23 @@ bool OUtlMemBlock::HasNext() const {
     return tmp_Ret;
 }
 
-OUtlMemBlock OUtlMemBlock::Next() const {
+MemoryBlock MemoryBlock::Next() const {
     return {pBufferAddress, bufferLenInBytes, nextAddress()};
 }
 
-bool OUtlMemBlock::IsUnusedAndFits(std::uintptr_t arg_Len) const {
+bool MemoryBlock::IsUnusedAndFits(std::uintptr_t arg_Len) const {
     return !Used() && Length() >= arg_Len;
 }
 
-bool OUtlMemBlock::Used() const {
+bool MemoryBlock::Used() const {
     return (pMyAddress[1] & OUtlMemConstants::st_cUsedMask) > 0U;
 }
 
-void OUtlMemBlock::setUnused() {
+void MemoryBlock::setUnused() {
     pMyAddress[1] &= OUtlMemConstants::st_cLenMask;
 }
 
-void OUtlMemBlock::Allocate(std::uintptr_t arg_RequestedSize) {
+void MemoryBlock::Allocate(std::uintptr_t arg_RequestedSize) {
     std::uintptr_t tmp_InitialBlockLen = Length();
     std::uintptr_t tmp_RemainingLen = tmp_InitialBlockLen - arg_RequestedSize;
 
@@ -41,7 +41,7 @@ void OUtlMemBlock::Allocate(std::uintptr_t arg_RequestedSize) {
         // the length needs to be updated here s.t. nextAddress returns the correct neighboring address
         pMyAddress[1] = OUtlMemConstants::st_cUsedMask | arg_RequestedSize;
 
-        OUtlMemBlock tmp_NewBlock{pBufferAddress, bufferLenInBytes, nextAddress()};
+        MemoryBlock tmp_NewBlock{pBufferAddress, bufferLenInBytes, nextAddress()};
         tmp_NewBlock.setLength(tmp_RemainingLen - OUtlMemConstants::st_cOverheadInBytes);
         tmp_NewBlock.setPrevious(pMyAddress);
         tmp_NewBlock.setUnused();
@@ -55,25 +55,25 @@ void OUtlMemBlock::Allocate(std::uintptr_t arg_RequestedSize) {
     }
 }
 
-void *OUtlMemBlock::PayloadAddress() {
+void *MemoryBlock::PayloadAddress() {
     return &pMyAddress[2];
 }
 
-void OUtlMemBlock::Deallocate() {
+void MemoryBlock::Deallocate() {
     setUnused();
 
     if (HasNext()) {
-        OUtlMemBlock tmp_Next = Next();
+        MemoryBlock tmp_Next = Next();
         tryMergeWith(tmp_Next);
     }
 
     if (hasPrevious()) {
-        OUtlMemBlock tmp_Previous = Previous();
+        MemoryBlock tmp_Previous = Previous();
         tmp_Previous.tryMergeWith(*this);
     }
 }
 
-void OUtlMemBlock::tryMergeWith(OUtlMemBlock &arg_Block) {
+void MemoryBlock::tryMergeWith(MemoryBlock &arg_Block) {
     if (!Used() && !arg_Block.Used()) {
         uintptr_t tmp_Len = Length() + arg_Block.Length() + OUtlMemConstants::st_cOverheadInBytes;
         setLength(tmp_Len);
@@ -89,31 +89,31 @@ void OUtlMemBlock::tryMergeWith(OUtlMemBlock &arg_Block) {
     }
 }
 
-std::uintptr_t OUtlMemBlock::Length() const {
+std::uintptr_t MemoryBlock::Length() const {
     return pMyAddress[1] & OUtlMemConstants::st_cLenMask;
 }
 
-void OUtlMemBlock::setLength(std::uintptr_t arg_Len) {
+void MemoryBlock::setLength(std::uintptr_t arg_Len) {
     pMyAddress[1] &= OUtlMemConstants::st_cUsedMask;
     pMyAddress[1] |= arg_Len;
 }
 
-std::uintptr_t *OUtlMemBlock::nextAddress() const {
+std::uintptr_t *MemoryBlock::nextAddress() const {
     return pMyAddress + OUtlMemConstants::st_cOverheadInPtrSize + Length() / OUtlMemConstants::st_cPtrSize;
 }
 
-void OUtlMemBlock::setPrevious(const std::uintptr_t *arg_pAddress) {
+void MemoryBlock::setPrevious(const std::uintptr_t *arg_pAddress) {
     pMyAddress[0] = reinterpret_cast<uintptr_t>(arg_pAddress);
 }
 
-OUtlMemBlock OUtlMemBlock::Previous() {
+MemoryBlock MemoryBlock::Previous() {
     return {pBufferAddress, bufferLenInBytes, reinterpret_cast<std::uintptr_t *>(pMyAddress[0])};
 }
 
-const std::uintptr_t *OUtlMemBlock::GetAddress() const {
+const std::uintptr_t *MemoryBlock::GetAddress() const {
     return pMyAddress;
 }
 
-bool OUtlMemBlock::hasPrevious() const {
+bool MemoryBlock::hasPrevious() const {
     return pMyAddress[0] != 0U;
 }

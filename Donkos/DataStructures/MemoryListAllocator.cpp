@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-OUtlMemListAllocator::OUtlMemListAllocator(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len)
+MemoryListAllocator::MemoryListAllocator(std::uintptr_t *arg_pBuffer, std::uintptr_t arg_Len)
         : pData{arg_pBuffer}, sizeInBytes{arg_Len * OUtlMemConstants::st_cPtrSize},
           maxBlocks{arg_Len / (1U + OUtlMemConstants::st_cOverheadInPtrSize)},
           free{sizeInBytes} {
@@ -16,7 +16,7 @@ OUtlMemListAllocator::OUtlMemListAllocator(std::uintptr_t *arg_pBuffer, std::uin
     pData[1] = sizeInBytes - OUtlMemConstants::st_cOverheadInBytes;
 }
 
-void *OUtlMemListAllocator::Malloc(std::uintptr_t arg_RequestedSizeInBytes) {
+void *MemoryListAllocator::Malloc(std::uintptr_t arg_RequestedSizeInBytes) {
     void *tmp_pRet = nullptr;
 
     if (arg_RequestedSizeInBytes > 0U) {
@@ -29,7 +29,7 @@ void *OUtlMemListAllocator::Malloc(std::uintptr_t arg_RequestedSizeInBytes) {
             // not stop, still abort the linear search after (many) iterations with an additional condition
             std::uintptr_t tmp_Iters = maxBlocks;
 
-            OUtlMemBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
+            MemoryBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
 
             // first-fit search of a memory block
             while (tmp_CurrBlock.HasNext() && !tmp_CurrBlock.IsUnusedAndFits(tmp_RequestedSizeRounded) &&
@@ -49,7 +49,7 @@ void *OUtlMemListAllocator::Malloc(std::uintptr_t arg_RequestedSizeInBytes) {
     return tmp_pRet;
 }
 
-void OUtlMemListAllocator::Free(void *arg_pAddress) {
+void MemoryListAllocator::Free(void *arg_pAddress) {
     if (arg_pAddress == nullptr) {
         Error_Handler(); // can not free a nullptr
     }
@@ -70,7 +70,7 @@ void OUtlMemListAllocator::Free(void *arg_pAddress) {
         Error_Handler(); // illegal address
     }
 
-    OUtlMemBlock tmp_CurrBlock{pData, sizeInBytes, tmp_pCasted - OUtlMemConstants::st_cOverheadInPtrSize};
+    MemoryBlock tmp_CurrBlock{pData, sizeInBytes, tmp_pCasted - OUtlMemConstants::st_cOverheadInPtrSize};
     if (!tmp_CurrBlock.Used()) {
         Error_Handler(); // illegal address
     }
@@ -79,13 +79,13 @@ void OUtlMemListAllocator::Free(void *arg_pAddress) {
     tmp_CurrBlock.Deallocate();
 }
 
-std::uintptr_t OUtlMemListAllocator::GetCapacity() const {
+std::uintptr_t MemoryListAllocator::GetCapacity() const {
     return sizeInBytes;
 }
 
-void OUtlMemListAllocator::GetMemorySummary(std::uintptr_t *arg_pBuffer) const {
+void MemoryListAllocator::GetMemorySummary(std::uintptr_t *arg_pBuffer) const {
     uint32_t tmp_Index = 0U;
-    OUtlMemBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
+    MemoryBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
 
     arg_pBuffer[tmp_Index] = static_cast<std::uintptr_t>(tmp_CurrBlock.Used());
     arg_pBuffer[tmp_Index + 1U] = tmp_CurrBlock.Length();
@@ -98,9 +98,9 @@ void OUtlMemListAllocator::GetMemorySummary(std::uintptr_t *arg_pBuffer) const {
     }
 }
 
-bool OUtlMemListAllocator::IsConsistent() const {
+bool MemoryListAllocator::IsConsistent() const {
     std::uintptr_t tmp_CurrSize = 0U;
-    OUtlMemBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
+    MemoryBlock tmp_CurrBlock{pData, sizeInBytes, &pData[0]};
     tmp_CurrSize += tmp_CurrBlock.Length() + OUtlMemConstants::st_cOverheadInBytes;
 
     while (tmp_CurrBlock.HasNext()) {
@@ -115,6 +115,6 @@ bool OUtlMemListAllocator::IsConsistent() const {
     return tmp_CurrSize == sizeInBytes;
 }
 
-std::uintptr_t OUtlMemListAllocator::GetFree() const {
+std::uintptr_t MemoryListAllocator::GetFree() const {
     return free;
 }

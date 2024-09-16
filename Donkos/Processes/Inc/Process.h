@@ -34,7 +34,7 @@ public:
 
     bool StackPtrValid();
 
-    OUtlMemListAllocator &GetHeapAllocator();
+    MemoryListAllocator &GetHeapAllocator();
 
 protected:
     void wait(int32_t milliseconds);
@@ -49,7 +49,7 @@ private:
     uint32_t stackPointer;
     ProcessState state;
     int32_t timer;
-    OUtlMemListAllocator heapAllocator;
+    MemoryListAllocator heapAllocator;
 
     void setReg(uint32_t &indexer, uint32_t reg);
 };

@@ -129,6 +129,6 @@ bool Process::StackPtrValid() {
     return stackPointer >= (uint32_t) &stack[0] && stackPointer < (uint32_t) &stack[stackSizeInMultipleOf4];
 }
 
-OUtlMemListAllocator &Process::GetHeapAllocator() {
+MemoryListAllocator &Process::GetHeapAllocator() {
     return heapAllocator;
 }
