@@ -3,7 +3,7 @@
 #include "Process7SegmentDisplay.h"
 #include "ProcessLed2.h"
 #include "ProcessLed1.h"
-#include "Scheduler.h"
+#include "RoundRobinScheduler.h"
 #include "ProcessMatrixDisplay.h"
 #include "ADC3Process.h"
 #include "DHTProcess.h"
@@ -32,7 +32,7 @@ namespace {
     //SSD1306Process ssd1306Process{};
     BuzzerProcess buzz{};
 
-    Scheduler scheduler{};
+    RoundRobinScheduler scheduler{};
 }
 
 void Donkos_MainLoop() {
@@ -75,7 +75,7 @@ void Donkos_Init() {
     buzz.Init();
 }
 
-Scheduler &Donkos_GetScheduler() {
+RoundRobinScheduler &Donkos_GetScheduler() {
     return scheduler;
 }
 

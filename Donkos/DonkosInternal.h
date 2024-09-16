@@ -2,7 +2,7 @@
 #define TEST_DONKOSINTERNAL_H
 
 #include "Process.h"
-#include "Scheduler.h"
+#include "RoundRobinScheduler.h"
 
 void Donkos_GenericProcessMain();
 
@@ -22,6 +22,6 @@ void Donkos_DisableIRQ();
 
 void Donkos_EnableIRQ();
 
-Scheduler &Donkos_GetScheduler();
+RoundRobinScheduler &Donkos_GetScheduler();
 
 #endif //TEST_DONKOSINTERNAL_H

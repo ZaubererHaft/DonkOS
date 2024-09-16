@@ -1,19 +1,19 @@
-#include "Scheduler.h"
+#include "RoundRobinScheduler.h"
 #include "stm32l4xx_hal.h"
 
 extern "C" void context_switch(uint32_t *stackPointers, uint32_t pidCurr, uint32_t pidNext, uint32_t *savedRegs);
 
-Scheduler::Scheduler() : processes{nullptr}, index{0U}, currentProcess{nullptr}, nextProcess{nullptr} {
+RoundRobinScheduler::RoundRobinScheduler() : processes{nullptr}, index{0U}, currentProcess{nullptr}, nextProcess{nullptr} {
 
 }
 
-void Scheduler::SetInitialProcess(Process *process) {
+void RoundRobinScheduler::SetInitialProcess(Process *process) {
     __set_PSP(process->GetStackPointer());
     nextProcess = process;
 }
 
 
-void Scheduler::RegisterProcess(Process *process) {
+void RoundRobinScheduler::RegisterProcess(Process *process) {
     if (index < Donkos_MaxProcesses) {
         process->SetState(ProcessState::READY);
         process->SetPid(index);
@@ -23,7 +23,7 @@ void Scheduler::RegisterProcess(Process *process) {
     }
 }
 
-void Scheduler::Schedule() {
+void RoundRobinScheduler::Schedule() {
     if (index > 0) {
         if (currentProcess != nullptr) {
             uint32_t pidStart = currentProcess->GetPid();
@@ -46,7 +46,7 @@ void Scheduler::Schedule() {
     }
 }
 
-bool Scheduler::NeedsContextSwitch() const {
+bool RoundRobinScheduler::NeedsContextSwitch() const {
     if (index <= 0) {
         return false;
     } else {
@@ -54,11 +54,11 @@ bool Scheduler::NeedsContextSwitch() const {
     }
 }
 
-Process *Scheduler::GetCurrentProcess() {
+Process *RoundRobinScheduler::GetCurrentProcess() {
     return currentProcess;
 }
 
-void Scheduler::ContextSwitch(uint32_t *savedRegs) {
+void RoundRobinScheduler::ContextSwitch(uint32_t *savedRegs) {
     if (currentProcess != nullptr) {
         currentProcess->SaveContext(savedRegs);
 
@@ -76,7 +76,7 @@ void Scheduler::ContextSwitch(uint32_t *savedRegs) {
     }
 }
 
-void Scheduler::UnregisterProcess(Process *process) {
+void RoundRobinScheduler::UnregisterProcess(Process *process) {
     // remove process from list
     if (process->GetPid() < index) {
         for (uint32_t i = process->GetPid(); i < index - 1; ++i) {
@@ -88,7 +88,7 @@ void Scheduler::UnregisterProcess(Process *process) {
     }
 }
 
-void Scheduler::Tick() {
+void RoundRobinScheduler::Tick() {
     for (uint32_t i = 0; i < index; ++i) {
         processes[i]->UpdateTimer();
     }
