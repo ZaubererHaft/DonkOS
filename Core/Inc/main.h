@@ -63,6 +63,9 @@ void Error_Handler(void);
 #define NTC_GPIO_Port GPIOC
 #define PHOTO_Pin GPIO_PIN_1
 #define PHOTO_GPIO_Port GPIOC
+#define BUTTON_Pin GPIO_PIN_3
+#define BUTTON_GPIO_Port GPIOC
+#define BUTTON_EXTI_IRQn EXTI3_IRQn
 #define SHCP_Pin GPIO_PIN_5
 #define SHCP_GPIO_Port GPIOA
 #define STCP_Pin GPIO_PIN_6
