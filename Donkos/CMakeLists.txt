@@ -1,4 +1,5 @@
 add_library(Donko Donkos.cpp
+        Algorithms/StringConverter.cpp
         Processes/Process.cpp
         Processes/Process7SegmentDisplay.cpp
         Processes/ProcessLed1.cpp
@@ -19,6 +20,8 @@ add_library(Donko Donkos.cpp
         DataStructures/MemoryBlock.cpp
         DataStructures/MemoryListAllocator.cpp
         Scheduler/Inc/BaseScheduler.h
+        Algorithms/StringConverter.cpp
+        Algorithms/Inc/StringConverter.h
 )
-target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc  Drivers/SSD1306/Inc)
+target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc  Drivers/SSD1306/Inc Algorithms/Inc)
 target_include_directories(Donko PRIVATE .)
