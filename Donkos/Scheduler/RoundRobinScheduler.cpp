@@ -86,6 +86,7 @@ void RoundRobinScheduler::UnregisterProcess(Process *process) {
         processes[index - 1] = nullptr;
         index--;
     }
+    process->SetState(ProcessState::CREATED);
 }
 
 void RoundRobinScheduler::Tick() {

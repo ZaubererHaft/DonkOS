@@ -10,6 +10,7 @@
 #include "SSD1306Process.h"
 #include "LedDisplay.h"
 #include "BuzzerProcess.h"
+#include "Processes/KeyboardProcess.h"
 
 extern "C" void ContextSwitch();
 
@@ -31,6 +32,7 @@ namespace {
     //DHTProcess dht{};
     //SSD1306Process ssd1306Process{};
     BuzzerProcess buzz{};
+    KeyboardProcess key{};
 
     RoundRobinScheduler scheduler{};
 }
@@ -208,10 +210,10 @@ void SVC_Handler_C(uint32_t *args) {
         scheduler.UnregisterProcess(process);
         Donkos_RequestScheduling();
     }
-    //reschedule only
+        //reschedule only
     else if (svcNumber == 1) {
         Donkos_RequestScheduling();
-    //start a new process
+        //start a new process
     } else if (svcNumber == 2) {
         auto process = reinterpret_cast<Process *>(args[0]);
         scheduler.RegisterProcess(process);
@@ -283,10 +285,10 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, SHCP_Pin|STCP_Pin|DSSER_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, SHCP_Pin | STCP_Pin | DSSER_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin | DHT_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin : BUTTON_Pin */
     GPIO_InitStruct.Pin = BUTTON_Pin;
@@ -295,14 +297,14 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(BUTTON_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : SHCP_Pin STCP_Pin DSSER_Pin */
-    GPIO_InitStruct.Pin = SHCP_Pin|STCP_Pin|DSSER_Pin;
+    GPIO_InitStruct.Pin = SHCP_Pin | STCP_Pin | DSSER_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pins : LED_1_Pin LED2_Pin DISPLAY_CS_Pin DHT_Pin */
-    GPIO_InitStruct.Pin = LED_1_Pin|LED2_Pin|DISPLAY_CS_Pin|DHT_Pin;
+    GPIO_InitStruct.Pin = LED_1_Pin | LED2_Pin | DISPLAY_CS_Pin | DHT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -324,19 +326,8 @@ void Error_Handler(void) {
     }
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    static bool show = false;
-    ledDisplay.SetLine(2);
-
-    show = !show;
-    Donkos_SetDisplayLine(2);
-    if(show)
-    {
-        Donkos_Display("Hi!");
-    }
-    else
-    {
-        Donkos_Display("            ");
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (key.GetState() == ProcessState::CREATED) {
+        scheduler.RegisterProcess(&key);
     }
 }

@@ -22,6 +22,8 @@ add_library(Donko Donkos.cpp
         Scheduler/Inc/BaseScheduler.h
         Algorithms/StringConverter.cpp
         Algorithms/Inc/StringConverter.h
+        Processes/KeyboardProcess.cpp
+        Processes/KeyboardProcess.h
 )
 target_include_directories(Donko PUBLIC Inc Processes/Inc Scheduler/Inc Services/Inc DataStructures/Inc  Drivers/SSD1306/Inc Algorithms/Inc)
 target_include_directories(Donko PRIVATE .)
