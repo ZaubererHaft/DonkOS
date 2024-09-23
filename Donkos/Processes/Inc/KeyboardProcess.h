@@ -10,6 +10,8 @@ public:
 
     void Main() override;
 
+    void SetKeyPressed(uint16_t pin);
+
 private:
     bool show;
 };

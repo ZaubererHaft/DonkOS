@@ -1,5 +1,6 @@
 #include "KeyboardProcess.h"
 #include "DonkosInternal.h"
+#include "main.h"
 
 KeyboardProcess::KeyboardProcess() : show{false} {
 
@@ -17,5 +18,10 @@ void KeyboardProcess::Main() {
     {
         Donkos_Display("            ");
     }
+
+    wait(500);
+}
+
+void KeyboardProcess::SetKeyPressed(uint16_t pin) {
 }
 

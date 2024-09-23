@@ -10,7 +10,7 @@
 #include "SSD1306Process.h"
 #include "LedDisplay.h"
 #include "BuzzerProcess.h"
-#include "Processes/KeyboardProcess.h"
+#include "KeyboardProcess.h"
 
 extern "C" void ContextSwitch();
 
@@ -329,5 +329,6 @@ void Error_Handler(void) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (key.GetState() == ProcessState::CREATED) {
         scheduler.RegisterProcess(&key);
+        key.SetKeyPressed(GPIO_Pin);
     }
 }
