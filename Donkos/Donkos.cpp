@@ -6,8 +6,6 @@
 #include "RoundRobinScheduler.h"
 #include "ProcessMatrixDisplay.h"
 #include "ADC3Process.h"
-#include "DHTProcess.h"
-#include "SSD1306Process.h"
 #include "LedDisplay.h"
 #include "BuzzerProcess.h"
 #include "KeyboardProcess.h"
@@ -22,7 +20,8 @@ static void SystemClock_Config();
 
 
 DMA_HandleTypeDef hdma_adc3;
-static void MX_DMA_Init(void);
+
+static void MX_DMA_Init();
 
 namespace {
     Display dotMatrix{};
@@ -341,15 +340,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 /**
   * Enable DMA controller clock
   */
-static void MX_DMA_Init(void)
-{
+static void MX_DMA_Init() {
 
     /* DMA controller clock enable */
     __HAL_RCC_DMA1_CLK_ENABLE();
 
     /* DMA interrupt init */
     /* DMA1_Channel3_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-
+    // HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+    // HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 }
