@@ -24,7 +24,7 @@ void ADC3Process::InitADC() {
     hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
     hadc3.Init.LowPowerAutoWait = DISABLE;
     hadc3.Init.ContinuousConvMode = DISABLE;
-    hadc3.Init.NbrOfConversion = 2;
+    hadc3.Init.NbrOfConversion = 1;
     hadc3.Init.DiscontinuousConvMode = DISABLE;
     hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -47,12 +47,12 @@ void ADC3Process::InitADC() {
         Error_Handler();
     }
 
-    sConfig.Channel = ADC_CHANNEL_2;
-    sConfig.Rank = ADC_REGULAR_RANK_2;
-    if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
+  // sConfig.Channel = ADC_CHANNEL_2;
+  // sConfig.Rank = ADC_REGULAR_RANK_2;
+  // if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  // {
+  //     Error_Handler();
+  // }
 
 }
 
@@ -64,20 +64,22 @@ void ADC3Process::Main() {
     char output_Temp[12] = "Temp: ";
     char output_Lumi[12] = "Lumi: ";
 
+    uint32_t dmaBufferTemp = 0;
+
+    HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
+    HAL_ADC_Start_DMA(&hadc3,&dmaBufferTemp, 1);
+
     while (true) {
         uint32_t rawValueTemperature = 0;
         uint32_t rawValuePhototransistor = 0;
 
         for (int i = 0; i < countTemperatures; ++i) {
             HAL_ADC_Start(&hadc3);
-            HAL_ADC_PollForConversion(&hadc3, 5);
-            rawValueTemperature += HAL_ADC_GetValue(&hadc3);
-            HAL_ADC_PollForConversion(&hadc3, 5);
-            rawValuePhototransistor += HAL_ADC_GetValue(&hadc3);
-            HAL_ADC_Stop(&hadc3);
+            rawValueTemperature += dmaBufferTemp;
+            wait(10);
         }
+
         rawValueTemperature /= countTemperatures;
-        rawValuePhototransistor /= countTemperatures;
 
         // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);

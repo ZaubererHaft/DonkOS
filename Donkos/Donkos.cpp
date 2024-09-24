@@ -20,6 +20,10 @@ static void MX_GPIO_Init();
 
 static void SystemClock_Config();
 
+
+DMA_HandleTypeDef hdma_adc3;
+static void MX_DMA_Init(void);
+
 namespace {
     Display dotMatrix{};
     LedDisplay ledDisplay{};
@@ -67,11 +71,12 @@ void Donkos_Init() {
     //Clock Init
     SystemClock_Config();
 
-    temp.InitADC();
-
     //Digital
     MX_GPIO_Init();
 
+    MX_DMA_Init();
+
+    temp.InitADC();
     dotMatrix.Initialize();
     ledDisplay.Init();
     buzz.Init();
@@ -331,4 +336,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         scheduler.RegisterProcess(&key);
         key.SetKeyPressed(GPIO_Pin);
     }
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+    /* DMA controller clock enable */
+    __HAL_RCC_DMA1_CLK_ENABLE();
+
+    /* DMA interrupt init */
+    /* DMA1_Channel3_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+
 }

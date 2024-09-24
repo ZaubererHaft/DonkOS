@@ -55,7 +55,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern DMA_HandleTypeDef hdma_adc3;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -153,19 +153,6 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
-/**
-  * @brief This function handles EXTI line3 interrupt.
-  */
-void EXTI3_IRQHandler(void)
-{
-    /* USER CODE BEGIN EXTI3_IRQn 0 */
-
-    /* USER CODE END EXTI3_IRQn 0 */
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
-    /* USER CODE BEGIN EXTI3_IRQn 1 */
-
-    /* USER CODE END EXTI3_IRQn 1 */
-}
 
 /******************************************************************************/
 /* STM32L4xx Peripheral Interrupt Handlers                                    */
@@ -173,6 +160,34 @@ void EXTI3_IRQHandler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32l4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles EXTI line3 interrupt.
+  */
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(BUTTON_Pin);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+  /* USER CODE END EXTI3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel3 global interrupt.
+  */
+void DMA1_Channel3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc3);
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel3_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

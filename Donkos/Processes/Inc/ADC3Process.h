@@ -15,7 +15,7 @@ public:
     void InitADC();
 
 private:
-    static constexpr uint32_t countTemperatures = 100;
+    static constexpr uint32_t countTemperatures = 10;
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
