@@ -14,8 +14,19 @@ ADC3Process::ADC3Process() : hadc3{}, sensor{{10'000.0f, 3835.51}} {
 
 void ADC3Process::InitADC() {
 
+
+    /* USER CODE BEGIN ADC3_Init 0 */
+
+    /* USER CODE END ADC3_Init 0 */
+
     ADC_ChannelConfTypeDef sConfig = {0};
 
+    /* USER CODE BEGIN ADC3_Init 1 */
+
+    /* USER CODE END ADC3_Init 1 */
+
+    /** Common config
+    */
     hadc3.Instance = ADC3;
     hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV128;
     hadc3.Init.Resolution = ADC_RESOLUTION_12B;
@@ -23,12 +34,12 @@ void ADC3Process::InitADC() {
     hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
     hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
     hadc3.Init.LowPowerAutoWait = DISABLE;
-    hadc3.Init.ContinuousConvMode = DISABLE;
-    hadc3.Init.NbrOfConversion = 1;
+    hadc3.Init.ContinuousConvMode = ENABLE;
+    hadc3.Init.NbrOfConversion = 2;
     hadc3.Init.DiscontinuousConvMode = DISABLE;
     hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    hadc3.Init.DMAContinuousRequests = DISABLE;
+    hadc3.Init.DMAContinuousRequests = ENABLE;
     hadc3.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     hadc3.Init.OversamplingMode = DISABLE;
     if (HAL_ADC_Init(&hadc3) != HAL_OK)
@@ -36,6 +47,8 @@ void ADC3Process::InitADC() {
         Error_Handler();
     }
 
+    /** Configure Regular Channel
+    */
     sConfig.Channel = ADC_CHANNEL_1;
     sConfig.Rank = ADC_REGULAR_RANK_1;
     sConfig.SamplingTime = ADC_SAMPLETIME_92CYCLES_5;
@@ -47,13 +60,17 @@ void ADC3Process::InitADC() {
         Error_Handler();
     }
 
-  // sConfig.Channel = ADC_CHANNEL_2;
-  // sConfig.Rank = ADC_REGULAR_RANK_2;
-  // if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
-  // {
-  //     Error_Handler();
-  // }
+    /** Configure Regular Channel
+    */
+    sConfig.Channel = ADC_CHANNEL_2;
+    sConfig.Rank = ADC_REGULAR_RANK_2;
+    if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN ADC3_Init 2 */
 
+    /* USER CODE END ADC3_Init 2 */
 }
 
 float ADC3Process::getADCRefVoltageInV() {
@@ -64,22 +81,24 @@ void ADC3Process::Main() {
     char output_Temp[12] = "Temp: ";
     char output_Lumi[12] = "Lumi: ";
 
-    uint32_t dmaBufferTemp = 0;
+    uint16_t dmaBuffer[2] = {0};
 
     HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
-    HAL_ADC_Start_DMA(&hadc3,&dmaBufferTemp, 1);
+    HAL_ADC_Start_DMA(&hadc3, (uint32_t *)&dmaBuffer, 2);
+    HAL_ADC_Start(&hadc3);
 
     while (true) {
         uint32_t rawValueTemperature = 0;
         uint32_t rawValuePhototransistor = 0;
 
         for (int i = 0; i < countTemperatures; ++i) {
-            HAL_ADC_Start(&hadc3);
-            rawValueTemperature += dmaBufferTemp;
+            rawValueTemperature += dmaBuffer[0];
+            rawValuePhototransistor += dmaBuffer[1];
             wait(10);
         }
 
         rawValueTemperature /= countTemperatures;
+        rawValuePhototransistor /= countTemperatures;
 
         // here it gets a little tricky: The reference voltage in the voltage divider circuit is 3.3 V, however IN THE ADC it depends on the value in VREFBUF...
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemperature);
