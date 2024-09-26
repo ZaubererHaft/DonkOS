@@ -9,6 +9,7 @@
 #include "LedDisplay.h"
 #include "BuzzerProcess.h"
 #include "KeyboardProcess.h"
+#include "PriorityScheduler.h"
 
 extern "C" void ContextSwitch();
 
@@ -17,7 +18,6 @@ extern "C" void SVC_Handler_C(uint32_t *);
 static void MX_GPIO_Init();
 
 static void SystemClock_Config();
-
 
 DMA_HandleTypeDef hdma_adc3;
 
@@ -81,8 +81,8 @@ void Donkos_Init() {
     buzz.Init();
 }
 
-RoundRobinScheduler &Donkos_GetScheduler() {
-    return scheduler;
+BaseScheduler *Donkos_GetScheduler() {
+    return &scheduler;
 }
 
 void Donkos_RequestScheduling() {

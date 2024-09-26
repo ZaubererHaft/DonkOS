@@ -4,6 +4,7 @@
 #include "Process.h"
 
 class BaseScheduler {
+public:
     virtual void SetInitialProcess(Process *process) = 0;
 
     virtual void RegisterProcess(Process *process) = 0;

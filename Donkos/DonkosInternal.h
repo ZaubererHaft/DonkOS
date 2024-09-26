@@ -22,6 +22,6 @@ void Donkos_DisableIRQ();
 
 void Donkos_EnableIRQ();
 
-RoundRobinScheduler &Donkos_GetScheduler();
+BaseScheduler *Donkos_GetScheduler();
 
 #endif //TEST_DONKOSINTERNAL_H

@@ -88,7 +88,7 @@ void *MyNew(std::size_t arg_Size) {
     if (useMSP) {
         tmp_pPtr = std::malloc(arg_Size);
     } else {
-        tmp_pPtr = Donkos_GetScheduler().GetCurrentProcess()->GetHeapAllocator().Malloc(arg_Size);
+        tmp_pPtr = Donkos_GetScheduler()->GetCurrentProcess()->GetHeapAllocator().Malloc(arg_Size);
     }
     return tmp_pPtr;
 }
@@ -98,7 +98,7 @@ void MyDelete(void *arg_pPtr) {
     if (useMSP) {
         std::free(arg_pPtr);
     } else {
-        Donkos_GetScheduler().GetCurrentProcess()->GetHeapAllocator().Free(arg_pPtr);
+        Donkos_GetScheduler()->GetCurrentProcess()->GetHeapAllocator().Free(arg_pPtr);
     }
 }
 

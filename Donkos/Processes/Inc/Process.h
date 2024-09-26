@@ -36,6 +36,12 @@ public:
 
     MemoryListAllocator &GetHeapAllocator();
 
+    uint8_t GetPriority() const;
+
+    void SetPriority(uint8_t prio);
+
+    bool operator<(Process * process) const;
+
 protected:
     void wait(int32_t milliseconds);
 
@@ -50,6 +56,7 @@ private:
     ProcessState state;
     int32_t timer;
     MemoryListAllocator heapAllocator;
+    uint8_t priority;
 
     void setReg(uint32_t &indexer, uint32_t reg);
 };

@@ -5,7 +5,7 @@ extern "C" void load_context(uint32_t, uint32_t *);
 extern "C" uint32_t store_context(uint32_t *);
 
 Process::Process() : pid{0U}, heap{0U}, stack{0U}, stackPointer{0U}, state{ProcessState::CREATED},
-                     heapAllocator{&heap[0], heapSizeInMultipleOf4} {}
+                     heapAllocator{&heap[0], heapSizeInMultipleOf4}, priority{0U} {}
 
 void Process::Main() {
 }
@@ -131,4 +131,16 @@ bool Process::StackPtrValid() {
 
 MemoryListAllocator &Process::GetHeapAllocator() {
     return heapAllocator;
+}
+
+uint8_t Process::GetPriority() const {
+    return priority;
+}
+
+void Process::SetPriority(uint8_t prio) {
+    priority = prio;
+}
+
+bool Process::operator<(Process *process) const {
+    return priority < process->priority;
 }
