@@ -45,6 +45,14 @@ public:
 protected:
     void wait(int32_t milliseconds);
 
+    uint32_t GetStackStartAddress();
+
+    uint32_t GetStackSizeInBytes();
+
+    uint32_t GetDataStartAddress();
+
+    uint32_t GetDataSizeInBytes();
+
 private:
     static constexpr uint32_t stackSizeInMultipleOf4 = 1024;
     static constexpr uint32_t heapSizeInMultipleOf4 = 32;

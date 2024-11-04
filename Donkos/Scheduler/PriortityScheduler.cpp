@@ -17,7 +17,6 @@ void PriorityScheduler::RegisterProcess(Process *process) {
         process->SetState(ProcessState::READY);
         process->SetPid(pidCounter);
         process->InitStack();
-        priortityQueue.Insert(process);
     }
 }
 

@@ -144,3 +144,19 @@ void Process::SetPriority(uint8_t prio) {
 bool Process::operator<(Process *process) const {
     return priority < process->priority;
 }
+
+uint32_t Process::GetStackStartAddress() {
+    return (uint32_t)&stack[0];
+}
+
+uint32_t Process::GetDataStartAddress() {
+    return (uint32_t)&heap[0];
+}
+
+uint32_t Process::GetStackSizeInBytes() {
+    return stackSizeInMultipleOf4 * sizeof(uint32_t);
+}
+
+uint32_t Process::GetDataSizeInBytes() {
+    return heapSizeInMultipleOf4 * sizeof(uint32_t);
+}

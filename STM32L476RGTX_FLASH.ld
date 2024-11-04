@@ -168,6 +168,7 @@ SECTIONS
   ._user_heap_stack :
   {
     . = ALIGN(8);
+    _sstack = .;
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
