@@ -82,13 +82,7 @@ void BuzzerProcess::Main() {
         Error_Handler();
     }
 
-    tone(523, 800); //c
-    tone(660, 400); //e
-    tone(783, 400); //g
-    tone(493, 600); //e
-    tone(523, 100); //c
-    tone(587, 100); //d
-    tone(523, 450); //c
+    tone(523, 800);
 
     if (HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2) != HAL_OK) {
         Error_Handler();
@@ -107,4 +101,35 @@ void BuzzerProcess::noTone(int32_t ms) {
     htim1.Instance->CCR2 = old;
 }
 
+void happyBirthday()
+{
+    /*tone(396, 180); //g1
+tone(396, 200); //g1
+tone(440, 400); //a1
+tone(396, 400); //g1
+tone(523, 400); //c2
+tone(493, 800); //h1
+
+tone(396, 180); //g1
+tone(396, 200); //g1
+tone(440, 400); //a1
+tone(396, 400); //g1
+tone(587, 400); //d2
+tone(523, 800); //c2
+
+tone(396, 180); //g1
+tone(396, 200); //g1
+tone(783, 400); //g2
+tone(659, 400); //e2
+tone(523, 400); //c2
+tone(493, 400); //h1
+tone(440, 400); //a1
+
+tone(698, 180); //f2
+tone(698, 200); //f2
+tone(659, 400); //e2
+tone(523, 400); //c2
+tone(587, 400); //d2
+tone(523, 800); //c2*/
+}
 
