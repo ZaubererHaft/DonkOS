@@ -1,17 +1,39 @@
 #include "Process7SegmentDisplay.h"
 
 
+void clearShiftRegisters()
+{
+    HAL_GPIO_WritePin(NOE_GPIO_Port, NOE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(NSRCLR_GPIO_Port, NSRCLR_Pin, GPIO_PIN_RESET);
+}
+
+
 Process7SegmentDisplay::Process7SegmentDisplay() : num{0},
-                                                   mapping{0b01111110U,
-                                       0b01001000U,
-                                       0b00111101U,
-                                       0b01101101U,
-                                       0b01001011U,
-                                       0b01100111U,
-                                       0b11110111U,
-                                       0b01001100U,
-                                       0b01111111U,
-                                       0b11101111U} {
+                                                   mapping{
+                                        //QH QG QF QE QD QC QB QA <- read from r.t.l
+                                        //E D C Dot B A F G
+                                       0b1110'1110U,
+                                       0b0010'1000U,
+                                       0b1100'1101U,
+                                       0b0110'1101U,
+                                       0b0010'1011U,
+                                       0b0110'0111U,
+                                       0b1111'0111U,
+                                       0b0010'1100U,
+                                       0b1110'1111U,
+                                       0b0111'1111U} {
+    clearShiftRegisters();
+
+//New mapping from output registers to pins
+    //QA <-> G
+    //QB <-> F
+    //QC <-> A
+    //QD <-> B
+    //QE <-> Dot
+    //QF <-> C
+    //QG <-> D
+    //QH <-> E
+//Alt
     //Q0 <-> G(10)
     //Q1 <-> F(9)
     //Q2 <-> A(7)
@@ -21,6 +43,9 @@ Process7SegmentDisplay::Process7SegmentDisplay() : num{0},
     //Q6 <-> C(4)
     //Q7 <-> Dot(5)
 
+    //  Pins from l.t.r seen from top
+    //  g-f-VCC-a-b
+    //
     //  ---a---
     //  |     |
     //  f     b
@@ -30,10 +55,12 @@ Process7SegmentDisplay::Process7SegmentDisplay() : num{0},
     //  e     c
     //  |     |
     //  ---d---
+    //
+    //  e-d-VCC-c-Dot
 }
 
-
 void Process7SegmentDisplay::Main() {
+
 
     while (1) {
         Write(mapping[num]);
@@ -44,14 +71,25 @@ void Process7SegmentDisplay::Main() {
 
 void Process7SegmentDisplay::Write(uint8_t number) {
 
-    WritePin(pinSTCPStorageClock, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RCLK_GPIO_Port, RCLK_Pin, GPIO_PIN_RESET);
+
     for (int8_t i = 7; i >= 0; --i) {
-        WritePin(pinSHCPShiftClock, GPIO_PIN_RESET);
         uint8_t bit = (number & (1 << i)) >> i;
-        WritePin(pinDSSER, static_cast<GPIO_PinState>(!bit));
-        WritePin(pinSHCPShiftClock, GPIO_PIN_SET);
+
+        HAL_GPIO_WritePin(SRCLK_GPIO_Port, SRCLK_Pin, GPIO_PIN_RESET);
+
+        HAL_GPIO_WritePin(NOE_GPIO_Port, NOE_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(NSRCLR_GPIO_Port, NSRCLR_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(SER_GPIO_Port, SER_Pin, static_cast<GPIO_PinState>(!bit));
+
+        HAL_GPIO_WritePin(SRCLK_GPIO_Port, SRCLK_Pin, GPIO_PIN_SET);
+
     }
-    WritePin(pinSTCPStorageClock, GPIO_PIN_SET);
+
+    HAL_GPIO_WritePin(NOE_GPIO_Port, NOE_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(NSRCLR_GPIO_Port, NSRCLR_Pin, GPIO_PIN_SET);
+
+    HAL_GPIO_WritePin(RCLK_GPIO_Port, RCLK_Pin, GPIO_PIN_SET);
 }
 
 
