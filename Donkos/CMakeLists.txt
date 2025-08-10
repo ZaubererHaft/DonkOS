@@ -8,6 +8,7 @@ add_library(Donko Donkos.cpp
         Processes/ProcessMatrixDisplay.cpp
         Processes/store_context.S
         Processes/load_context.S
+        Processes/DACProcess.cpp
         Processes/ADC3Process.cpp
         Services/Display.cpp
         Services/LedDisplay.cpp

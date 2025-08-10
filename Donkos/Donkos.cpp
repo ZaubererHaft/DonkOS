@@ -10,6 +10,7 @@
 #include "BuzzerProcess.h"
 #include "KeyboardProcess.h"
 #include "PriorityScheduler.h"
+#include "DACProcess.h"
 
 extern "C" void ContextSwitch();
 
@@ -31,6 +32,7 @@ namespace {
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
     ProcessMatrixDisplay pmd{&dotMatrix};
+    DACProcess dacProcess;
     ADC3Process temp{};
     //DHTProcess dht{};
     //SSD1306Process ssd1306Process{};
@@ -49,6 +51,7 @@ void Donkos_MainLoop() {
     scheduler.RegisterProcess(&buzz);
     scheduler.RegisterProcess(&pmd);
     scheduler.RegisterProcess(&temp);
+    scheduler.RegisterProcess(&dacProcess);
 
     scheduler.SetInitialProcess(&buzz);
 
@@ -73,11 +76,14 @@ void Donkos_Init() {
     //Digital
     MX_GPIO_Init();
 
+
     MX_DMA_Init();
 
     temp.InitADC();
+    dacProcess.Init();
+
     dotMatrix.Initialize();
-    ledDisplay.Init();
+ //   ledDisplay.Init();
     buzz.Init();
 }
 
@@ -236,7 +242,8 @@ static void SystemClock_Config() {
 
     /** Configure the main internal regulator output voltage
     */
-    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK) {
+    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+    {
         Error_Handler();
     }
 
@@ -254,20 +261,22 @@ static void SystemClock_Config() {
     RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
     RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
     RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
         Error_Handler();
     }
 
     /** Initializes the CPU, AHB and APB buses clocks
     */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                                  | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                                  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+    {
         Error_Handler();
     }
 }
