@@ -17,8 +17,8 @@ void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
     scheduler.RegisterProcess(&mutexProcess);
-    //scheduler.RegisterProcess(&led1Process);
-    //scheduler.RegisterProcess(&led2Process);
+    scheduler.RegisterProcess(&led1Process);
+    scheduler.RegisterProcess(&led2Process);
 
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -69,7 +69,8 @@ void Donkos_YieldProcess(Process *process) {
 }
 
 void Donkos_BlockProcess(Process *process) {
-    asm("SVC #0x1;");
+    asm("SVC #0x1;\n");
+
     // now wait until interrupt has been served
     // process will not be scheduled again until the resource the process was waiting for was freed
     // it will then continue executing after the while loop

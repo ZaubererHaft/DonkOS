@@ -55,13 +55,11 @@ extern "C" void SVC_Handler_C(uint32_t *);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void SVC_Handler_C(uint32_t * args)
+ void SVC_Handler_C(uint32_t * args)
 {
-    __disable_irq();
     uint32_t svcNumber = ((char *) args[6])[-2];
     auto process = reinterpret_cast<Process *>(args[0]);
     Donkos_ServiceHandler(svcNumber, process);
-    __enable_irq();
 }
 
 uint32_t regArray[10];
@@ -158,11 +156,13 @@ void UsageFault_Handler(void)
 /**
   * @brief This function handles System service call via SWI instruction.
   */
+__attribute__((naked))
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
     //call the svc handler directly from assembly code
-    __asm( ".global SVC_Handler_C\n"
+    __asm volatile(
+            ".global SVC_Handler_C\n"
            "TST lr, #4\n"
            "ITE EQ\n"
            "MRSEQ r0, MSP\n"
@@ -191,6 +191,7 @@ void DebugMon_Handler(void)
 /**
   * @brief This function handles Pendable request for system service.
   */
+__attribute__((naked))
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
