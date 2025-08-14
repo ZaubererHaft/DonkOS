@@ -1,6 +1,5 @@
 set(Donkos_Sources
         Donkos.cpp
-        Donkos_Interrupts.cpp
 
         Algorithms/StringConverter.cpp
         Algorithms/StringConverter.cpp
