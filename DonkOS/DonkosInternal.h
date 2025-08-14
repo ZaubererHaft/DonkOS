@@ -24,4 +24,12 @@ void Donkos_EnableIRQ();
 
 BaseScheduler *Donkos_GetScheduler();
 
+void Donkos_RequestScheduling();
+
+void Donkos_ContextSwitch(uint32_t *regArray);
+
+void Donkos_Tick();
+
+void Donkos_ServiceHandler(uint32_t svcNumber , Process * process);
+
 #endif //DONKOSINTERNAL_H

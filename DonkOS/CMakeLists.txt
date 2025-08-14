@@ -1,5 +1,6 @@
-add_library(Donkos
+set(Donkos_Sources
         Donkos.cpp
+        Donkos_Interrupts.cpp
 
         Algorithms/StringConverter.cpp
         Algorithms/StringConverter.cpp
@@ -32,7 +33,9 @@ add_library(Donkos
         #Processes/KeyboardProcess.cpp
 )
 
-target_include_directories(Donkos PUBLIC
+add_library(DonkOSLib ${Donkos_Sources})
+
+target_include_directories(DonkOSLib PUBLIC
         Inc
         Processes/Inc
         Scheduler/Inc Services/Inc
@@ -41,8 +44,8 @@ target_include_directories(Donkos PUBLIC
         Algorithms/Inc
 )
 
-target_include_directories(Donkos PRIVATE
+target_include_directories(DonkOSLib PRIVATE
         .
 )
 
-target_link_libraries(Donkos stm32cubemx)
+target_link_libraries(DonkOSLib stm32cubemx)

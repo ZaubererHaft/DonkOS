@@ -1,8 +1,8 @@
 #include "Donkos.h"
-#include "DonkosInternal.h"
 #include "Process7SegmentDisplay.h"
 #include "ProcessLed1.h"
 #include "ProcessLed2.h"
+#include "RoundRobinScheduler.h"
 
 namespace {
 
@@ -17,8 +17,8 @@ void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
     scheduler.RegisterProcess(&mutexProcess);
-   //scheduler.RegisterProcess(&led1Process);
-   //scheduler.RegisterProcess(&led2Process);
+    //scheduler.RegisterProcess(&led1Process);
+    //scheduler.RegisterProcess(&led2Process);
 
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -104,16 +104,12 @@ void Donkos_GenericProcessMain() {
 }
 
 
-void Donkos_ServiceHandler(uint32_t *args) {
-    __disable_irq();
-
-    uint32_t svcNumber = ((char *) args[6])[-2];
+void Donkos_ServiceHandler(uint32_t svcNumber, Process *process) {
 
     //unregister & reschedule
     if (svcNumber == 0) {
         //since PENDSV has a lower prio than SVC it would safe to unregister without IRQ disabling
         // however since scheduling request is privileged -> SVC call
-        auto process = reinterpret_cast<Process *>(args[0]);
         scheduler.UnregisterProcess(process);
         Donkos_RequestScheduling();
     }
@@ -122,9 +118,7 @@ void Donkos_ServiceHandler(uint32_t *args) {
         Donkos_RequestScheduling();
         //start a new process
     } else if (svcNumber == 2) {
-        auto process = reinterpret_cast<Process *>(args[0]);
         scheduler.RegisterProcess(process);
     }
-    __enable_irq();
 }
 
