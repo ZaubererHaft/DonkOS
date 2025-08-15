@@ -10,18 +10,20 @@ class ADC3Process : public Process {
 public:
     explicit ADC3Process();
 
+    void SetHandle(ADC_HandleTypeDef handle);
+
     void Main() override;
 
-    void InitADC();
 
 private:
     static constexpr uint32_t countTemperatures = 10;
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
+
+
     static float getADCRefVoltageInV();
 
-    static void concatToString(char *output, float measuredTemperature) ;
 };
 
 

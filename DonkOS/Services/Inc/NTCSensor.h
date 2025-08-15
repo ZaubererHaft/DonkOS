@@ -5,12 +5,13 @@
 struct NTCSensorArgs {
     float ResAt25DegCelInOhm;
     float beta;
+    float RefVoltCircuit;
+
 };
 
 class NTCSensor {
 public:
     static constexpr float OffsetCelsiusKelvin = 273.15f;
-    static constexpr float RefVoltCircuit = 3.33f;
     static constexpr float ResVoltDivInOhm = 10000.0f;
     static constexpr float TempAt25CelInKel = 25 + OffsetCelsiusKelvin;
 
@@ -21,6 +22,7 @@ public:
     float GetTemperatureInKelvin(float voltageIn) const;
 
 private:
+    float RefVoltCircuit;
     float ResAt25DegCel;
     float beta;
 };

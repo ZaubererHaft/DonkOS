@@ -1,7 +1,7 @@
 #include <complex>
 #include "NTCSensor.h"
 
-NTCSensor::NTCSensor(NTCSensorArgs args) : ResAt25DegCel{args.ResAt25DegCelInOhm}, beta{args.beta} {
+NTCSensor::NTCSensor(NTCSensorArgs args) : RefVoltCircuit{args.RefVoltCircuit}, ResAt25DegCel{args.ResAt25DegCelInOhm}, beta{args.beta} {
 
 }
 

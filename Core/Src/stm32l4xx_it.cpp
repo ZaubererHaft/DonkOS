@@ -208,7 +208,7 @@ void PendSV_Handler(void)
             "SUB R1, #4\n"
             "STR R0, [R1]\n"
             //now call context switch: this will save the array in the current process stack
-            //and load the new variable into the provded array
+            //and load the new variable into the provided array
             "BL ContextSwitch \n"
             //now finally apply the context switch by loading the R4-R11 and LR and CONTROL  from the array
             "LDR R1, =regArray\n"
@@ -218,7 +218,7 @@ void PendSV_Handler(void)
             "ISB\n"
             "ADD R1, #4\n"
             "LDMIA R1!, {R4-R11};\n"
-            "BX LR\n" //this should not be necessary
+            "BX LR\n"
             );
   /* USER CODE END PendSV_IRQn 0 */
   /* USER CODE BEGIN PendSV_IRQn 1 */

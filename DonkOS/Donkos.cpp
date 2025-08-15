@@ -3,15 +3,19 @@
 #include "ProcessLed1.h"
 #include "ProcessLed2.h"
 #include "RoundRobinScheduler.h"
+#include "ADC3Process.h"
 
 namespace {
 
     Process7SegmentDisplay mutexProcess{};
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
+    ADC3Process adcProcess{};
 
     RoundRobinScheduler scheduler{};
 }
+
+extern ADC_HandleTypeDef hadc3;
 
 void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
@@ -19,7 +23,8 @@ void Donkos_Main() {
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
-
+    scheduler.RegisterProcess(&adcProcess);
+    adcProcess.SetHandle(hadc3);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -80,6 +85,7 @@ void Donkos_BlockProcess(Process *process) {
 }
 
 void Donkos_EndProcess(Process *process) {
+    process->SetState(ProcessState::ENDED);
     //unregister and request scheduling again
     asm("SVC #0x0;");
     // wait for process to end

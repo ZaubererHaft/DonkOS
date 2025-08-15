@@ -26,7 +26,7 @@ set(Donkos_Sources
         Processes/store_context.S
         Processes/load_context.S
         #Processes/DACProcess.cpp
-        #Processes/ADC3Process.cpp
+        Processes/ADC3Process.cpp
         #Processes/DHTProcess.cpp
         #Processes/SSD1306Process.cpp
         #Processes/KeyboardProcess.cpp

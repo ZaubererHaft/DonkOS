@@ -40,8 +40,15 @@ void PriorityScheduler::ContextSwitch(uint32_t *savedRegs) {
         current->SaveContext(savedRegs);
 
         //if process ended up waiting do not override its state s.t. it won't get scheduled until it is not waiting anymore
+        // -> set only ready if process is running
         if (current->GetState() == ProcessState::RUNNING) {
             current->SetState(ProcessState::READY);
+        }
+
+        if(current->GetState() != ProcessState::ENDED)
+        {
+            // if process is not finished re-enter into queue
+            priortityQueue.Insert(current);
         }
     }
 

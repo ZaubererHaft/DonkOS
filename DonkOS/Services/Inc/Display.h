@@ -17,7 +17,7 @@ public:
     void TearDown();
 
 private:
-    SPI_HandleTypeDef hspi1;
+    //SPI_HandleTypeDef hspi1;
     uint8_t numLeftBuffer;
     uint8_t numRightBuffer;
 

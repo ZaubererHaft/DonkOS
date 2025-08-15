@@ -4,7 +4,7 @@
 #include "MemoryListAllocator.h"
 
 enum class ProcessState {
-    CREATED, READY, WAITING, RUNNING
+    CREATED, READY, WAITING, RUNNING, ENDED
 };
 
 class Process {
