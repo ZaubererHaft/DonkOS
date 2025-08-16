@@ -8,11 +8,11 @@ set(Donkos_Sources
         Scheduler/PriortityScheduler.cpp
 
         #Services/Display.cpp
-        #Services/LedDisplay.cpp
+        Services/LedDisplay.cpp
         Services/NTCSensor.cpp
 
-        #Drivers/SSD1306/fonts.cpp
-        #Drivers/SSD1306/ssd1306.cpp
+        Drivers/SSD1306/fonts.cpp
+        Drivers/SSD1306/ssd1306.cpp
 
         DataStructures/MemoryBlock.cpp
         DataStructures/MemoryListAllocator.cpp
@@ -28,7 +28,7 @@ set(Donkos_Sources
         #Processes/DACProcess.cpp
         Processes/ADC3Process.cpp
         #Processes/DHTProcess.cpp
-        #Processes/SSD1306Process.cpp
+        Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
 )
 

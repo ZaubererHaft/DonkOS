@@ -4,6 +4,8 @@
 #include "ProcessLed2.h"
 #include "RoundRobinScheduler.h"
 #include "ADC3Process.h"
+#include "DisplayRefreshProcess.h"
+#include "LedDisplay.h"
 
 namespace {
 
@@ -12,10 +14,14 @@ namespace {
     ProcessLed2 led2Process{};
     ADC3Process adcProcess{};
 
+    LedDisplay display{};
+    DisplayRefreshProcess displayRefreshProcess{&display};
+
     RoundRobinScheduler scheduler{};
 }
 
 extern ADC_HandleTypeDef hadc3;
+extern I2C_HandleTypeDef hi2c1;
 
 void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
@@ -24,7 +30,10 @@ void Donkos_Main() {
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&adcProcess);
+    scheduler.RegisterProcess(&displayRefreshProcess);
+
     adcProcess.SetHandle(hadc3);
+    display.SetHandle(hi2c1);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -95,14 +104,9 @@ void Donkos_EndProcess(Process *process) {
 }
 
 
-void Donkos_Display(const char *text) {
-    //ledDisplay.Display(text);
+void Donkos_Display(int32_t line, const char *text) {
+    display.Display(line, text);
 }
-
-void Donkos_SetDisplayLine(uint32_t line) {
-    // ledDisplay.SetLine(line);
-}
-
 
 void Donkos_GenericProcessMain() {
     Process *p = scheduler.GetCurrentProcess();

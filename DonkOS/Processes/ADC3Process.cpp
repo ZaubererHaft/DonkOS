@@ -37,13 +37,14 @@ void ADC3Process::Main() {
 
     while (true) {
         //buffer for printing the temperature. always newly initialized to clean up previous conversions
-        char output_temperature_string[16] = "Temp: ";
+        char output_temperature_string[11] = "T: ";
 
         float measuredTemperature = readTemperatureFromSensor();
         temperatureToString(output_temperature_string, measuredTemperature);
 
-        Donkos_SetDisplayLine(0);
-        Donkos_Display(&output_temperature_string[0]);
+        Donkos_Display(0, &output_temperature_string[0]);
+
+        wait(10);
     }
 }
 
@@ -59,6 +60,8 @@ float ADC3Process::readTemperatureFromSensor() {
             Error_Handler();
         }
         rawValue += HAL_ADC_GetValue(&hadc3);
+
+        // no need to stop because with continuous mode disabled ADC stops automatically after conversion
     }
 
     rawValue /= countTemperatures;
@@ -73,18 +76,18 @@ void ADC3Process::temperatureToString(char output_string[stringBufferSize], floa
     StringConverter converter{};
 
     // the index where the temperature will be printed to. Replaceable with strlen(output_Temp);
-    int32_t temp_string_start_index = 6U;
+    int32_t temp_string_start_index = 3U;
     // how long the temperature string can be. -2 because we want to add °C after the temperature value
     int32_t temp_string_max_len = stringBufferSize - temp_string_start_index - 2;
     auto [success, index] = converter.ToString(measuredTemperature, 2, &output_string[temp_string_start_index],
                                                temp_string_max_len);
-    index += temp_string_start_index;
 
     if (success) {
-        output_string[index] = 0xB0;
-        output_string[index + 1] = 'C';
-        output_string[index + 2] = '\0';
-
+        index += temp_string_start_index;
+        output_string[index] = ' ';
+        output_string[index + 1] = 'd';
+        output_string[index + 2] = 'C';
+        output_string[index + 3] = '\0';
     } else {
         Error_Handler();
     }

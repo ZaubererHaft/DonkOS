@@ -1,22 +1,28 @@
 #ifndef LEDDISPLAY_H
 #define LEDDISPLAY_H
 
+#include "BaseDisplay.h"
 #include "main.h"
 
-class LedDisplay {
+class LedDisplay : public BaseDisplay {
 public:
     LedDisplay();
 
-    void Init();
+    void Init() override;
 
-    void Display(const char *text);
+    void Display(int32_t line, const char *text) override;
 
-    void Refresh();
+    void Refresh() override;
 
-    void SetLine(uint32_t line);
+    bool Dirty() const override;
+
+    void SetHandle(I2C_HandleTypeDef handle);
 
 private:
-    I2C_HandleTypeDef hi2c2;
+    I2C_HandleTypeDef hi2c;
+    bool dirty;
+
+    char lineBuffers[3][64];
 };
 
 

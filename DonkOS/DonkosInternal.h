@@ -14,15 +14,7 @@ void Donkos_BlockProcess(Process *process);
 
 void Donkos_EndProcess(Process *process);
 
-void Donkos_Display(const char* text);
-
-void Donkos_SetDisplayLine(uint32_t line);
-
-void Donkos_DisableIRQ();
-
-void Donkos_EnableIRQ();
-
-BaseScheduler *Donkos_GetScheduler();
+void Donkos_Display(int32_t line, const char* text);
 
 void Donkos_RequestScheduling();
 
