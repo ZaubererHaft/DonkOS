@@ -16,14 +16,14 @@ void LedDisplay::Init() {
 }
 
 void LedDisplay::Display(int32_t line, const char *text) {
-    //ToDo checks, error handling
+    //ToDo add checks, error handling
     strcpy(lineBuffers[line], text);
     dirty = true;
 }
 
 void LedDisplay::Refresh() {
     for (int i = 0; i < 3; ++i) {
-        ssd1306_SetCursor(i, i * 20);
+        ssd1306_SetCursor(i, i * 15);
         ssd1306_WriteString(lineBuffers[i], Font_7x10, White);
     }
     ssd1306_UpdateScreen(&hi2c);

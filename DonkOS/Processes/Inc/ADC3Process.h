@@ -22,12 +22,13 @@ private:
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
 
-
     static float getADCRefVoltageInV();
 
-    float readTemperatureFromSensor();
+    void readSensors(float data[2]);
 
-    static void temperatureToString(char output_string[stringBufferSize], float measuredTemperature) ;
+    static void temperatureToString(char output_string[stringBufferSize], float measuredTemperature);
+
+    static void lumiToString(char lumiString[stringBufferSize], float voltage);
 };
 
 

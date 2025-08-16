@@ -190,7 +190,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.ContinuousConvMode = DISABLE;
   hadc3.Init.NbrOfConversion = 2;
   hadc3.Init.DiscontinuousConvMode = ENABLE;
-  hadc3.Init.NbrOfDiscConversion = 1;
+  hadc3.Init.NbrOfDiscConversion = 2;
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc3.Init.DMAContinuousRequests = DISABLE;

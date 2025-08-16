@@ -38,43 +38,40 @@ void ADC3Process::Main() {
     while (true) {
         //buffer for printing the temperature. always newly initialized to clean up previous conversions
         char output_temperature_string[11] = "T: ";
+        char output_lumi_string[11] = "L: ";
 
-        float measuredTemperature = readTemperatureFromSensor();
-        temperatureToString(output_temperature_string, measuredTemperature);
+        float data[] = {0, 0};
+
+        readSensors(data);
+        temperatureToString(output_temperature_string, data[0]);
+        lumiToString(output_lumi_string, data[1]);
 
         Donkos_Display(0, &output_temperature_string[0]);
+        Donkos_Display(1, &output_lumi_string[0]);
 
         wait(10);
     }
 }
 
-
-float ADC3Process::readTemperatureFromSensor() {
+void ADC3Process::readSensors(float data[2]) {
     uint32_t rawValueTemp = 0;
     uint32_t rawValueFoto = 0;
-    ADC_ChannelConfTypeDef sConfig = {0};
 
     for (int i = 0; i < countTemperatures; ++i) {
-
         if (HAL_ADC_Start(&hadc3) != HAL_OK) {
             Error_Handler();
         }
+
         if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
             Error_Handler();
         }
         rawValueTemp += HAL_ADC_GetValue(&hadc3);
 
-        if (HAL_ADC_Start(&hadc3) != HAL_OK) {
-            Error_Handler();
-        }
         if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
             Error_Handler();
         }
         rawValueFoto += HAL_ADC_GetValue(&hadc3);
 
-        if (HAL_ADC_Stop(&hadc3) != HAL_OK) {
-            Error_Handler();
-        }
         // no need to stop because with continuous mode disabled ADC stops automatically after conversion
     }
 
@@ -82,10 +79,12 @@ float ADC3Process::readTemperatureFromSensor() {
     rawValueFoto /= countTemperatures;
 
     auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
-    volatile auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
+    auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
 
     auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
-    return measuredTemperature;
+
+    data[0] = measuredTemperature;
+    data[1] = voltageFoto;
 }
 
 
@@ -105,6 +104,24 @@ void ADC3Process::temperatureToString(char output_string[stringBufferSize], floa
         output_string[index + 1] = 'd';
         output_string[index + 2] = 'C';
         output_string[index + 3] = '\0';
+    } else {
+        Error_Handler();
+    }
+}
+
+
+void ADC3Process::lumiToString(char output_string[stringBufferSize], float voltage) {
+    StringConverter converter{};
+
+    int32_t lumi_string_start_index = 3U;
+    int32_t string_max_len = stringBufferSize - lumi_string_start_index - 2;
+    auto [success, index] = converter.ToString(voltage, 2, &output_string[lumi_string_start_index],
+                                               string_max_len);
+    if (success) {
+        index += lumi_string_start_index;
+        output_string[index] = ' ';
+        output_string[index + 1] = 'V';
+        output_string[index + 2] = '\0';
     } else {
         Error_Handler();
     }
