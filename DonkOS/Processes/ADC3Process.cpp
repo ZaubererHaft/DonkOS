@@ -50,23 +50,40 @@ void ADC3Process::Main() {
 
 
 float ADC3Process::readTemperatureFromSensor() {
-    uint32_t rawValue = 0;
+    uint32_t rawValueTemp = 0;
+    uint32_t rawValueFoto = 0;
+    ADC_ChannelConfTypeDef sConfig = {0};
 
     for (int i = 0; i < countTemperatures; ++i) {
+
         if (HAL_ADC_Start(&hadc3) != HAL_OK) {
             Error_Handler();
         }
         if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
             Error_Handler();
         }
-        rawValue += HAL_ADC_GetValue(&hadc3);
+        rawValueTemp += HAL_ADC_GetValue(&hadc3);
 
+        if (HAL_ADC_Start(&hadc3) != HAL_OK) {
+            Error_Handler();
+        }
+        if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
+            Error_Handler();
+        }
+        rawValueFoto += HAL_ADC_GetValue(&hadc3);
+
+        if (HAL_ADC_Stop(&hadc3) != HAL_OK) {
+            Error_Handler();
+        }
         // no need to stop because with continuous mode disabled ADC stops automatically after conversion
     }
 
-    rawValue /= countTemperatures;
+    rawValueTemp /= countTemperatures;
+    rawValueFoto /= countTemperatures;
 
-    auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValue);
+    auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
+    volatile auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
+
     auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
     return measuredTemperature;
 }
