@@ -17,6 +17,7 @@ public:
 
 private:
     static constexpr uint32_t countTemperatures = 10;
+    static constexpr int32_t stringBufferSize = 16;
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
@@ -24,6 +25,9 @@ private:
 
     static float getADCRefVoltageInV();
 
+    float readTemperatureFromSensor();
+
+    static void temperatureToString(char output_string[stringBufferSize], float measuredTemperature) ;
 };
 
 
