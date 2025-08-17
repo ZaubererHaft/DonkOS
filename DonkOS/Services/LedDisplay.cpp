@@ -32,13 +32,18 @@ void LedDisplay::Refresh() {
         pageChange = false;
     }
 
+    ssd1306_SetCursor(105, 52);
+
+    if (currentPage) {
+        ssd1306_WriteString("2/2", Font_7x10, White);
+    } else {
+        ssd1306_WriteString("1/2", Font_7x10, White);
+    }
+
     for (int i = 0; i < lines; ++i) {
         ssd1306_SetCursor(i, i * 15);
         ssd1306_WriteString(lineBuffers[currentPage][i], Font_7x10, White);
     }
-    ssd1306_DrawPixel(120, 30, White);
-    ssd1306_DrawPixel(121, 30, White);
-    ssd1306_DrawPixel(122, 30, White);
 
     ssd1306_UpdateScreen(&hi2c);
     dirty = false;

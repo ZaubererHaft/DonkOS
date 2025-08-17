@@ -49,7 +49,7 @@ void ADC3Process::Main() {
         Donkos_Display(0, 0, &output_temperature_string[0]);
         Donkos_Display(0, 1, &output_lumi_string[0]);
 
-        wait(10);
+        Donkos_YieldProcess(this);
     }
 }
 
