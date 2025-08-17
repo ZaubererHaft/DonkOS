@@ -46,8 +46,8 @@ void ADC3Process::Main() {
         temperatureToString(output_temperature_string, data[0]);
         lumiToString(output_lumi_string, data[1]);
 
-        Donkos_Display(0, &output_temperature_string[0]);
-        Donkos_Display(1, &output_lumi_string[0]);
+        Donkos_Display(0, 0, &output_temperature_string[0]);
+        Donkos_Display(0, 1, &output_lumi_string[0]);
 
         wait(10);
     }
@@ -57,26 +57,24 @@ void ADC3Process::readSensors(float data[2]) {
     uint32_t rawValueTemp = 0;
     uint32_t rawValueFoto = 0;
 
-    for (int i = 0; i < countTemperatures; ++i) {
+    for (int i = 0; i < countSamples; ++i) {
         if (HAL_ADC_Start(&hadc3) != HAL_OK) {
             Error_Handler();
         }
 
-        if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
-            Error_Handler();
+        if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
+            rawValueTemp += HAL_ADC_GetValue(&hadc3);
         }
-        rawValueTemp += HAL_ADC_GetValue(&hadc3);
 
-        if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
-            Error_Handler();
+        if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
+            rawValueFoto += HAL_ADC_GetValue(&hadc3);
         }
-        rawValueFoto += HAL_ADC_GetValue(&hadc3);
 
         // no need to stop because with continuous mode disabled ADC stops automatically after conversion
     }
 
-    rawValueTemp /= countTemperatures;
-    rawValueFoto /= countTemperatures;
+    rawValueTemp /= countSamples;
+    rawValueFoto /= countSamples;
 
     auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
     auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);

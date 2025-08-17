@@ -6,6 +6,8 @@
 #include "ADC3Process.h"
 #include "DisplayRefreshProcess.h"
 #include "LedDisplay.h"
+#include "DonkosInternal.h"
+
 
 namespace {
 
@@ -104,8 +106,8 @@ void Donkos_EndProcess(Process *process) {
 }
 
 
-void Donkos_Display(int32_t line, const char *text) {
-    display.Display(line, text);
+void Donkos_Display(int32_t page, int32_t line, const char *text) {
+    display.Display(page, line, text);
 }
 
 void Donkos_GenericProcessMain() {
@@ -131,5 +133,9 @@ void Donkos_ServiceHandler(uint32_t svcNumber, Process *process) {
     } else if (svcNumber == 2) {
         scheduler.RegisterProcess(process);
     }
+}
+
+void Donkos_KeyPressed(int32_t keyId) {
+    display.NextPage();
 }
 

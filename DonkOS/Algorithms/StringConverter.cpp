@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <algorithm>
 #include <cmath>
 #include "StringConverter.h"
 
@@ -24,8 +23,8 @@ StringConverter::FloatToString(float number, int places, char *buffer, int buffl
         // remark: adds additional conversion error dut to float manipulation and narrowing
         number = number - ((uint32_t) number);
 
-        // special case: float is actually an integer and we are already done
-        if (number < zero_threshold ) {
+        if (number < zero_threshold) {
+            // special case: float is actually an integer and we are already done
             success = true;
         } else {
             // decimal dot if space for it is available: 0.23 | "-12."
@@ -36,7 +35,7 @@ StringConverter::FloatToString(float number, int places, char *buffer, int buffl
 
             if (index < bufflen) {
                 // get all places after the decimal dot
-                // idea: multiply with 10 to shift one place after the decimal dot to before it
+                // idea: multiply with 10 to shift one place after the decimal dot to one before it
                 // then cut off float part and convert digit to number and add it to the buffer
                 // repeat as long as the original floating point is not (close to) zero
                 // remark: adds additional conversion error dut to float manipulation and narrowing

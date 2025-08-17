@@ -14,7 +14,7 @@ void Donkos_BlockProcess(Process *process);
 
 void Donkos_EndProcess(Process *process);
 
-void Donkos_Display(int32_t line, const char* text);
+void Donkos_Display(int32_t page, int32_t line, const char* text);
 
 void Donkos_RequestScheduling();
 
@@ -23,5 +23,7 @@ void Donkos_ContextSwitch(uint32_t *regArray);
 void Donkos_Tick();
 
 void Donkos_ServiceHandler(uint32_t svcNumber , Process * process);
+
+void Donkos_KeyPressed(int32_t keyId);
 
 #endif //DONKOSINTERNAL_H
