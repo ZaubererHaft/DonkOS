@@ -5,9 +5,9 @@
 
 class StringConverter {
 public:
-    std::pair<bool, int> ToString(float number, int places, char *buffer, int bufflen, bool lineTermination = true);
+    std::pair<bool, int> FloatToString(float number, int places, char *buffer, int bufflen, bool lineTermination = true);
 
-    std::pair<bool, int> ToString(int number, char *buffer, int bufflen, bool lineTermination = true);
+    std::pair<bool, int> IntegerToString(int number, char *buffer, int bufflen, bool lineTermination = true);
 };
 
 

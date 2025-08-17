@@ -95,8 +95,8 @@ void ADC3Process::temperatureToString(char output_string[stringBufferSize], floa
     int32_t temp_string_start_index = 3U;
     // how long the temperature string can be. -2 because we want to add °C after the temperature value
     int32_t temp_string_max_len = stringBufferSize - temp_string_start_index - 2;
-    auto [success, index] = converter.ToString(measuredTemperature, 2, &output_string[temp_string_start_index],
-                                               temp_string_max_len);
+    auto [success, index] = converter.FloatToString(measuredTemperature, 2, &output_string[temp_string_start_index],
+                                                    temp_string_max_len);
 
     if (success) {
         index += temp_string_start_index;
@@ -115,8 +115,8 @@ void ADC3Process::lumiToString(char output_string[stringBufferSize], float volta
 
     int32_t lumi_string_start_index = 3U;
     int32_t string_max_len = stringBufferSize - lumi_string_start_index - 2;
-    auto [success, index] = converter.ToString(voltage, 2, &output_string[lumi_string_start_index],
-                                               string_max_len);
+    auto [success, index] = converter.FloatToString(voltage, 2, &output_string[lumi_string_start_index],
+                                                    string_max_len);
     if (success) {
         index += lumi_string_start_index;
         output_string[index] = ' ';

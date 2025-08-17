@@ -1,65 +1,82 @@
 #include <cstdint>
 #include <algorithm>
+#include <cmath>
 #include "StringConverter.h"
 
+static constexpr float zero_threshold = 0.00001;
+
 std::pair<bool, int>
-StringConverter::ToString(float number, int places, char *buffer, int bufflen, bool lineTermination) {
+StringConverter::FloatToString(float number, int places, char *buffer, int bufflen, bool lineTermination) {
 
-    // 1: convert integer part.
-    auto [success, index] = ToString((int) number, buffer, bufflen);
+    // convert integer part: -12.23 | "-12"
+    auto [success, index] = IntegerToString((int) number, buffer, bufflen);
 
+    // now continue with float part
     if (success) {
         success = false;
-        auto negative = number < 0;
 
-        if (negative) {
+        //negativity has already been dealt with in the integer conversion. continue with positive number: -12.23 -> 12.23 | "-12"
+        if (number < 0) {
             number *= -1;
         }
 
+        // remove places before decimal dot: 12.23 -> 0.23 | "-12" ).
+        // remark: adds additional conversion error dut to float manipulation and narrowing
         number = number - ((uint32_t) number);
 
-        // decimal dot if space available
-        if (index < bufflen) {
-            buffer[index] = '.';
-            index++;
-        }
-
-        if (index < bufflen) {
-            // get all places after the decimal dot
-            //remark: this function has a conversion error (due to float representation and multiplication)
-            do {
-                number = number * 10.0f;
-                uint32_t place = number;
-                buffer[index] = 48 + place;
-                number -= place;
+        // special case: float is actually an integer and we are already done
+        if (number < zero_threshold ) {
+            success = true;
+        } else {
+            // decimal dot if space for it is available: 0.23 | "-12."
+            if (index < bufflen) {
+                buffer[index] = '.';
                 index++;
-                places--;
-            } while (number > 0 && index < bufflen && places > 0);
-        }
+            }
 
-        // all places converted?
-        if (places <= 0) {
+            if (index < bufflen) {
+                // get all places after the decimal dot
+                // idea: multiply with 10 to shift one place after the decimal dot to before it
+                // then cut off float part and convert digit to number and add it to the buffer
+                // repeat as long as the original floating point is not (close to) zero
+                // remark: adds additional conversion error dut to float manipulation and narrowing
+                // In the example: 1) 0.23 -> 2.3 -> 0.3 | "-12.2"
+                //                 2) 0.3  -> 3.0 -> 0.0 | "-12.23"
+                // (ideal sequence)
+                do {
+                    number = number * 10.0f;
+                    uint32_t place = number;
+                    buffer[index] = '0' + place;
+                    number -= place;
+                    index++;
+                    places--;
+                } while (number > zero_threshold && index < bufflen && places > 0);
 
-            // add line termination if necessary and space available
-            if (lineTermination) {
-                if (index < bufflen) {
-                    buffer[index] = '\0';
-                    success = true;
+                // all places or number fully converted?
+                if (places == 0 || std::fabs(number) <= zero_threshold) {
+
+                    // add line termination if requested and space available
+                    if (lineTermination) {
+                        if (index < bufflen) {
+                            buffer[index] = '\0';
+                            success = true;
+                        }
+                    } else {
+                        success = true;
+                    }
                 }
-            } else {
-                success = true;
             }
         }
-
     }
+
     return {success, index};
 }
 
-std::pair<bool, int> StringConverter::ToString(int number, char *buffer, int bufflen, bool lineTermination) {
+std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, int bufflen, bool lineTermination) {
     bool success = false;
     auto index = 0;
 
-    if (bufflen > 0) {
+    if (bufflen > 0 && buffer != nullptr) {
         auto negative = number < 0;
 
         if (negative) {
@@ -69,7 +86,7 @@ std::pair<bool, int> StringConverter::ToString(int number, char *buffer, int buf
         // fill buffers with individual places but in wrong order (the least significant first)
         do {
             auto place = number % 10;
-            buffer[index] = 48 + place;
+            buffer[index] = '0' + place;
             index++;
             number /= 10;
         } while (number > 0 && index < bufflen);
