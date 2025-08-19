@@ -9,10 +9,8 @@ void DisplayRefreshProcess::Main() {
     display->Init();
 
     while (true) {
-        if (display->Dirty()) {
-            display->Refresh();
-            Donkos_YieldProcess(this);
-        }
+        display->Refresh();
+        Donkos_YieldProcess(this);
     }
 }
 

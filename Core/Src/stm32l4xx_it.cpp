@@ -59,7 +59,7 @@ extern "C" void SVC_Handler_C(uint32_t *);
 {
     uint32_t svcNumber = ((char *) args[6])[-2];
     auto process = reinterpret_cast<Process *>(args[0]);
-    Donkos_ServiceHandler(svcNumber, process);
+    Donkos_ServiceHandler(static_cast<ServiceCall>(svcNumber), process);
 }
 
 uint32_t regArray[10];
@@ -225,7 +225,7 @@ void PendSV_Handler(void)
 
   /* USER CODE END PendSV_IRQn 1 */
 }
-
+int32_t exti_cooldown = 0;
 /**
   * @brief This function handles System tick timer.
   */
@@ -240,6 +240,8 @@ void SysTick_Handler(void)
     if (HAL_GetTick() % 1 == 0) {
         Donkos_RequestScheduling();
     }
+    if(exti_cooldown > 0)
+        exti_cooldown--;
     /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -260,10 +262,14 @@ void EXTI9_5_IRQHandler(void)
     /* USER CODE END EXTI9_5_IRQn 0 */
     HAL_GPIO_EXTI_IRQHandler(PAGESELECT_Pin);
     /* USER CODE BEGIN EXTI9_5_IRQn 1 */
-    Donkos_KeyPressed(PAGESELECT_Pin);
+
     /* USER CODE END EXTI9_5_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == PAGESELECT_Pin) {
+        Donkos_KeyPressed(PAGESELECT_Pin);
+    }
+}
 /* USER CODE END 1 */

@@ -39,8 +39,6 @@ void Donkos_Main() {
 
     scheduler.SetInitialProcess(&mutexProcess);
 
-    NVIC_SetPriority(PendSV_IRQn, 0xFF);
-
     __set_CONTROL(0x3); //unprivileged mode starting here
     __ISB();
     __WFI();
@@ -117,22 +115,19 @@ void Donkos_GenericProcessMain() {
 }
 
 
-void Donkos_ServiceHandler(uint32_t svcNumber, Process *process) {
+void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
+    __disable_irq();
 
-    //unregister & reschedule
-    if (svcNumber == 0) {
-        //since PENDSV has a lower prio than SVC it would safe to unregister without IRQ disabling
-        // however since scheduling request is privileged -> SVC call
+    if (svcNumber == ServiceCall::UNREGISTER_RESCHEDULE) {
         scheduler.UnregisterProcess(process);
         Donkos_RequestScheduling();
-    }
-        //reschedule only
-    else if (svcNumber == 1) {
+    } else if (svcNumber == ServiceCall::RESCHEDULE) {
         Donkos_RequestScheduling();
-        //start a new process
-    } else if (svcNumber == 2) {
+    } else if (svcNumber == ServiceCall::START_PROCESS) {
         scheduler.RegisterProcess(process);
     }
+
+    __enable_irq();
 }
 
 void Donkos_KeyPressed(int32_t keyId) {
