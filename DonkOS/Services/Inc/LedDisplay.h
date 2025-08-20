@@ -4,8 +4,7 @@
 #include "BaseDisplay.h"
 #include "main.h"
 
-class Page
-{
+class Page {
 public:
     static constexpr int32_t lines = 4;
     static constexpr int32_t characters = 32;
@@ -29,7 +28,7 @@ public:
     void SetHandle(I2C_HandleTypeDef handle);
 
 private:
-    static constexpr int32_t count_pages = 2;
+    static constexpr int32_t count_pages = 3;
 
     I2C_HandleTypeDef hi2c;
 
@@ -38,10 +37,9 @@ private:
     int32_t currentPageIndex;
     int32_t nextPageIndex;
 
-
     bool needsPageChange() const;
 
-    Page & getCurrentPage();
+    Page &getCurrentPage();
 };
 
 

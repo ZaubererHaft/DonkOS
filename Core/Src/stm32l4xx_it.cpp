@@ -42,7 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+uint32_t KEYBOARD_INTERRUPT_LOCK = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -225,7 +225,7 @@ void PendSV_Handler(void)
 
   /* USER CODE END PendSV_IRQn 1 */
 }
-int32_t exti_cooldown = 0;
+
 /**
   * @brief This function handles System tick timer.
   */
@@ -236,12 +236,14 @@ void SysTick_Handler(void)
     /* USER CODE END SysTick_IRQn 0 */
     HAL_IncTick();
     /* USER CODE BEGIN SysTick_IRQn 1 */
+    if(KEYBOARD_INTERRUPT_LOCK > 0)
+    {
+        KEYBOARD_INTERRUPT_LOCK--;
+    }
     Donkos_Tick();
     if (HAL_GetTick() % 1 == 0) {
         Donkos_RequestScheduling();
     }
-    if(exti_cooldown > 0)
-        exti_cooldown--;
     /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -258,7 +260,6 @@ void SysTick_Handler(void)
 void EXTI9_5_IRQHandler(void)
 {
     /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-
     /* USER CODE END EXTI9_5_IRQn 0 */
     HAL_GPIO_EXTI_IRQHandler(PAGESELECT_Pin);
     /* USER CODE BEGIN EXTI9_5_IRQn 1 */
@@ -267,8 +268,10 @@ void EXTI9_5_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == PAGESELECT_Pin) {
+    if (GPIO_Pin == PAGESELECT_Pin && KEYBOARD_INTERRUPT_LOCK <= 0) {
+        KEYBOARD_INTERRUPT_LOCK = 200;
         Donkos_KeyPressed(PAGESELECT_Pin);
     }
 }

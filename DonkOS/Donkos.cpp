@@ -134,3 +134,7 @@ void Donkos_KeyPressed(int32_t keyId) {
     display.NextPage();
 }
 
+int32_t Donkos_GetSystemState() {
+    return 0;
+}
+

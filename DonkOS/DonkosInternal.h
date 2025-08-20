@@ -33,6 +33,6 @@ void Donkos_ServiceHandler(ServiceCall svcNumber , Process * process);
 
 void Donkos_KeyPressed(int32_t keyId);
 
-
+int32_t Donkos_GetSystemState();
 
 #endif //DONKOSINTERNAL_H

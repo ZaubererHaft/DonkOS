@@ -15,8 +15,20 @@ void LedDisplay::Init() {
         Error_Handler();
     }
 
-    strcpy(pages[1].lineBuffers[0], "Welcome!");
-    strcpy(pages[1].lineBuffers[1], "Status: good");
+    ssd1306_Fill(Black);
+
+    strcpy(pages[0].lineBuffers[0], "Willkommen :)");
+    strcpy(pages[0].lineBuffers[2], "Button zum navi-");
+    strcpy(pages[0].lineBuffers[3], "gieren benutzen");
+    pages[0].dirty = true;
+
+    strcpy(pages[1].lineBuffers[0], "Sensordaten");
+
+    strcpy(pages[2].lineBuffers[0], "DHT-11 Test");
+    strcpy(pages[2].lineBuffers[2], "Zum Start ENTER");
+    strcpy(pages[2].lineBuffers[3], "druecken");
+
+
 
 }
 
@@ -36,12 +48,14 @@ void LedDisplay::Refresh() {
     }
 
     if (getCurrentPage().dirty) {
-        ssd1306_SetCursor(105, 52);
+        ssd1306_SetCursor(120, 53);
 
-        if (currentPageIndex) {
-            ssd1306_WriteString("2/2", Font_7x10, White);
+        if (currentPageIndex == 2) {
+            ssd1306_WriteString("3", Font_7x10, White);
+        } else if (currentPageIndex == 1) {
+            ssd1306_WriteString("2", Font_7x10, White);
         } else {
-            ssd1306_WriteString("1/2", Font_7x10, White);
+            ssd1306_WriteString("1", Font_7x10, White);
         }
 
         for (int i = 0; i < Page::lines; ++i) {

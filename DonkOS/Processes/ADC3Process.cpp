@@ -46,8 +46,8 @@ void ADC3Process::Main() {
         temperatureToString(output_temperature_string, data[0]);
         lumiToString(output_lumi_string, data[1]);
 
-        Donkos_Display(0, 0, &output_temperature_string[0]);
-        Donkos_Display(0, 1, &output_lumi_string[0]);
+        Donkos_Display(1, 2, &output_temperature_string[0]);
+        Donkos_Display(1, 3, &output_lumi_string[0]);
 
         Donkos_YieldProcess(this);
     }
