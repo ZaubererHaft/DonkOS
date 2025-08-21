@@ -12,6 +12,8 @@ public:
     virtual void NextPage() = 0;
 
     virtual void Refresh() = 0;
+
+    virtual void Clear() = 0;
 };
 
 

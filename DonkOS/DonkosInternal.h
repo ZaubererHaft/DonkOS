@@ -23,6 +23,8 @@ void Donkos_EndProcess(Process *process);
 
 void Donkos_Display(int32_t page, int32_t line, const char* text);
 
+void Donkos_ClearDisplay();
+
 void Donkos_RequestScheduling();
 
 void Donkos_ContextSwitch(uint32_t *regArray);

@@ -25,12 +25,12 @@ void LedDisplay::Init() {
     strcpy(pages[1].lineBuffers[0], "Sensordaten");
 
     strcpy(pages[2].lineBuffers[0], "DHT-11 Test");
-    strcpy(pages[2].lineBuffers[2], "Zum Start ENTER");
-    strcpy(pages[2].lineBuffers[3], "druecken");
-
-
-
 }
+
+void LedDisplay::Clear() {
+    ssd1306_Fill(Black);
+}
+
 
 void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
     //ToDo add checks, error handling
@@ -43,7 +43,7 @@ void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
 void LedDisplay::Refresh() {
 
     if (needsPageChange()) {
-        ssd1306_Fill(Black);
+        Clear();
         currentPageIndex = nextPageIndex;
     }
 
@@ -80,3 +80,4 @@ bool LedDisplay::needsPageChange() const {
 Page &LedDisplay::getCurrentPage() {
     return pages[currentPageIndex];
 }
+

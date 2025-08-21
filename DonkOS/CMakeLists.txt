@@ -27,7 +27,7 @@ set(Donkos_Sources
         Processes/load_context.S
         #Processes/DACProcess.cpp
         Processes/ADC3Process.cpp
-        #Processes/DHTProcess.cpp
+        Processes/DHT11Process.cpp
         Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
 )

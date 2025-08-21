@@ -7,6 +7,7 @@
 #include "DisplayRefreshProcess.h"
 #include "LedDisplay.h"
 #include "DonkosInternal.h"
+#include "DHT11Process.h"
 
 
 namespace {
@@ -15,6 +16,7 @@ namespace {
     ProcessLed1 led1Process{};
     ProcessLed2 led2Process{};
     ADC3Process adcProcess{};
+    DHT11Process dht11Process{};
 
     LedDisplay display{};
     DisplayRefreshProcess displayRefreshProcess{&display};
@@ -24,18 +26,21 @@ namespace {
 
 extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
+extern TIM_HandleTypeDef htim7;
 
 void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
+
+    adcProcess.SetHandle(hadc3);
+    display.SetHandle(hi2c1);
+    dht11Process.SetHandle(htim7);
 
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&adcProcess);
     scheduler.RegisterProcess(&displayRefreshProcess);
-
-    adcProcess.SetHandle(hadc3);
-    display.SetHandle(hi2c1);
+    scheduler.RegisterProcess(&dht11Process);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -136,5 +141,9 @@ void Donkos_KeyPressed(int32_t keyId) {
 
 int32_t Donkos_GetSystemState() {
     return 0;
+}
+
+void Donkos_ClearDisplay() {
+    display.Clear();
 }
 

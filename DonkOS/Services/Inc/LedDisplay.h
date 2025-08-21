@@ -25,6 +25,8 @@ public:
 
     void NextPage() override;
 
+    void Clear() override;
+
     void SetHandle(I2C_HandleTypeDef handle);
 
 private:
