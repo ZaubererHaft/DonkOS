@@ -28,6 +28,7 @@ set(Donkos_Sources
         #Processes/DACProcess.cpp
         Processes/ADC3Process.cpp
         Processes/DHT11Process.cpp
+        Processes/DHT11NonblockingProcess.cpp
         Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
 )

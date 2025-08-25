@@ -37,4 +37,6 @@ void Donkos_KeyPressed(int32_t keyId);
 
 int32_t Donkos_GetSystemState();
 
+void Donkos_TimerElapsed(int32_t timerId);
+
 #endif //DONKOSINTERNAL_H

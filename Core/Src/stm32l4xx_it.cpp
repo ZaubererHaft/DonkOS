@@ -55,14 +55,14 @@ extern "C" void SVC_Handler_C(uint32_t *);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
- void SVC_Handler_C(uint32_t * args)
-{
+void SVC_Handler_C(uint32_t *args) {
     uint32_t svcNumber = ((char *) args[6])[-2];
     auto process = reinterpret_cast<Process *>(args[0]);
     Donkos_ServiceHandler(static_cast<ServiceCall>(svcNumber), process);
 }
 
 uint32_t regArray[10];
+
 void ContextSwitch() {
     Donkos_ContextSwitch(regArray);
 }
@@ -70,7 +70,7 @@ void ContextSwitch() {
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim7;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -81,120 +81,107 @@ void ContextSwitch() {
 /**
   * @brief This function handles Non maskable interrupt.
   */
-void NMI_Handler(void)
-{
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+void NMI_Handler(void) {
+    /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
-  {
-  }
-  /* USER CODE END NonMaskableInt_IRQn 1 */
+    /* USER CODE END NonMaskableInt_IRQn 0 */
+    /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+    while (1) {
+    }
+    /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**
   * @brief This function handles Hard fault interrupt.
   */
-void HardFault_Handler(void)
-{
-  /* USER CODE BEGIN HardFault_IRQn 0 */
+void HardFault_Handler(void) {
+    /* USER CODE BEGIN HardFault_IRQn 0 */
 
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-    /* USER CODE END W1_HardFault_IRQn 0 */
-  }
+    /* USER CODE END HardFault_IRQn 0 */
+    while (1) {
+        /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+        /* USER CODE END W1_HardFault_IRQn 0 */
+    }
 }
 
 /**
   * @brief This function handles Memory management fault.
   */
-void MemManage_Handler(void)
-{
-  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+void MemManage_Handler(void) {
+    /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
-  /* USER CODE END MemoryManagement_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
-    /* USER CODE END W1_MemoryManagement_IRQn 0 */
-  }
+    /* USER CODE END MemoryManagement_IRQn 0 */
+    while (1) {
+        /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+        /* USER CODE END W1_MemoryManagement_IRQn 0 */
+    }
 }
 
 /**
   * @brief This function handles Prefetch fault, memory access fault.
   */
-void BusFault_Handler(void)
-{
-  /* USER CODE BEGIN BusFault_IRQn 0 */
+void BusFault_Handler(void) {
+    /* USER CODE BEGIN BusFault_IRQn 0 */
 
-  /* USER CODE END BusFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_BusFault_IRQn 0 */
-    /* USER CODE END W1_BusFault_IRQn 0 */
-  }
+    /* USER CODE END BusFault_IRQn 0 */
+    while (1) {
+        /* USER CODE BEGIN W1_BusFault_IRQn 0 */
+        /* USER CODE END W1_BusFault_IRQn 0 */
+    }
 }
 
 /**
   * @brief This function handles Undefined instruction or illegal state.
   */
-void UsageFault_Handler(void)
-{
-  /* USER CODE BEGIN UsageFault_IRQn 0 */
+void UsageFault_Handler(void) {
+    /* USER CODE BEGIN UsageFault_IRQn 0 */
 
-  /* USER CODE END UsageFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
-    /* USER CODE END W1_UsageFault_IRQn 0 */
-  }
+    /* USER CODE END UsageFault_IRQn 0 */
+    while (1) {
+        /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+        /* USER CODE END W1_UsageFault_IRQn 0 */
+    }
 }
 
 /**
   * @brief This function handles System service call via SWI instruction.
   */
 __attribute__((naked))
-void SVC_Handler(void)
-{
-  /* USER CODE BEGIN SVCall_IRQn 0 */
+void SVC_Handler(void) {
+    /* USER CODE BEGIN SVCall_IRQn 0 */
     //call the svc handler directly from assembly code
     __asm volatile(
             ".global SVC_Handler_C\n"
-           "TST lr, #4\n"
-           "ITE EQ\n"
-           "MRSEQ r0, MSP\n"
-           "MRSNE r0, PSP\n"
-           "B SVC_Handler_C\n"
+            "TST lr, #4\n"
+            "ITE EQ\n"
+            "MRSEQ r0, MSP\n"
+            "MRSNE r0, PSP\n"
+            "B SVC_Handler_C\n"
             );
-  /* USER CODE END SVCall_IRQn 0 */
-  /* USER CODE BEGIN SVCall_IRQn 1 */
+    /* USER CODE END SVCall_IRQn 0 */
+    /* USER CODE BEGIN SVCall_IRQn 1 */
 
-  /* USER CODE END SVCall_IRQn 1 */
+    /* USER CODE END SVCall_IRQn 1 */
 }
 
 /**
   * @brief This function handles Debug monitor.
   */
-void DebugMon_Handler(void)
-{
-  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+void DebugMon_Handler(void) {
+    /* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+    /* USER CODE END DebugMonitor_IRQn 0 */
+    /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
-  /* USER CODE END DebugMonitor_IRQn 1 */
+    /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
 /**
   * @brief This function handles Pendable request for system service.
   */
 __attribute__((naked))
-void PendSV_Handler(void)
-{
-  /* USER CODE BEGIN PendSV_IRQn 0 */
+void PendSV_Handler(void) {
+    /* USER CODE BEGIN PendSV_IRQn 0 */
     __asm(
         // Here we call the context switch
         // First step: provide array for registers of the current running process (which however got interrupted now)
@@ -220,24 +207,22 @@ void PendSV_Handler(void)
             "LDMIA R1!, {R4-R11};\n"
             "BX LR\n"
             );
-  /* USER CODE END PendSV_IRQn 0 */
-  /* USER CODE BEGIN PendSV_IRQn 1 */
+    /* USER CODE END PendSV_IRQn 0 */
+    /* USER CODE BEGIN PendSV_IRQn 1 */
 
-  /* USER CODE END PendSV_IRQn 1 */
+    /* USER CODE END PendSV_IRQn 1 */
 }
 
 /**
   * @brief This function handles System tick timer.
   */
-void SysTick_Handler(void)
-{
+void SysTick_Handler(void) {
     /* USER CODE BEGIN SysTick_IRQn 0 */
 
     /* USER CODE END SysTick_IRQn 0 */
     HAL_IncTick();
     /* USER CODE BEGIN SysTick_IRQn 1 */
-    if(KEYBOARD_INTERRUPT_LOCK > 0)
-    {
+    if (KEYBOARD_INTERRUPT_LOCK > 0) {
         KEYBOARD_INTERRUPT_LOCK--;
     }
     Donkos_Tick();
@@ -257,14 +242,23 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles EXTI line[9:5] interrupts.
   */
-void EXTI9_5_IRQHandler(void)
-{
+void EXTI9_5_IRQHandler(void) {
     /* USER CODE BEGIN EXTI9_5_IRQn 0 */
     /* USER CODE END EXTI9_5_IRQn 0 */
     HAL_GPIO_EXTI_IRQHandler(PAGESELECT_Pin);
     /* USER CODE BEGIN EXTI9_5_IRQn 1 */
 
     /* USER CODE END EXTI9_5_IRQn 1 */
+}
+
+void TIM7_IRQHandler(void) {
+    /* USER CODE BEGIN TIM7_IRQn 0 */
+
+    /* USER CODE END TIM7_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim7);
+    /* USER CODE BEGIN TIM7_IRQn 1 */
+
+    /* USER CODE END TIM7_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
@@ -274,5 +268,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         KEYBOARD_INTERRUPT_LOCK = 200;
         Donkos_KeyPressed(PAGESELECT_Pin);
     }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (&htim7 == htim) {
+        Donkos_TimerElapsed(6);
+    }
+
 }
 /* USER CODE END 1 */

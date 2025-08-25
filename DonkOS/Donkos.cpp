@@ -8,6 +8,7 @@
 #include "LedDisplay.h"
 #include "DonkosInternal.h"
 #include "DHT11Process.h"
+#include "DHT11NonblockingProcess.h"
 
 
 namespace {
@@ -20,6 +21,7 @@ namespace {
 
     LedDisplay display{};
     DisplayRefreshProcess displayRefreshProcess{&display};
+    DHT11NonblockingProcess dht11NonblockingProcess{};
 
     RoundRobinScheduler scheduler{};
 }
@@ -34,13 +36,15 @@ void Donkos_Main() {
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
     dht11Process.SetHandle(htim7);
+    dht11NonblockingProcess.SetHandle(htim7);
 
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&led1Process);
     scheduler.RegisterProcess(&led2Process);
     scheduler.RegisterProcess(&adcProcess);
     scheduler.RegisterProcess(&displayRefreshProcess);
-    scheduler.RegisterProcess(&dht11Process);
+    //scheduler.RegisterProcess(&dht11Process);
+    scheduler.RegisterProcess(&dht11NonblockingProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -145,5 +149,9 @@ int32_t Donkos_GetSystemState() {
 
 void Donkos_ClearDisplay() {
     display.Clear();
+}
+
+void Donkos_TimerElapsed(int32_t timerId) {
+    dht11NonblockingProcess.TimerInterruptReceived();
 }
 

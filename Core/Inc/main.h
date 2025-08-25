@@ -81,6 +81,8 @@ void Error_Handler(void);
 #define RCLK_GPIO_Port GPIOB
 #define DHT_DATA_Pin GPIO_PIN_8
 #define DHT_DATA_GPIO_Port GPIOC
+#define DEBUG_Pin GPIO_PIN_9
+#define DEBUG_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
