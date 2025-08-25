@@ -91,6 +91,8 @@ void DHT11NonblockingProcess::Main() {
 
 void DHT11NonblockingProcess::TimerInterruptReceived() {
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_SET);
+    __HAL_TIM_DISABLE(&htim);
+    __HAL_TIM_SET_COUNTER(&htim, 0);
 
     int32_t new_time = 0;
 
@@ -116,7 +118,7 @@ void DHT11NonblockingProcess::TimerInterruptReceived() {
 
         if (HAL_GPIO_ReadPin(DHT_DATA_GPIO_Port, DHT_DATA_Pin) == GPIO_PIN_SET) {
             state = DHT_STATE::READY_FOR_BIT;
-            new_time = 60;
+            new_time = 58;
         } else {
             state = DHT_STATE::COMM_ERROR;
         }
@@ -125,7 +127,7 @@ void DHT11NonblockingProcess::TimerInterruptReceived() {
     else if (state == DHT_STATE::READY_FOR_BIT) {
         if (HAL_GPIO_ReadPin(DHT_DATA_GPIO_Port, DHT_DATA_Pin) == GPIO_PIN_RESET) {
             state = DHT_STATE::READ_BIT;
-            new_time = 27;
+            new_time = 30;
         } else {
             state = DHT_STATE::COMM_ERROR;
         }
@@ -171,8 +173,6 @@ void DHT11NonblockingProcess::TimerInterruptReceived() {
     }
 
     if (new_time > 0) {
-        __HAL_TIM_DISABLE(&htim);
-
         // new AAR !! auto reload enable bit must be set
         __HAL_TIM_SET_AUTORELOAD(&htim, new_time - 1);
         htim.Instance->EGR = TIM_EGR_UG;
@@ -181,12 +181,8 @@ void DHT11NonblockingProcess::TimerInterruptReceived() {
         // Re-enable the timer (if it was disabled)
         __HAL_TIM_ENABLE(&htim);
     } else {
-        __HAL_TIM_DISABLE(&htim);
-        __HAL_TIM_DISABLE_IT(&htim, TIM_DIER_UIE);
-        __HAL_TIM_SET_COUNTER(&htim, 0);
         htim.Instance->EGR = TIM_EGR_UG;
-        __HAL_TIM_CLEAR_IT(&htim, TIM_DIER_UIE);
-
+        __HAL_TIM_DISABLE_IT(&htim, TIM_DIER_UIE);
     }
 
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_RESET);
