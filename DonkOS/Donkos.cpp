@@ -30,7 +30,6 @@ namespace {
 extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
-
 volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
 
 void Donkos_Main() {
@@ -85,7 +84,9 @@ void Donkos_StartNewProcess(Process *process) {
 void Donkos_ContextSwitch(uint32_t *regArray) {
     scheduler.ContextSwitch(regArray);
 #ifdef Debug
+    if (scheduler.GetCurrentProcess() != nullptr) {
         CUBE_DBG_CURRENT_PROCESS = scheduler.GetCurrentProcess()->GetPid();
+    }
 #endif
 }
 
