@@ -3,7 +3,7 @@
 
 #include "Process.h"
 
-class ProcessLed2 : public Process {
+class ProcessLed : public Process {
 public:
     void Main() override;
 };

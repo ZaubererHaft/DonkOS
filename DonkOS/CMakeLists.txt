@@ -20,8 +20,7 @@ set(Donkos_Sources
 
         Processes/Process.cpp
         Processes/Process7SegmentDisplay.cpp
-        Processes/ProcessLed1.cpp
-        Processes/ProcessLed2.cpp
+        Processes/ProcessLed.cpp
         #Processes/BuzzerProcess.cpp
         #Processes/ProcessMatrixDisplay.cpp
         Processes/store_context.S

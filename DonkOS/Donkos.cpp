@@ -1,7 +1,6 @@
 #include "Donkos.h"
 #include "Process7SegmentDisplay.h"
-#include "ProcessLed1.h"
-#include "ProcessLed2.h"
+#include "ProcessLed.h"
 #include "RoundRobinScheduler.h"
 #include "ADC3Process.h"
 #include "DisplayRefreshProcess.h"
@@ -16,8 +15,7 @@
 namespace {
 
     Process7SegmentDisplay mutexProcess{};
-    ProcessLed1 led1Process{};
-    ProcessLed2 led2Process{};
+    ProcessLed ledProcess{};
     ADC3Process adcProcess{};
     DHT11Process dht11Process{};
 
@@ -33,6 +31,8 @@ extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
 
+volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
+
 void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();
@@ -43,8 +43,7 @@ void Donkos_Main() {
     dht11NonblockingProcess.SetHandle(htim7);
 
     scheduler.RegisterProcess(&mutexProcess);
-    scheduler.RegisterProcess(&led1Process);
-    scheduler.RegisterProcess(&led2Process);
+    scheduler.RegisterProcess(&ledProcess);
     scheduler.RegisterProcess(&adcProcess);
     scheduler.RegisterProcess(&displayRefreshProcess);
     scheduler.RegisterProcess(&dht11NonblockingProcess2);
@@ -85,6 +84,9 @@ void Donkos_StartNewProcess(Process *process) {
 
 void Donkos_ContextSwitch(uint32_t *regArray) {
     scheduler.ContextSwitch(regArray);
+#ifdef Debug
+        CUBE_DBG_CURRENT_PROCESS = scheduler.GetCurrentProcess()->GetPid();
+#endif
 }
 
 void Donkos_Tick() {

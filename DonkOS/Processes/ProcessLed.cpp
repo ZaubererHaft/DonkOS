@@ -1,7 +1,7 @@
-#include "ProcessLed2.h"
+#include "ProcessLed.h"
 #include "main.h"
 
-void ProcessLed2::Main() {
+void ProcessLed::Main() {
     while (1) {
         HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
         wait(500);
