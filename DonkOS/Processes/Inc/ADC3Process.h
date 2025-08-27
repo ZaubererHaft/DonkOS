@@ -16,7 +16,7 @@ public:
 
 
 private:
-    static constexpr int32_t countSamples = 10;
+    static constexpr int32_t countSamples = 16;
     static constexpr int32_t stringBufferSize = 16;
 
     ADC_HandleTypeDef hadc3;

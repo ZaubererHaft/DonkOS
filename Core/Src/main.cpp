@@ -407,6 +407,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : DHT_INT_Pin */
+  GPIO_InitStruct.Pin = DHT_INT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(DHT_INT_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : DHT_DATA_Pin */
   GPIO_InitStruct.Pin = DHT_DATA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;

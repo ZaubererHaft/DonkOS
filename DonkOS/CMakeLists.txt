@@ -13,6 +13,7 @@ set(Donkos_Sources
 
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
+        Drivers/dwt/dwt_delay.cpp;
 
         DataStructures/MemoryBlock.cpp
         DataStructures/MemoryListAllocator.cpp
@@ -29,6 +30,7 @@ set(Donkos_Sources
         Processes/ADC3Process.cpp
         Processes/DHT11Process.cpp
         Processes/DHT11NonblockingProcess.cpp
+        Processes/DHT11NonblockingProcess2.cpp
         Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
 )
@@ -41,6 +43,7 @@ target_include_directories(DonkOSLib PUBLIC
         Scheduler/Inc Services/Inc
         DataStructures/Inc
         Drivers/SSD1306/Inc
+        Drivers/dwt
         Algorithms/Inc
 )
 
@@ -49,3 +52,7 @@ target_include_directories(DonkOSLib PRIVATE
 )
 
 target_link_libraries(DonkOSLib stm32cubemx)
+
+target_compile_definitions(DonkOSLib PUBLIC
+        -D${CMAKE_BUILD_TYPE}
+)

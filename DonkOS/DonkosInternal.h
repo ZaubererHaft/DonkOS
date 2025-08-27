@@ -35,6 +35,8 @@ void Donkos_ServiceHandler(ServiceCall svcNumber , Process * process);
 
 void Donkos_KeyPressed(int32_t keyId);
 
+void Donkos_ExternalInterruptReceived(int32_t id);
+
 int32_t Donkos_GetSystemState();
 
 void Donkos_TimerElapsed(int32_t timerId);

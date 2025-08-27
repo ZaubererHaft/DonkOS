@@ -246,6 +246,7 @@ void EXTI9_5_IRQHandler(void) {
     /* USER CODE BEGIN EXTI9_5_IRQn 0 */
     /* USER CODE END EXTI9_5_IRQn 0 */
     HAL_GPIO_EXTI_IRQHandler(PAGESELECT_Pin);
+    HAL_GPIO_EXTI_IRQHandler(DHT_INT_Pin);
     /* USER CODE BEGIN EXTI9_5_IRQn 1 */
 
     /* USER CODE END EXTI9_5_IRQn 1 */
@@ -267,6 +268,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == PAGESELECT_Pin && KEYBOARD_INTERRUPT_LOCK <= 0) {
         KEYBOARD_INTERRUPT_LOCK = 200;
         Donkos_KeyPressed(PAGESELECT_Pin);
+    } else {
+        Donkos_ExternalInterruptReceived(GPIO_Pin);
     }
 }
 

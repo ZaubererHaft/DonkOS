@@ -79,6 +79,9 @@ void Error_Handler(void);
 #define SRCLK_GPIO_Port GPIOB
 #define RCLK_Pin GPIO_PIN_15
 #define RCLK_GPIO_Port GPIOB
+#define DHT_INT_Pin GPIO_PIN_6
+#define DHT_INT_GPIO_Port GPIOC
+#define DHT_INT_EXTI_IRQn EXTI9_5_IRQn
 #define DHT_DATA_Pin GPIO_PIN_8
 #define DHT_DATA_GPIO_Port GPIOC
 #define DEBUG_Pin GPIO_PIN_9

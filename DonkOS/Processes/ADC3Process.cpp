@@ -10,6 +10,9 @@ namespace {
     constexpr float ADC_MAX = 4095.0f;
 }
 
+volatile uint32_t CUBE_DBG_RAW_TEMP = 0;
+volatile uint32_t CUBE_DBG_RAW_TEMP_ACC = 0;
+volatile float CUBE_DBG_RAW_TEMP_FLOAT = 0;
 
 float ADC3Process::getADCRefVoltageInV() {
 
@@ -63,7 +66,11 @@ void ADC3Process::readSensors(float data[2]) {
         }
 
         if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
-            rawValueTemp += HAL_ADC_GetValue(&hadc3);
+            uint32_t val = HAL_ADC_GetValue(&hadc3);
+#ifdef Debug
+            CUBE_DBG_RAW_TEMP = val;
+#endif
+            rawValueTemp += val;
         }
 
         if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
@@ -78,8 +85,12 @@ void ADC3Process::readSensors(float data[2]) {
 
     auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
     auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
-
     auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
+
+#ifdef Debug
+    CUBE_DBG_RAW_TEMP_ACC = rawValueTemp;
+    CUBE_DBG_RAW_TEMP_FLOAT = measuredTemperature;
+#endif
 
     data[0] = measuredTemperature;
     data[1] = voltageFoto;
