@@ -6,9 +6,10 @@
 
 enum class ServiceCall : int32_t
 {
-    UNREGISTER_RESCHEDULE = 0,
-    RESCHEDULE = 1,
-    START_PROCESS = 2
+    UNREGISTER_RESCHEDULE,
+    RESCHEDULE,
+    START_PROCESS,
+    MARKER_END
 };
 
 void Donkos_GenericProcessMain();

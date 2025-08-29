@@ -30,7 +30,9 @@ namespace {
 extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
+
 volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
+volatile int32_t CUBE_DBG_ACTIVE_SVC = -1;
 
 void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
@@ -60,10 +62,6 @@ void Donkos_Main() {
     }
 }
 
-BaseScheduler *Donkos_GetScheduler() {
-    return &scheduler;
-}
-
 void Donkos_RequestScheduling() {
     scheduler.Schedule();
     if (scheduler.NeedsContextSwitch()) {
@@ -84,9 +82,7 @@ void Donkos_StartNewProcess(Process *process) {
 void Donkos_ContextSwitch(uint32_t *regArray) {
     scheduler.ContextSwitch(regArray);
 #ifdef Debug
-    if (scheduler.GetCurrentProcess() != nullptr) {
-        CUBE_DBG_CURRENT_PROCESS = scheduler.GetCurrentProcess()->GetPid();
-    }
+    CUBE_DBG_CURRENT_PROCESS = scheduler.GetCurrentProcess()->GetPid();
 #endif
 }
 
@@ -133,8 +129,9 @@ void Donkos_GenericProcessMain() {
 
 
 void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
-    __disable_irq();
-
+#ifdef Debug
+    CUBE_DBG_ACTIVE_SVC = static_cast<int32_t>(svcNumber);
+#endif
     if (svcNumber == ServiceCall::UNREGISTER_RESCHEDULE) {
         scheduler.UnregisterProcess(process);
         Donkos_RequestScheduling();
@@ -143,8 +140,9 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
     } else if (svcNumber == ServiceCall::START_PROCESS) {
         scheduler.RegisterProcess(process);
     }
-
-    __enable_irq();
+#ifdef Debug
+    CUBE_DBG_ACTIVE_SVC = -1;
+#endif
 }
 
 void Donkos_KeyPressed(int32_t keyId) {

@@ -57,7 +57,10 @@ extern "C" void SVC_Handler_C(uint32_t *);
 
 void SVC_Handler_C(uint32_t *args) {
     uint32_t svcNumber = ((char *) args[6])[-2];
-    auto process = reinterpret_cast<Process *>(args[0]);
+    auto *process = reinterpret_cast<Process *>(args[0]);
+    if (svcNumber > static_cast<uint32_t>(ServiceCall::MARKER_END)) {
+        Error_Handler();
+    }
     Donkos_ServiceHandler(static_cast<ServiceCall>(svcNumber), process);
 }
 

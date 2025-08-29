@@ -11,7 +11,7 @@ volatile uint32_t CUBE_DHT_HUM = 0;
 namespace {
     constexpr uint32_t INIT_MAX_US_LOW = 90;
     constexpr uint32_t INIT_MAX_US_HIGH = 95;
-    constexpr uint32_t MAX_US_WAIT_BIT = 80;
+    constexpr uint32_t MAX_US_WAIT_BIT = 90;
     constexpr uint32_t HIGH_BIT_MIN_US = 60;
     constexpr uint32_t HIGH_BIT_MAX_US = 95;
     constexpr uint32_t BITS_TO_RECEIVE = 40;

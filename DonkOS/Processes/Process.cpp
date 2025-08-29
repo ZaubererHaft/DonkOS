@@ -160,3 +160,7 @@ uint32_t Process::GetStackSizeInBytes() {
 uint32_t Process::GetDataSizeInBytes() {
     return heapSizeInMultipleOf4 * sizeof(uint32_t);
 }
+
+void Process::throw_ex(const char *reason) {
+    while (true);
+}

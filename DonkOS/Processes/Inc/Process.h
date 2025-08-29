@@ -52,8 +52,10 @@ protected:
 
     uint32_t GetDataSizeInBytes();
 
+    void throw_ex(const char *reason);
+
 private:
-    static constexpr uint32_t stackSizeInMultipleOf4 = 1024;
+    static constexpr uint32_t stackSizeInMultipleOf4 = 256;
     static constexpr uint32_t heapSizeInMultipleOf4 = 32;
 
     uint32_t pid;
