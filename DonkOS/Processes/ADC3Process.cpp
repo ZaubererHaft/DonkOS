@@ -17,7 +17,7 @@ volatile float CUBE_DBG_RAW_TEMP_FLOAT = 0;
 float ADC3Process::getADCRefVoltageInV() {
 
     if ((VREFBUF->CSR & VREFBUF_CSR_ENVR_Msk) == 0) {
-        return 3.33;
+        return 3.3;
     } else {
         if ((VREFBUF->CSR & VREFBUF_CSR_VRS_Msk) == 0) {
             return 2.048;
@@ -27,7 +27,7 @@ float ADC3Process::getADCRefVoltageInV() {
     }
 }
 
-ADC3Process::ADC3Process() : hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}} {
+ADC3Process::ADC3Process() : hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, factor{1}, offset{0}{
 }
 
 void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
@@ -76,7 +76,6 @@ void ADC3Process::readSensors(float data[2]) {
         if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
             rawValueFoto += HAL_ADC_GetValue(&hadc3);
         }
-
         // no need to stop because with continuous mode disabled ADC stops automatically after conversion
     }
 
@@ -85,7 +84,7 @@ void ADC3Process::readSensors(float data[2]) {
 
     auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
     auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
-    auto measuredTemperature = sensor.GetTemperatureInCelsius(voltageTemperature);
+    auto measuredTemperature = factor * sensor.GetTemperatureInCelsius(voltageTemperature) + offset;
 
 #ifdef Debug
     CUBE_DBG_RAW_TEMP_ACC = rawValueTemp;

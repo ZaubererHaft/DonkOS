@@ -36,12 +36,14 @@ void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
     //ToDo add checks, error handling
     // consider to synchronize writing to this buffer with refreshing to make sure that no partially filled buffers are getting visible when the refresh process interrupts
     // the process calling this method
+    lock.Lock();
     strcpy(pages[page].lineBuffers[line], text);
     pages[page].dirty = true;
+    lock.Unlock();
 }
 
 void LedDisplay::Refresh() {
-
+    lock.Lock();
     if (needsPageChange()) {
         Clear();
         currentPageIndex = nextPageIndex;
@@ -66,11 +68,14 @@ void LedDisplay::Refresh() {
         ssd1306_UpdateScreen(&hi2c);
         getCurrentPage().dirty = false;
     }
+    lock.Unlock();
 }
 
 void LedDisplay::NextPage() {
+    lock.Unlock();
     nextPageIndex = (currentPageIndex + 1) % count_pages;
     pages[nextPageIndex].dirty = true;
+    lock.Unlock();
 }
 
 bool LedDisplay::needsPageChange() const {

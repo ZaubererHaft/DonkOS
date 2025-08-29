@@ -10,6 +10,7 @@ set(Donkos_Sources
         #Services/Display.cpp
         Services/LedDisplay.cpp
         Services/NTCSensor.cpp
+        Services/Lock.cpp
 
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
@@ -39,7 +40,8 @@ add_library(DonkOSLib ${Donkos_Sources})
 target_include_directories(DonkOSLib PUBLIC
         Inc
         Processes/Inc
-        Scheduler/Inc Services/Inc
+        Scheduler/Inc
+        Services/Inc
         DataStructures/Inc
         Drivers/SSD1306/Inc
         Drivers/dwt

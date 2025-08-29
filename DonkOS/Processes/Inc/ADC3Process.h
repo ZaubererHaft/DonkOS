@@ -21,6 +21,8 @@ private:
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
+    float factor;
+    float offset;
 
     static float getADCRefVoltageInV();
 

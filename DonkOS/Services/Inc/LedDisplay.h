@@ -3,6 +3,7 @@
 
 #include "BaseDisplay.h"
 #include "main.h"
+#include "Lock.h"
 
 class Page {
 public:
@@ -38,6 +39,7 @@ private:
 
     int32_t currentPageIndex;
     int32_t nextPageIndex;
+    SimpleLock lock;
 
     bool needsPageChange() const;
 

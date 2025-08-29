@@ -10,7 +10,7 @@ void DisplayRefreshProcess::Main() {
 
     while (true) {
         display->Refresh();
-        Donkos_YieldProcess(this);
+        wait(100);
     }
 }
 
