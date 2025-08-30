@@ -17,11 +17,9 @@ namespace {
     Process7SegmentDisplay mutexProcess{};
     ProcessLed ledProcess{};
     ADC3Process adcProcess{};
-    DHT11Process dht11Process{};
 
     LedDisplay display{};
     DisplayRefreshProcess displayRefreshProcess{&display};
-    DHT11NonblockingProcess dht11NonblockingProcess{};
     DHT11NonblockingProcess2 dht11NonblockingProcess2{};
 
     RoundRobinScheduler scheduler{};
@@ -40,8 +38,6 @@ void Donkos_Main() {
 
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
-    dht11Process.SetHandle(htim7);
-    dht11NonblockingProcess.SetHandle(htim7);
 
     scheduler.RegisterProcess(&mutexProcess);
     scheduler.RegisterProcess(&ledProcess);
@@ -145,7 +141,21 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 #endif
 }
 
+int cur_page = 0;
+
 void Donkos_KeyPressed(int32_t keyId) {
+  // if (cur_page == 0) {
+  //     scheduler.RegisterProcess(&adcProcess);
+  //     cur_page = 1;
+  // } else if (cur_page == 1) {
+  //     scheduler.UnregisterProcess(&adcProcess);
+  //     scheduler.RegisterProcess(&dht11NonblockingProcess2);
+  //     cur_page = 2;
+  // } else if (cur_page == 2) {
+  //     scheduler.UnregisterProcess(&dht11NonblockingProcess2);
+  //     cur_page = 0;
+  // }
+
     display.NextPage();
 }
 
@@ -158,7 +168,7 @@ void Donkos_ClearDisplay() {
 }
 
 void Donkos_TimerElapsed(int32_t timerId) {
-    dht11NonblockingProcess.TimerInterruptReceived();
+    //dht11NonblockingProcess.TimerInterruptReceived();
 }
 
 void Donkos_ExternalInterruptReceived(int32_t id) {

@@ -9,12 +9,13 @@ volatile uint32_t CUBE_DHT_TEMP = 0;
 volatile uint32_t CUBE_DHT_HUM = 0;
 
 namespace {
-    constexpr uint32_t INIT_MAX_US_LOW = 90;
+    constexpr uint32_t INIT_MAX_US_LOW = 100;
     constexpr uint32_t INIT_MAX_US_HIGH = 95;
     constexpr uint32_t MAX_US_WAIT_BIT = 90;
     constexpr uint32_t HIGH_BIT_MIN_US = 60;
     constexpr uint32_t HIGH_BIT_MAX_US = 95;
     constexpr uint32_t BITS_TO_RECEIVE = 40;
+    constexpr uint32_t SYS_FREQ_IN_MHZ = 80;
 }
 
 DHT11NonblockingProcess2::DHT11NonblockingProcess2() : state{DHT_STATE::RESTART}, data_received{}, bits_received{0},
@@ -24,6 +25,14 @@ DHT11NonblockingProcess2::DHT11NonblockingProcess2() : state{DHT_STATE::RESTART}
 void DHT11NonblockingProcess2::Main() {
 
     while (true) {
+        auto tick = HAL_GetTick();
+        if (ticks_last_active_irq < tick && tick - ticks_last_active_irq > 4'000) {
+            if (state == DHT_STATE::COMM_END) {
+                state = DHT_STATE::PROCESS_DATA;
+            } else {
+                state = DHT_STATE::RESTART;
+            }
+        }
         if (state == DHT_STATE::RESTART) {
             restart_state();
         }
@@ -42,31 +51,32 @@ void DHT11NonblockingProcess2::Main() {
 
 void DHT11NonblockingProcess2::InterruptReceived() {
     uint32_t curr_cycles = DWT_GetTick();
-    uint32_t diff_time = (curr_cycles - cycles) / 80;
+    uint32_t diff_time = (curr_cycles - cycles) / SYS_FREQ_IN_MHZ;
+    DHT_STATE new_state = state;
 
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_SET);
 
     if (state == DHT_STATE::COMM_INITIALIZED_WAIT) {
-        state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE;
+        new_state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE;
     } else if (state == DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE) {
-        state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_LOW;
+        new_state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_LOW;
     } else if (state == DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_LOW) {
         if (diff_time <= INIT_MAX_US_LOW) {
-            state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_HIGH;
+            new_state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_HIGH;
         } else {
-            state = DHT_STATE::COMM_ERROR;
+            new_state = DHT_STATE::COMM_ERROR;
         }
     } else if (state == DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_HIGH) {
         if (diff_time <= INIT_MAX_US_HIGH) {
-            state = DHT_STATE::WAIT_FOR_BIT;
+            new_state = DHT_STATE::WAIT_FOR_BIT;
         } else {
-            state = DHT_STATE::COMM_ERROR;
+            new_state = DHT_STATE::COMM_ERROR;
         }
     } else if (state == DHT_STATE::WAIT_FOR_BIT) {
         if (diff_time <= MAX_US_WAIT_BIT) {
-            state = DHT_STATE::READY_FOR_BIT;
+            new_state = DHT_STATE::READY_FOR_BIT;
         } else {
-            state = DHT_STATE::COMM_ERROR;
+            new_state = DHT_STATE::COMM_ERROR;
         }
     } else if (state == DHT_STATE::READY_FOR_BIT) {
         auto index = bits_received / 8;
@@ -76,16 +86,20 @@ void DHT11NonblockingProcess2::InterruptReceived() {
             data_received[index] |= (1 << (7 - shift));
         }
 
-        state = DHT_STATE::WAIT_FOR_BIT;
+        new_state = DHT_STATE::WAIT_FOR_BIT;
         bits_received++;
 
         if (bits_received >= BITS_TO_RECEIVE) {
-            state = DHT_STATE::COMM_END;
+            new_state = DHT_STATE::COMM_END;
         }
     } else if (state == DHT_STATE::COMM_END) {
-        state = DHT_STATE::PROCESS_DATA;
+        new_state = DHT_STATE::PROCESS_DATA;
     }
 
+    if (new_state != state) {
+        ticks_last_active_irq = HAL_GetTick();
+        state = new_state;
+    }
     cycles = curr_cycles;
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_RESET);
 }

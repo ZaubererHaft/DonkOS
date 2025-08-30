@@ -3,7 +3,6 @@
 
 #include "Process.h"
 #include "main.h"
-#include "ProcessMatrixDisplay.h"
 #include "NTCSensor.h"
 
 class ADC3Process : public Process {
