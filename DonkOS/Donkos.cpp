@@ -36,16 +36,13 @@ void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();
 
+
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
 
-    scheduler.RegisterProcess(&mutexProcess);
-    scheduler.RegisterProcess(&ledProcess);
-    scheduler.RegisterProcess(&adcProcess);
-    scheduler.RegisterProcess(&displayRefreshProcess);
-    scheduler.RegisterProcess(&dht11NonblockingProcess2);
-    //scheduler.RegisterProcess(&dht11Process);
-    //scheduler.RegisterProcess(&dht11NonblockingProcess);
+    Donkos_StartNewProcess(&mutexProcess);
+    Donkos_StartNewProcess(&ledProcess);
+    Donkos_StartNewProcess(&displayRefreshProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -141,20 +138,16 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 #endif
 }
 
-int cur_page = 0;
 
 void Donkos_KeyPressed(int32_t keyId) {
-  // if (cur_page == 0) {
-  //     scheduler.RegisterProcess(&adcProcess);
-  //     cur_page = 1;
-  // } else if (cur_page == 1) {
-  //     scheduler.UnregisterProcess(&adcProcess);
-  //     scheduler.RegisterProcess(&dht11NonblockingProcess2);
-  //     cur_page = 2;
-  // } else if (cur_page == 2) {
-  //     scheduler.UnregisterProcess(&dht11NonblockingProcess2);
-  //     cur_page = 0;
-  // }
+    if (display.GetCurrentPageIndex() == 0) {
+        scheduler.RegisterProcess(&adcProcess);
+    } else if (display.GetCurrentPageIndex() == 1) {
+        scheduler.UnregisterProcess(&adcProcess);
+        scheduler.RegisterProcess(&dht11NonblockingProcess2);
+    } else if (display.GetCurrentPageIndex() == 2) {
+        scheduler.UnregisterProcess(&dht11NonblockingProcess2);
+    }
 
     display.NextPage();
 }

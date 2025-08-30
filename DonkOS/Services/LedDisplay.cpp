@@ -86,3 +86,7 @@ Page &LedDisplay::getCurrentPage() {
     return pages[currentPageIndex];
 }
 
+int32_t LedDisplay::GetCurrentPageIndex() const {
+    return currentPageIndex;
+}
+

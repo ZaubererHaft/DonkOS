@@ -5,7 +5,9 @@ extern "C" void load_context(uint32_t, uint32_t *);
 extern "C" uint32_t store_context(uint32_t *);
 
 Process::Process() : pid{0U}, heap{0U}, stack{0U}, stackPointer{0U}, state{ProcessState::CREATED},
-                     heapAllocator{&heap[0], heapSizeInMultipleOf4}, priority{0U} {}
+                     heapAllocator{&heap[0], heapSizeInMultipleOf4}, priority{0U} {
+    initStack();
+}
 
 void Process::Main() {
 }
@@ -19,7 +21,7 @@ uint32_t Process::GetPid() const {
     return pid;
 }
 
-uint32_t Process::InitStack() {
+uint32_t Process::initStack() {
     //Note: stack grows downwards from high to low addresses
     //I.e., in C++, the top of the stack is the last position in the array
 
@@ -146,11 +148,11 @@ bool Process::operator<(Process *process) const {
 }
 
 uint32_t Process::GetStackStartAddress() {
-    return (uint32_t)&stack[0];
+    return (uint32_t) &stack[0];
 }
 
 uint32_t Process::GetDataStartAddress() {
-    return (uint32_t)&heap[0];
+    return (uint32_t) &heap[0];
 }
 
 uint32_t Process::GetStackSizeInBytes() {

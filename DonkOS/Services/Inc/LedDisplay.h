@@ -30,6 +30,8 @@ public:
 
     void SetHandle(I2C_HandleTypeDef handle);
 
+    int32_t GetCurrentPageIndex() const;
+
 private:
     static constexpr int32_t count_pages = 3;
 

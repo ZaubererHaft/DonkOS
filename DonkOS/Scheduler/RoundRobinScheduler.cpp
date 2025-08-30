@@ -17,7 +17,6 @@ void RoundRobinScheduler::RegisterProcess(Process *process) {
     if (index < Donkos_MaxProcesses) {
         process->SetState(ProcessState::READY);
         process->SetPid(index);
-        process->InitStack();
         processes[process->GetPid()] = process;
         index++;
     }

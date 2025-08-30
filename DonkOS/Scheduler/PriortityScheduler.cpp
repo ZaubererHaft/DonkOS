@@ -16,7 +16,6 @@ void PriorityScheduler::RegisterProcess(Process *process) {
         pidCounter++;
         process->SetState(ProcessState::READY);
         process->SetPid(pidCounter);
-        process->InitStack();
     }
 }
 
@@ -45,8 +44,7 @@ void PriorityScheduler::ContextSwitch(uint32_t *savedRegs) {
             current->SetState(ProcessState::READY);
         }
 
-        if(current->GetState() != ProcessState::ENDED)
-        {
+        if (current->GetState() != ProcessState::ENDED) {
             // if process is not finished re-enter into queue
             priortityQueue.Insert(current);
         }

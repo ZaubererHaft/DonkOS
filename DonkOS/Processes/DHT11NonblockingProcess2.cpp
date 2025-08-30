@@ -19,7 +19,7 @@ namespace {
 }
 
 DHT11NonblockingProcess2::DHT11NonblockingProcess2() : state{DHT_STATE::RESTART}, data_received{}, bits_received{0},
-                                                       cycles{}, clearDisplay{false} {
+                                                       cycles{}, clearDisplay{false}, ticks_last_active_irq{0} {
 }
 
 void DHT11NonblockingProcess2::Main() {
@@ -94,6 +94,8 @@ void DHT11NonblockingProcess2::InterruptReceived() {
         }
     } else if (state == DHT_STATE::COMM_END) {
         new_state = DHT_STATE::PROCESS_DATA;
+    } else {
+        new_state = DHT_STATE::COMM_ERROR; // ToDo analyze why this happens
     }
 
     if (new_state != state) {

@@ -272,7 +272,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == PAGESELECT_Pin && KEYBOARD_INTERRUPT_LOCK <= 0) {
         KEYBOARD_INTERRUPT_LOCK = 200;
         Donkos_KeyPressed(PAGESELECT_Pin);
-    } else {
+    } else if (GPIO_Pin == DHT_INT_Pin) {
         Donkos_ExternalInterruptReceived(GPIO_Pin);
     }
 }
