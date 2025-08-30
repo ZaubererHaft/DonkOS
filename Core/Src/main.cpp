@@ -41,6 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc3;
+DMA_HandleTypeDef hdma_adc3;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -55,6 +56,7 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_I2C1_Init(void);
@@ -97,6 +99,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_ADC3_Init();
   MX_I2C1_Init();
@@ -190,12 +193,11 @@ static void MX_ADC3_Init(void)
   hadc3.Init.Resolution = ADC_RESOLUTION_12B;
   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc3.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc3.Init.LowPowerAutoWait = DISABLE;
   hadc3.Init.ContinuousConvMode = DISABLE;
   hadc3.Init.NbrOfConversion = 2;
-  hadc3.Init.DiscontinuousConvMode = ENABLE;
-  hadc3.Init.NbrOfDiscConversion = 2;
+  hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc3.Init.DMAContinuousRequests = DISABLE;
@@ -351,6 +353,22 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
 

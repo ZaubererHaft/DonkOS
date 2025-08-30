@@ -21,6 +21,8 @@ private:
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
+    uint16_t adc_dma_raw_values[6];
+
     float factor;
     float offset;
 

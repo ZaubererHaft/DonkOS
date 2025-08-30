@@ -8,6 +8,7 @@
 
 namespace {
     constexpr float ADC_MAX = 4095.0f;
+    bool conversion_ready{false};
 }
 
 volatile uint32_t CUBE_DBG_RAW_TEMP = 0;
@@ -17,7 +18,7 @@ volatile float CUBE_DBG_RAW_TEMP_FLOAT = 0;
 float ADC3Process::getADCRefVoltageInV() {
 
     if ((VREFBUF->CSR & VREFBUF_CSR_ENVR_Msk) == 0) {
-        return 3.3;
+        return 3.26;
     } else {
         if ((VREFBUF->CSR & VREFBUF_CSR_VRS_Msk) == 0) {
             return 2.048;
@@ -27,7 +28,8 @@ float ADC3Process::getADCRefVoltageInV() {
     }
 }
 
-ADC3Process::ADC3Process() : hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, factor{1}, offset{0}{
+ADC3Process::ADC3Process()
+        : hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{}, factor{1}, offset{0} {
 }
 
 void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
@@ -36,51 +38,53 @@ void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
 
 void ADC3Process::Main() {
 
-    HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED);
+    if (HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED) != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, 2) != HAL_OK) {
+        Error_Handler();
+    }
 
     while (true) {
-        //buffer for printing the temperature. always newly initialized to clean up previous conversions
-        char output_temperature_string[11] = "T: ";
-        char output_lumi_string[11] = "L: ";
+        if (conversion_ready) {
 
-        float data[] = {0, 0};
+            //buffer for printing the temperature. always newly initialized to clean up previous conversions
+            char output_temperature_string[11] = "T: ";
+            char output_lumi_string[11] = "L: ";
 
-        readSensors(data);
-        temperatureToString(output_temperature_string, data[0]);
-        lumiToString(output_lumi_string, data[1]);
+            float data[] = {0, 0};
 
-        Donkos_Display(1, 2, &output_temperature_string[0]);
-        Donkos_Display(1, 3, &output_lumi_string[0]);
+            readSensors(data);
+            temperatureToString(output_temperature_string, data[0]);
+            lumiToString(output_lumi_string, data[1]);
 
-        Donkos_YieldProcess(this);
+            Donkos_Display(1, 2, &output_temperature_string[0]);
+            Donkos_Display(1, 3, &output_lumi_string[0]);
+
+            if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, 2) != HAL_OK) {
+                Error_Handler();
+            }
+            conversion_ready = false;
+            wait(100);
+        } else {
+            Donkos_YieldProcess(this);
+        }
+
+
     }
 }
 
 void ADC3Process::readSensors(float data[2]) {
-    uint32_t rawValueTemp = 0;
-    uint32_t rawValueFoto = 0;
+    uint32_t rawValueTemp = adc_dma_raw_values[0];
+    uint32_t rawValueFoto = adc_dma_raw_values[1];
 
-    for (int i = 0; i < countSamples; ++i) {
-        if (HAL_ADC_Start(&hadc3) != HAL_OK) {
-            Error_Handler();
-        }
-
-        if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
-            uint32_t val = HAL_ADC_GetValue(&hadc3);
 #ifdef Debug
-            CUBE_DBG_RAW_TEMP = val;
+    CUBE_DBG_RAW_TEMP = rawValueTemp;
 #endif
-            rawValueTemp += val;
-        }
 
-        if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
-            rawValueFoto += HAL_ADC_GetValue(&hadc3);
-        }
-        // no need to stop because with continuous mode disabled ADC stops automatically after conversion
-    }
-
-    rawValueTemp /= countSamples;
-    rawValueFoto /= countSamples;
+ //  rawValueTemp /= countSamples;
+ //  rawValueFoto /= countSamples;
 
     auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
     auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
@@ -133,4 +137,9 @@ void ADC3Process::lumiToString(char output_string[stringBufferSize], float volta
     } else {
         Error_Handler();
     }
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    //ToDO check for instance
+    conversion_ready = true;
 }
