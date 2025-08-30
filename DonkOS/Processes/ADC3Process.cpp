@@ -8,12 +8,9 @@
 
 namespace {
     constexpr float ADC_MAX = 4095.0f;
-    bool conversion_ready{false};
 }
 
-volatile uint32_t CUBE_DBG_RAW_TEMP = 0;
-volatile uint32_t CUBE_DBG_RAW_TEMP_ACC = 0;
-volatile float CUBE_DBG_RAW_TEMP_FLOAT = 0;
+volatile float CUBE_DBG_TEMP_FLOAT = 0;
 
 float ADC3Process::getADCRefVoltageInV() {
 
@@ -37,66 +34,50 @@ void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
 }
 
 void ADC3Process::Main() {
-
     if (HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED) != HAL_OK) {
         Error_Handler();
     }
 
-    if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, 2) != HAL_OK) {
+    if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, countSamples * 2) != HAL_OK) {
         Error_Handler();
     }
 
-    while (true) {
-        if (conversion_ready) {
+    do {
+        //buffer for printing the temperature. always newly initialized to clean up previous conversions
+        char output_temperature_string[11] = "T: ";
+        char output_lumi_string[11] = "L: ";
+        float data[] = {0, 0};
 
-            //buffer for printing the temperature. always newly initialized to clean up previous conversions
-            char output_temperature_string[11] = "T: ";
-            char output_lumi_string[11] = "L: ";
+        wait(500);
 
-            float data[] = {0, 0};
+        readSensors(data);
+        temperatureToString(output_temperature_string, data[0]);
+        lumiToString(output_lumi_string, data[1]);
 
-            readSensors(data);
-            temperatureToString(output_temperature_string, data[0]);
-            lumiToString(output_lumi_string, data[1]);
-
-            Donkos_Display(1, 2, &output_temperature_string[0]);
-            Donkos_Display(1, 3, &output_lumi_string[0]);
-
-            if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, 2) != HAL_OK) {
-                Error_Handler();
-            }
-            conversion_ready = false;
-            wait(100);
-        } else {
-            Donkos_YieldProcess(this);
-        }
-
-
-    }
+        Donkos_Display(1, 2, &output_temperature_string[0]);
+        Donkos_Display(1, 3, &output_lumi_string[0]);
+    } while (true);
 }
 
 void ADC3Process::readSensors(float data[2]) {
-    uint32_t rawValueTemp = adc_dma_raw_values[0];
-    uint32_t rawValueFoto = adc_dma_raw_values[1];
+    for (int i = 0; i < countSamples; ++i) {
+        uint16_t rawValueTemp = adc_dma_raw_values[i * 2];
+        uint16_t rawValueFoto = adc_dma_raw_values[i * 2 + 1];
+
+        auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
+        auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
+        auto measuredTemperature = factor * sensor.GetTemperatureInCelsius(voltageTemperature) + offset;
+
+        data[0] += measuredTemperature;
+        data[1] += voltageFoto;
+    }
+
+    data[0] /= countSamples;
+    data[1] /= countSamples;
 
 #ifdef Debug
-    CUBE_DBG_RAW_TEMP = rawValueTemp;
+    CUBE_DBG_TEMP_FLOAT = data[0];
 #endif
-
- //  rawValueTemp /= countSamples;
- //  rawValueFoto /= countSamples;
-
-    auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
-    auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
-    auto measuredTemperature = factor * sensor.GetTemperatureInCelsius(voltageTemperature) + offset;
-
-#ifdef Debug
-    CUBE_DBG_RAW_TEMP_ACC = rawValueTemp;
-    CUBE_DBG_RAW_TEMP_FLOAT = measuredTemperature;
-#endif
-
-    data[0] = measuredTemperature;
-    data[1] = voltageFoto;
 }
 
 
@@ -137,9 +118,4 @@ void ADC3Process::lumiToString(char output_string[stringBufferSize], float volta
     } else {
         Error_Handler();
     }
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-    //ToDO check for instance
-    conversion_ready = true;
 }
