@@ -196,6 +196,7 @@ void DHT11NonblockingProcess::TimerInterruptReceived() {
     if (new_time > 0) {
         // new AAR !! auto reload enable bit must be set
         __HAL_TIM_SET_AUTORELOAD(&htim, new_time - 1 - interrupt_offset);
+        // update but disabled following interrupt
         htim.Instance->EGR = TIM_EGR_UG;
         __HAL_TIM_CLEAR_IT(&htim, TIM_DIER_UIE);
 

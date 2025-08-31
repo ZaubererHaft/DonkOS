@@ -10,28 +10,32 @@ volatile uint32_t CUBE_DHT_HUM = 0;
 
 namespace {
     constexpr uint32_t INIT_MAX_US_LOW = 100;
-    constexpr uint32_t INIT_MAX_US_HIGH = 95;
-    constexpr uint32_t MAX_US_WAIT_BIT = 90;
+    constexpr uint32_t INIT_MAX_US_HIGH = 100;
+    constexpr uint32_t MAX_US_WAIT_BIT = 100;
     constexpr uint32_t HIGH_BIT_MIN_US = 60;
     constexpr uint32_t HIGH_BIT_MAX_US = 95;
     constexpr uint32_t BITS_TO_RECEIVE = 40;
     constexpr uint32_t SYS_FREQ_IN_MHZ = 80;
+    constexpr uint32_t TIMEOUT_LAST_INTERRUPT = 3'000;
+
 }
 
 DHT11NonblockingProcess2::DHT11NonblockingProcess2() : state{DHT_STATE::RESTART}, data_received{}, bits_received{0},
-                                                       cycles{}, clearDisplay{false}, ticks_last_active_irq{0} {
+                                                       cycles{}, ticks_last_active_irq{0}, clearDisplay{false} {
 }
 
 void DHT11NonblockingProcess2::Main() {
+    Donkos_Display(2, 2, "Warte auf Daten");
+    Donkos_Display(2, 3, "   ...   ");
+    clearDisplay = true;
 
     while (true) {
+        // check interrupt for timeout (if there was none since a defined time -> try again but display error)
         auto tick = HAL_GetTick();
-        if (ticks_last_active_irq < tick && tick - ticks_last_active_irq > 4'000) {
-            if (state == DHT_STATE::COMM_END) {
-                state = DHT_STATE::PROCESS_DATA;
-            } else {
-                state = DHT_STATE::RESTART;
-            }
+        if (state != DHT_STATE::RESTART && ticks_last_active_irq < tick &&
+            tick - ticks_last_active_irq > TIMEOUT_LAST_INTERRUPT) {
+            state = DHT_STATE::COMM_ERROR;
+            ticks_last_active_irq = tick;
         }
         if (state == DHT_STATE::RESTART) {
             restart_state();
@@ -56,7 +60,9 @@ void DHT11NonblockingProcess2::InterruptReceived() {
 
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_SET);
 
-    if (state == DHT_STATE::COMM_INITIALIZED_WAIT) {
+    if (state == DHT_STATE::COMM_INITIALIZED) {
+        new_state = DHT_STATE::COMM_INITIALIZED_WAIT;
+    } else if (state == DHT_STATE::COMM_INITIALIZED_WAIT) {
         new_state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE;
     } else if (state == DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE) {
         new_state = DHT_STATE::COMM_INITIALIZED_WAIT_FOR_DEVICE_LOW;
@@ -94,8 +100,6 @@ void DHT11NonblockingProcess2::InterruptReceived() {
         }
     } else if (state == DHT_STATE::COMM_END) {
         new_state = DHT_STATE::PROCESS_DATA;
-    } else {
-        new_state = DHT_STATE::COMM_ERROR; // ToDo analyze why this happens
     }
 
     if (new_state != state) {
@@ -106,10 +110,25 @@ void DHT11NonblockingProcess2::InterruptReceived() {
     HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_RESET);
 }
 
+void DHT11NonblockingProcess2::idle_state() {
+    state = DHT_STATE::COMM_INITIALIZED;
+    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_RESET);
+    wait(18);
+    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_SET);
+}
+
+void DHT11NonblockingProcess2::restart_state() {
+    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_SET);
+    memset(&data_received[0], 0, 5);
+    bits_received = 0;
+    wait(1000);
+    state = DHT_STATE::IDLE;
+}
+
 void DHT11NonblockingProcess2::comm_error_state() {
     Donkos_ClearDisplay();
-    Donkos_Display(2, 2, "Fehler :(");
-    Donkos_Display(2, 3, "");
+    Donkos_Display(2, 2, "Kommunikations-");
+    Donkos_Display(2, 3, "fehler :(");
     clearDisplay = true;
     state = DHT_STATE::RESTART;
 }
@@ -162,21 +181,4 @@ void DHT11NonblockingProcess2::process_data_state() {
     } else {
         state = DHT_STATE::COMM_ERROR;
     }
-}
-
-void DHT11NonblockingProcess2::idle_state() {
-    state = DHT_STATE::COMM_INITIALIZED;
-    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_RESET);
-    wait(18);
-
-    state = DHT_STATE::COMM_INITIALIZED_WAIT;
-    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_SET);
-}
-
-void DHT11NonblockingProcess2::restart_state() {
-    HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_SET);
-    memset(&data_received[0], 0, 5);
-    bits_received = 0;
-    wait(1000);
-    state = DHT_STATE::IDLE;
 }

@@ -33,8 +33,8 @@ private:
     uint8_t data_received[5];
     uint32_t bits_received;
     uint32_t cycles;
-    bool clearDisplay;
     uint32_t ticks_last_active_irq;
+    bool clearDisplay;
 
     void restart_state();
 
