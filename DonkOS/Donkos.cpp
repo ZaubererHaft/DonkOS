@@ -42,6 +42,7 @@ void Donkos_Main() {
 
     Donkos_StartNewProcess(&mutexProcess);
     Donkos_StartNewProcess(&ledProcess);
+    Donkos_StartNewProcess(&adcProcess);
     Donkos_StartNewProcess(&displayRefreshProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
@@ -140,10 +141,7 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 
 
 void Donkos_KeyPressed(int32_t keyId) {
-    if (display.GetCurrentPageIndex() == 0) {
-        scheduler.RegisterProcess(&adcProcess);
-    } else if (display.GetCurrentPageIndex() == 1) {
-        scheduler.UnregisterProcess(&adcProcess);
+     if (display.GetCurrentPageIndex() == 1) {
         scheduler.RegisterProcess(&dht11NonblockingProcess2);
     } else if (display.GetCurrentPageIndex() == 2) {
         scheduler.UnregisterProcess(&dht11NonblockingProcess2);

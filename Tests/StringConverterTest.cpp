@@ -55,7 +55,7 @@ TEST_F(StringConverterTest, TestInteger_RandomBruteForce) {
 
 TEST_F(StringConverterTest, TestFloat) {
 
-    std::pair<float, const char *> testData[]{{1.1f, "1.1"}, {0.5, "0.5"}, {-114.25, "-114.25"}, {12, "12"}};
+    std::pair<float, const char *> testData[]{{1.1f, "1.10"}, {0.5, "0.50"}, {-114.25, "-114.25"}, {12, "12.00"}};
 
     for (auto &test_set: testData) {
         float number = test_set.first;

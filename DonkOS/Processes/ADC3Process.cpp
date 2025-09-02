@@ -8,6 +8,7 @@
 
 namespace {
     constexpr float ADC_MAX = 4095.0f;
+    constexpr uint16_t adc_zero_offset = 30;
 }
 
 volatile float CUBE_DBG_TEMP_FLOAT = 0;
@@ -63,6 +64,17 @@ void ADC3Process::readSensors(float data[2]) {
     for (int i = 0; i < countSamples; ++i) {
         uint16_t rawValueTemp = adc_dma_raw_values[i * 2];
         uint16_t rawValueFoto = adc_dma_raw_values[i * 2 + 1];
+
+        if (rawValueFoto > adc_zero_offset) {
+            rawValueFoto -= adc_zero_offset;
+        } else {
+            rawValueFoto = 0;
+        }
+        if (rawValueTemp > adc_zero_offset) {
+            rawValueTemp -= adc_zero_offset;
+        } else {
+            rawValueTemp = 0;
+        }
 
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
         auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);
