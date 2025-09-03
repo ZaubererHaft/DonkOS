@@ -1,6 +1,7 @@
 #include <cstring>
 #include "LedDisplay.h"
 #include "ssd1306.h"
+#include "StringConverter.h"
 
 LedDisplay::LedDisplay() : hi2c{}, pages{}, currentPageIndex{},
                            nextPageIndex{} {
@@ -52,13 +53,9 @@ void LedDisplay::Refresh() {
     if (getCurrentPage().dirty) {
         ssd1306_SetCursor(120, 53);
 
-        if (currentPageIndex == 2) {
-            ssd1306_WriteString("3", Font_7x10, White);
-        } else if (currentPageIndex == 1) {
-            ssd1306_WriteString("2", Font_7x10, White);
-        } else {
-            ssd1306_WriteString("1", Font_7x10, White);
-        }
+        char page[2];
+        StringConverter{}.IntegerToString(currentPageIndex, page, 2);
+        ssd1306_WriteString(page, Font_7x10, White);
 
         for (int i = 0; i < Page::lines; ++i) {
             ssd1306_SetCursor(i, i * 15);
@@ -88,5 +85,14 @@ Page &LedDisplay::getCurrentPage() {
 
 int32_t LedDisplay::GetCurrentPageIndex() const {
     return currentPageIndex;
+}
+
+void LedDisplay::DrawPixel(int32_t x, int32_t y) {
+    ssd1306_DrawPixel(x, y, SSD1306_COLOR::White);
+    pages[currentPageIndex].dirty = true;
+}
+
+std::pair<int32_t, int32_t> LedDisplay::GetDimensions() {
+    return {SSD1306_WIDTH, SSD1306_HEIGHT};
 }
 

@@ -10,6 +10,7 @@
 #include "DHT11NonblockingProcess.h"
 #include "DHT11NonblockingProcess2.h"
 #include "dwt_delay.h"
+#include "DiagramPageProcess.h"
 
 
 namespace {
@@ -21,6 +22,7 @@ namespace {
     LedDisplay display{};
     DisplayRefreshProcess displayRefreshProcess{&display};
     DHT11NonblockingProcess2 dht11NonblockingProcess2{};
+    DiagramPageProcess diagramProcess{&display};
 
     RoundRobinScheduler scheduler{};
 }
@@ -141,10 +143,13 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 
 
 void Donkos_KeyPressed(int32_t keyId) {
-     if (display.GetCurrentPageIndex() == 1) {
+    if (display.GetCurrentPageIndex() == 1) {
         scheduler.RegisterProcess(&dht11NonblockingProcess2);
     } else if (display.GetCurrentPageIndex() == 2) {
         scheduler.UnregisterProcess(&dht11NonblockingProcess2);
+        scheduler.RegisterProcess(&diagramProcess);
+    } else if (display.GetCurrentPageIndex() == 3) {
+        scheduler.UnregisterProcess(&diagramProcess);
     }
 
     display.NextPage();

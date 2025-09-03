@@ -33,6 +33,7 @@ set(Donkos_Sources
         Processes/DHT11NonblockingProcess2.cpp
         Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
+        Processes/DiagramPageProcess.cpp
 )
 
 add_library(DonkOSLib ${Donkos_Sources})

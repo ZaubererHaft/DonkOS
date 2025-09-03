@@ -28,12 +28,17 @@ public:
 
     void Clear() override;
 
+    void DrawPixel(int32_t x, int32_t y) override;
+
+    virtual std::pair<int32_t, int32_t> GetDimensions() override;
+
     void SetHandle(I2C_HandleTypeDef handle);
 
     int32_t GetCurrentPageIndex() const;
 
+
 private:
-    static constexpr int32_t count_pages = 3;
+    static constexpr int32_t count_pages = 4;
 
     I2C_HandleTypeDef hi2c;
 
