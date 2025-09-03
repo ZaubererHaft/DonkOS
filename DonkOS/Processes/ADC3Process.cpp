@@ -65,11 +65,6 @@ void ADC3Process::readSensors(float data[2]) {
         uint16_t rawValueTemp = adc_dma_raw_values[i * 2];
         uint16_t rawValueFoto = adc_dma_raw_values[i * 2 + 1];
 
-        if (rawValueFoto > adc_zero_offset) {
-            rawValueFoto -= adc_zero_offset;
-        } else {
-            rawValueFoto = 0;
-        }
         if (rawValueTemp > adc_zero_offset) {
             rawValueTemp -= adc_zero_offset;
         } else {
