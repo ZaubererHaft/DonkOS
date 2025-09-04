@@ -30,11 +30,13 @@ public:
 
     void DrawPixel(int32_t x, int32_t y) override;
 
-    virtual std::pair<int32_t, int32_t> GetDimensions() override;
+    std::pair<int32_t, int32_t> GetDimensions() override;
 
     void SetHandle(I2C_HandleTypeDef handle);
 
     int32_t GetCurrentPageIndex() const;
+
+    void WriteAt(int32_t x, int32_t y, const char *text);
 
 
 private:

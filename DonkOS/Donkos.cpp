@@ -17,12 +17,13 @@ namespace {
 
     Process7SegmentDisplay mutexProcess{};
     ProcessLed ledProcess{};
-    ADC3Process adcProcess{};
 
     LedDisplay display{};
     DisplayRefreshProcess displayRefreshProcess{&display};
     DHT11NonblockingProcess2 dht11NonblockingProcess2{};
     DiagramPageProcess diagramProcess{&display};
+
+    ADC3Process adcProcess{&diagramProcess};
 
     RoundRobinScheduler scheduler{};
 }

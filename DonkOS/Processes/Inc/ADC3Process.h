@@ -4,10 +4,11 @@
 #include "Process.h"
 #include "main.h"
 #include "NTCSensor.h"
+#include "DiagramPageProcess.h"
 
 class ADC3Process : public Process {
 public:
-    explicit ADC3Process();
+    explicit ADC3Process(DiagramPageProcess *diagram);
 
     void SetHandle(ADC_HandleTypeDef handle);
 
@@ -17,6 +18,8 @@ public:
 private:
     static constexpr int32_t countSamples = 32;
     static constexpr int32_t stringBufferSize = 16;
+
+    DiagramPageProcess *diagram;
 
     ADC_HandleTypeDef hadc3;
     NTCSensor sensor;

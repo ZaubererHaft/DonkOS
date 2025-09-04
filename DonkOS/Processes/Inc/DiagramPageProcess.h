@@ -1,17 +1,23 @@
 #ifndef DONKOS_DIAGRAMPAGEPROCESS_H
 #define DONKOS_DIAGRAMPAGEPROCESS_H
 
-#include "BaseDisplay.h"
 #include "Process.h"
+#include "LedDisplay.h"
 
 class DiagramPageProcess : public Process {
 public:
-    explicit DiagramPageProcess(BaseDisplay *display);
+    explicit DiagramPageProcess(LedDisplay *display);
 
     void Main() override;
 
+    void PutData(float temperature);
+
 private:
-    BaseDisplay *display;
+    static constexpr int32_t offset = 20;
+
+    LedDisplay *display;
+    float temp_data_over_time[128 - offset];
+    int32_t index;
 };
 
 

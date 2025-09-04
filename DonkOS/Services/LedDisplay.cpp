@@ -29,7 +29,9 @@ void LedDisplay::Init() {
 }
 
 void LedDisplay::Clear() {
+    lock.Lock();
     ssd1306_Fill(Black);
+    lock.Unlock();
 }
 
 
@@ -46,7 +48,7 @@ void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
 void LedDisplay::Refresh() {
     lock.Lock();
     if (needsPageChange()) {
-        Clear();
+        ssd1306_Fill(Black);
         currentPageIndex = nextPageIndex;
     }
 
@@ -58,7 +60,7 @@ void LedDisplay::Refresh() {
         ssd1306_WriteString(page, Font_7x10, White);
 
         for (int i = 0; i < Page::lines; ++i) {
-            ssd1306_SetCursor(i, i * 15);
+            ssd1306_SetCursor(1, i * 15);
             ssd1306_WriteString(getCurrentPage().lineBuffers[i], Font_7x10, White);
         }
 
@@ -69,10 +71,8 @@ void LedDisplay::Refresh() {
 }
 
 void LedDisplay::NextPage() {
-    lock.Unlock();
     nextPageIndex = (currentPageIndex + 1) % count_pages;
     pages[nextPageIndex].dirty = true;
-    lock.Unlock();
 }
 
 bool LedDisplay::needsPageChange() const {
@@ -88,11 +88,20 @@ int32_t LedDisplay::GetCurrentPageIndex() const {
 }
 
 void LedDisplay::DrawPixel(int32_t x, int32_t y) {
+    lock.Lock();
     ssd1306_DrawPixel(x, y, SSD1306_COLOR::White);
     pages[currentPageIndex].dirty = true;
+    lock.Unlock();
 }
 
 std::pair<int32_t, int32_t> LedDisplay::GetDimensions() {
     return {SSD1306_WIDTH, SSD1306_HEIGHT};
+}
+
+void LedDisplay::WriteAt(int32_t x, int32_t y, const char *text) {
+    lock.Lock();
+    ssd1306_SetCursor(x, y);
+    ssd1306_WriteString(text, Font_7x10, White);
+    lock.Unlock();
 }
 

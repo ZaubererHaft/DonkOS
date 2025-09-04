@@ -1,35 +1,52 @@
 #include <valarray>
 #include "DiagramPageProcess.h"
 
-DiagramPageProcess::DiagramPageProcess(BaseDisplay *display) : display{display} {
-
+DiagramPageProcess::DiagramPageProcess(LedDisplay *display) : display{display} {
+    for (float &i: temp_data_over_time) {
+        i = std::numeric_limits<float>::quiet_NaN();
+    }
 }
 
 void DiagramPageProcess::Main() {
 
     auto [xSize, ySize] = display->GetDimensions();
-    auto offset = 0.0;
+    display->Display(3, 0, "Temp over t");
 
-    while (true)
-    {
-        display->Display(3, 0, " y");
+    while (true) {
 
-        for (int i = 0; i < xSize; ++i) {
-            display->DrawPixel(i, ySize / 2);
+        for (int i = offset; i < xSize; ++i) {
+            display->DrawPixel(i, ySize - 1);
         }
         for (int i = 0; i < ySize; ++i) {
-            display->DrawPixel(1, i);
+            display->DrawPixel(offset, i);
         }
 
-        for (int i = 0; i < xSize; ++i) {
-            float t = i * 0.1;
-            float val = 12.0 * std::sin(t + offset);
-            display->DrawPixel(i, (int) val + ySize / 2);
+        display->WriteAt(1, ySize - 11, " 0");
+
+        display->WriteAt(1, ySize - 25 - 3, "25");
+        display->DrawPixel(17, ySize - 25);
+        display->DrawPixel(18, ySize - 25);
+        display->DrawPixel(19, ySize - 25);
+
+        display->WriteAt(1, ySize - 50 - 3, "50");
+        display->DrawPixel(17, ySize - 50);
+        display->DrawPixel(18, ySize - 50);
+        display->DrawPixel(19, ySize - 50);
+
+
+        for (int i = 0; i < sizeof(temp_data_over_time) / sizeof(float); ++i) {
+            if (!std::isnan(temp_data_over_time[i])) {
+                float val = temp_data_over_time[i];
+                display->DrawPixel(offset + i, ySize - val);
+            }
         }
-
-        wait(500);
-
+        wait(1000);
         display->Clear();
-        offset += 0.5;
     }
+}
+
+void DiagramPageProcess::PutData(float temperature) {
+    temp_data_over_time[index] = temperature;
+    index++;
+    index %= 128;
 }

@@ -26,8 +26,9 @@ float ADC3Process::getADCRefVoltageInV() {
     }
 }
 
-ADC3Process::ADC3Process()
-        : hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{}, factor{1}, offset{0} {
+ADC3Process::ADC3Process(DiagramPageProcess *diagram)
+        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{},
+          factor{1}, offset{0} {
 }
 
 void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
@@ -52,6 +53,7 @@ void ADC3Process::Main() {
         wait(500);
 
         readSensors(data);
+        diagram->PutData(data[0]);
         temperatureToString(output_temperature_string, data[0]);
         lumiToString(output_lumi_string, data[1]);
 
