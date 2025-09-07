@@ -14,9 +14,10 @@ public:
 
 private:
     static constexpr int32_t offset = 20;
+    static constexpr int32_t data_capacity = 128 - offset;
 
     LedDisplay *display;
-    float temp_data_over_time[128 - offset];
+    float temp_data_over_time[data_capacity];
     int32_t index;
 };
 

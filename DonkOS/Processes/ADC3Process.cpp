@@ -43,6 +43,11 @@ void ADC3Process::Main() {
     if (HAL_ADC_Start_DMA(&hadc3, (uint32_t *) adc_dma_raw_values, countSamples * 2) != HAL_OK) {
         Error_Handler();
     }
+    int five_seconds = 2 * 5;
+    int timer = 0;
+
+    float value_diagram = 0;
+    int samples_diagram = 0;
 
     do {
         //buffer for printing the temperature. always newly initialized to clean up previous conversions
@@ -53,7 +58,18 @@ void ADC3Process::Main() {
         wait(500);
 
         readSensors(data);
-        diagram->PutData(data[0]);
+
+        value_diagram += data[0];
+        samples_diagram++;
+        if (timer == 0) {
+            diagram->PutData(value_diagram / static_cast<float>(samples_diagram));
+            timer = five_seconds;
+            samples_diagram = 0;
+            value_diagram = 0;
+        } else {
+            timer--;
+        }
+
         temperatureToString(output_temperature_string, data[0]);
         lumiToString(output_lumi_string, data[1]);
 
