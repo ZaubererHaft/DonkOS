@@ -4,7 +4,7 @@
 #include "StringConverter.h"
 
 LedDisplay::LedDisplay() : hi2c{}, pages{}, currentPageIndex{},
-                           nextPageIndex{} {
+                           nextPageIndex{}, enforce_clear{false} {
 }
 
 void LedDisplay::SetHandle(I2C_HandleTypeDef handle) {
@@ -29,9 +29,7 @@ void LedDisplay::Init() {
 }
 
 void LedDisplay::Clear() {
-    lock.Lock();
-    ssd1306_Fill(Black);
-    lock.Unlock();
+    enforce_clear = true;
 }
 
 
@@ -47,8 +45,11 @@ void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
 
 void LedDisplay::Refresh() {
     lock.Lock();
-    if (needsPageChange()) {
+    if (enforce_clear) {
         ssd1306_Fill(Black);
+        enforce_clear = false;
+    }
+    if (needsPageChange()) {
         currentPageIndex = nextPageIndex;
     }
 
@@ -73,6 +74,7 @@ void LedDisplay::Refresh() {
 void LedDisplay::NextPage() {
     nextPageIndex = (currentPageIndex + 1) % count_pages;
     pages[nextPageIndex].dirty = true;
+    enforce_clear = true;
 }
 
 bool LedDisplay::needsPageChange() const {
@@ -90,7 +92,6 @@ int32_t LedDisplay::GetCurrentPageIndex() const {
 void LedDisplay::DrawPixel(int32_t x, int32_t y) {
     lock.Lock();
     ssd1306_DrawPixel(x, y, SSD1306_COLOR::White);
-    pages[currentPageIndex].dirty = true;
     lock.Unlock();
 }
 
@@ -103,5 +104,9 @@ void LedDisplay::WriteAt(int32_t x, int32_t y, const char *text) {
     ssd1306_SetCursor(x, y);
     ssd1306_WriteString(text, Font_7x10, White);
     lock.Unlock();
+}
+
+void LedDisplay::SetCurrentPageDirty() {
+    pages[nextPageIndex].dirty = true;
 }
 

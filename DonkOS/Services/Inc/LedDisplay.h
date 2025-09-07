@@ -28,6 +28,8 @@ public:
 
     void Clear() override;
 
+    void SetCurrentPageDirty();
+
     void DrawPixel(int32_t x, int32_t y) override;
 
     std::pair<int32_t, int32_t> GetDimensions() override;
@@ -49,6 +51,7 @@ private:
     int32_t currentPageIndex;
     int32_t nextPageIndex;
     SimpleLock lock;
+    bool enforce_clear;
 
     bool needsPageChange() const;
 
