@@ -65,14 +65,14 @@ TEST_F(StringConverterTest, TestInteger_EdgeCases) {
 
     std::memset(buffer, 0x0, BufferSize);
     buffer[0] = buffer[1] = (char) 0xFF;
-    auto [result2, index2] = converter.IntegerToString(0, buffer, 1, false);
+    auto [result2, index2] = converter.IntegerToString(0, buffer, 1, {.stringTermination = false});
     ASSERT_TRUE(result2);
     ASSERT_EQ('0', buffer[0]);
     ASSERT_EQ((char) 0xFF, buffer[1]);
 
     std::memset(buffer, 0x0, BufferSize);
     buffer[3] = (char) 0xFF;
-    auto [result3, index3] = converter.IntegerToString(-12, buffer, 3, false);
+    auto [result3, index3] = converter.IntegerToString(-12, buffer, 3, {.stringTermination = false});
     ASSERT_TRUE(result3);
     ASSERT_EQ('-', buffer[0]);
     ASSERT_EQ('1', buffer[1]);
@@ -85,21 +85,29 @@ TEST_F(StringConverterTest, TestInteger_EdgeCases) {
     ASSERT_EQ(std::string{"-2147483648"}, std::string{buffer});
 }
 
+TEST_F(StringConverterTest, TestInteger_CustomRange)
+{
+    auto [result0, index0] = converter.IntegerToString(-100, buffer, BufferSize, {.minInteger = -100, .maxInteger = 99});
+    ASSERT_TRUE(result0);
+    ASSERT_EQ(std::string{"-100"}, std::string{buffer});
+}
+
 TEST_F(StringConverterTest, TestFloat) {
 
-    std::pair<float, const char *> testData[]{{1.1f,                                     "1.10"},
-                                              {0.5,                                      "0.50"},
-                                              {-114.25,                                  "-114.25"},
-                                              {12,                                       "12.00"},
+    std::pair<float, const char *> testData[]{{1.1f,                                    "1.10"},
+                                              {0.5,                                     "0.50"},
+                                              {-114.25,                                 "-114.25"},
+                                              {12,                                      "12.00"},
                                               {std::numeric_limits<float>::quiet_NaN(), "nan"},
-                                              {std::numeric_limits<float>::infinity(), "inf"},
-                                              };
+                                              {std::numeric_limits<float>::infinity(),  "inf"},
+                                              {-0.0f, "0.00"}
+    };
 
     for (auto &test_set: testData) {
         float number = test_set.first;
         const char *expected = test_set.second;
 
-        auto [result, length] = converter.FloatToString(number, 2, buffer, BufferSize);
+        auto [result, length] = converter.FloatToString(number, buffer, BufferSize);
 
 
         ASSERT_TRUE(result);

@@ -51,8 +51,7 @@ void DHT11Process::Main() {
 
             int32_t string_start_index = 3U;
             int32_t string_max_len = 11 - string_start_index - 2;
-
-            auto [success1, index1] = converter.FloatToString(temp_Celsius, 2,
+            auto [success1, index1] = converter.FloatToString(temp_Celsius,
                                                               &output_temperature_string[string_start_index],
                                                               string_max_len);
             index1 += string_start_index;
@@ -61,7 +60,7 @@ void DHT11Process::Main() {
             output_temperature_string[index1 + 2] = 'C';
             output_temperature_string[index1 + 3] = '\0';
 
-            auto [success2, index2] = converter.FloatToString(humidity, 2,
+            auto [success2, index2] = converter.FloatToString(humidity,
                                                               &output_humidity_string[string_start_index],
                                                               string_max_len);
             index2 += string_start_index;

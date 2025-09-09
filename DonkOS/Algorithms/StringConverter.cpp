@@ -5,9 +5,10 @@
 static constexpr float zero_threshold = 0.00001;
 
 std::pair<bool, int>
-StringConverter::FloatToString(float number, int places_after_dot, char *buffer, int bufflen, bool stringTermination) {
+StringConverter::FloatToString(float number, char *buffer, int bufflen, const FloatToStringSettings &settings) {
     auto is_nan = false;
     auto success = false;
+    auto places_after_dot = settings.placesAfterDot;
     int index;
 
     // ugly edge cases - deal with nan and inf manually
@@ -33,19 +34,19 @@ StringConverter::FloatToString(float number, int places_after_dot, char *buffer,
     }
 
     if (is_nan) {
-        if (stringTermination) {
-            if (bufflen >= 4) {
-                buffer[3] = '\0';
-                index = 4;
+        if (settings.stringTermination) {
+            if (bufflen > index) {
+                buffer[index] = '\0';
+                index++;
             } else {
                 success = false;
             }
         }
     }
-    // if not, perform regular conversion
+        // if not, perform regular conversion
     else {
         // convert integer part: -12.23 | "-12"
-        auto result = IntegerToString((int) number, buffer, bufflen);
+        auto result = IntegerToString((int) number, buffer, bufflen, settings);
         success = result.first;
         index = result.second;
 
@@ -64,13 +65,13 @@ StringConverter::FloatToString(float number, int places_after_dot, char *buffer,
 
             // decimal dot if space for it is available: 0.23 | "-12."
             if (index < bufflen) {
-                buffer[index] = '.';
+                buffer[index] = settings.useDecimalComma ? ',' : '.';
                 index++;
             }
 
             if (index < bufflen) {
                 // get all places after the decimal dot
-                // idea: multiply with 10 to shift one place after the decimal dot to one before it
+                // idea: Multiply by 10 to extract the next decimal digit
                 // then cut off float part and convert digit to number and add it to the buffer
                 // repeat as long as the original floating point is not (close to) zero
                 // remark: adds additional conversion error dut to float manipulation and narrowing
@@ -88,26 +89,30 @@ StringConverter::FloatToString(float number, int places_after_dot, char *buffer,
                     places_after_dot--;
                 }
 
-                // exited loop regularly?
+                // exited loop regularly? (it might be that number is still positive because we only want to display a part of it.
+                // it might also be possible that places_after_dot is greater than zero in the case number got zero before, and we need to fill up the remaining places))
                 if (index < bufflen) {
-                    // ... try to fill remaining places with missing zeros
+                    // ... try to fill remaining places with missing zeros, if necessary
                     while (places_after_dot > 0 && index < bufflen) {
                         buffer[index] = '0';
                         index++;
                         places_after_dot--;
                     }
 
-                    // add line termination if requested and space available
-                    if (stringTermination) {
-                        if (index < bufflen) {
-                            buffer[index] = '\0';
+                    if (places_after_dot == 0) {
+                        // add line termination if requested and space available
+                        if (settings.stringTermination) {
+                            if (index < bufflen) {
+                                buffer[index] = '\0';
+                                success = true;
+                            }
+                        }
+                            // if not, we are succeeding if all places have been converted
+                        else {
                             success = true;
                         }
                     }
-                        // if not, we are succeeding if all places have been converted
-                    else {
-                        success = places_after_dot == 0;
-                    }
+
                 }
             }
         }
@@ -119,29 +124,36 @@ StringConverter::FloatToString(float number, int places_after_dot, char *buffer,
     return {success, index};
 }
 
-std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, int bufflen, bool stringTermination) {
+std::pair<bool, int>
+StringConverter::IntegerToString(int number, char *buffer, int bufflen, const IntToStringSettings &settings) {
     bool success = false;
     auto index = 0;
 
     if (bufflen > 0 && buffer != nullptr) {
         auto negative = number < 0;
-        auto int_min = number == INT32_MIN;
+        auto int_min = number == settings.minInteger;
 
         if (negative) {
             if (int_min) {
-                number = INT32_MAX;
+                number = settings.maxInteger;
             } else {
                 number *= -1;
             }
         }
 
+        int32_t add = int_min ? 1 : 0;
+
         // now: fill buffers with individual places but in wrong order (the least significant first)
         do {
             auto place = number % 10;
+
             // handle case where number = INT_MIN by adding 1 to the first digit that got lost due to conversion to INT_MAX above
-            if (int_min && index == 0) {
-                place++;
-            }
+            // in addition: propagate carry if place was 9 (only if INT_MIN was of the form xxx..xxx9)
+            place += add;
+            add = place / 10;
+            place %= 10;
+
+            // convert place to character and store it to string
             buffer[index] = '0' + place;
             index++;
             number /= 10;
@@ -149,6 +161,16 @@ std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, 
 
         // if number == 0  -> we can make sure that number was converted - This might already be sufficient for success if number is positive and no line termination requested
         if (number <= 0) {
+            //if carry from INT_MIN / INT_MAX conversion was transported to the MSB, add it to string
+            if (add > 0) {
+                if (index < bufflen) {
+                    buffer[index] = '1';
+                    index++;
+                } else {
+                    success = false;
+                }
+            }
+
             // add minus sign for negative numbers if space in buffer available and save success as intermediate step
             if (negative) {
                 if (index < bufflen) {
@@ -162,7 +184,7 @@ std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, 
 
             // have we been successful in the previous step? -> try to add line terminating character if requested and space is available
             if (success) {
-                if (stringTermination) {
+                if (settings.stringTermination) {
                     if (index < bufflen) {
                         success = true;
                         buffer[index] = '\0';
@@ -189,4 +211,12 @@ std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, 
     }
 
     return {success, index};
+}
+
+std::pair<bool, int> StringConverter::FloatToString(float number, char *buffer, int bufflen) {
+    return FloatToString(number, buffer, bufflen, {});
+}
+
+std::pair<bool, int> StringConverter::IntegerToString(int number, char *buffer, int bufflen) {
+    return IntegerToString(number, buffer, bufflen, {});
 }
