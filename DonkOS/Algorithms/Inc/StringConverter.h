@@ -5,29 +5,38 @@
 
 class IntToStringSettings {
 public:
-    bool stringTermination = true;
-    int32_t minInteger = INT32_MIN;
-    int32_t maxInteger = INT32_MAX;
+    bool string_termination = true;
 };
 
 class FloatToStringSettings : public IntToStringSettings {
 public:
-    int32_t placesAfterDot = 2;
-    bool useDecimalComma = false;
+    int32_t places_after_dot = 2;
+    bool use_decimal_comma = false;
+};
+
+enum class StringConversionResult
+{
+    SUCCESS,
+    ILLEGAL_BUFFER,
+    BUFFER_INSUFFICIENT_FOR_DIGITS,
+    BUFFER_INSUFFICIENT_FOR_MINUS,
+    BUFFER_INSUFFICIENT_FOR_TERMINATION,
+    BUFFER_INSUFFICIENT_FOR_DECIMAL_DOT,
+    BUFFER_INSUFFICIENT_FOR_DIGITS_AFTER_DOT,
 };
 
 class StringConverter {
 public:
-    std::pair<bool, int>
+    std::pair<StringConversionResult, int>
     FloatToString(float number, char *buffer, int bufflen);
 
-    std::pair<bool, int>
+    std::pair<StringConversionResult, int>
     FloatToString(float number, char *buffer, int bufflen, const FloatToStringSettings &settings);
 
-    std::pair<bool, int>
+    std::pair<StringConversionResult, int>
     IntegerToString(int number, char *buffer, int bufflen);
 
-    std::pair<bool, int>
+    std::pair<StringConversionResult, int>
     IntegerToString(int number, char *buffer, int bufflen, const IntToStringSettings &settings);
 };
 

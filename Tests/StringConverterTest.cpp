@@ -20,19 +20,19 @@ protected:
 TEST_F(StringConverterTest, TestInteger_InvalidBuffer) {
 
     auto [result1, index1] = converter.IntegerToString(123, nullptr, BufferSize);
-    ASSERT_FALSE(result1);
+    ASSERT_FALSE(result1 == StringConversionResult::SUCCESS);
 
     auto [result2, index2] = converter.IntegerToString(123, nullptr, 0);
-    ASSERT_FALSE(result2);
+    ASSERT_FALSE(result2 == StringConversionResult::SUCCESS);
 
     for (int i = 0; i <= 4; ++i) {
         auto [result3, index3] = converter.IntegerToString(-123, buffer, i);
-        ASSERT_FALSE(result3);
+        ASSERT_FALSE(result3 == StringConversionResult::SUCCESS);
     }
 
     for (int i = 0; i <= 3; ++i) {
         auto [result4, index4] = converter.IntegerToString(123, buffer, i);
-        ASSERT_FALSE(result4);
+        ASSERT_FALSE(result4 == StringConversionResult::SUCCESS);
     }
 }
 
@@ -46,7 +46,7 @@ TEST_F(StringConverterTest, TestInteger_RandomBruteForce) {
         int32_t number = distr(gen);
         auto [result, length] = converter.IntegerToString(number, buffer, BufferSize);
 
-        ASSERT_TRUE(result);
+        ASSERT_TRUE(result == StringConversionResult::SUCCESS);
         ASSERT_EQ(std::string{buffer}, std::to_string(number))
                                     << "Test number was " << number << " result is " << buffer << " and expected was "
                                     << std::to_string(number) << "\n";
@@ -57,23 +57,23 @@ TEST_F(StringConverterTest, TestInteger_RandomBruteForce) {
 TEST_F(StringConverterTest, TestInteger_EdgeCases) {
 
     auto [result0, index0] = converter.IntegerToString(0, buffer, 1);
-    ASSERT_FALSE(result0);
+    ASSERT_FALSE(result0 == StringConversionResult::SUCCESS);
 
     auto [result1, index1] = converter.IntegerToString(0, buffer, BufferSize);
-    ASSERT_TRUE(result1);
+    ASSERT_TRUE(result1 == StringConversionResult::SUCCESS);
     ASSERT_EQ(std::string{"0"}, std::string{buffer});
 
     std::memset(buffer, 0x0, BufferSize);
     buffer[0] = buffer[1] = (char) 0xFF;
-    auto [result2, index2] = converter.IntegerToString(0, buffer, 1, {.stringTermination = false});
-    ASSERT_TRUE(result2);
+    auto [result2, index2] = converter.IntegerToString(0, buffer, 1, {.string_termination = false});
+    ASSERT_TRUE(result2 == StringConversionResult::SUCCESS);
     ASSERT_EQ('0', buffer[0]);
     ASSERT_EQ((char) 0xFF, buffer[1]);
 
     std::memset(buffer, 0x0, BufferSize);
     buffer[3] = (char) 0xFF;
-    auto [result3, index3] = converter.IntegerToString(-12, buffer, 3, {.stringTermination = false});
-    ASSERT_TRUE(result3);
+    auto [result3, index3] = converter.IntegerToString(-12, buffer, 3, {.string_termination = false});
+    ASSERT_TRUE(result3 == StringConversionResult::SUCCESS);
     ASSERT_EQ('-', buffer[0]);
     ASSERT_EQ('1', buffer[1]);
     ASSERT_EQ('2', buffer[2]);
@@ -81,16 +81,16 @@ TEST_F(StringConverterTest, TestInteger_EdgeCases) {
 
     std::memset(buffer, 0x0, BufferSize);
     auto [result4, index4] = converter.IntegerToString(INT32_MIN, buffer, BufferSize);
-    ASSERT_TRUE(result4);
+    ASSERT_TRUE(result4 == StringConversionResult::SUCCESS);
     ASSERT_EQ(std::string{"-2147483648"}, std::string{buffer});
 }
 
-TEST_F(StringConverterTest, TestInteger_CustomRange)
-{
-    auto [result0, index0] = converter.IntegerToString(-100, buffer, BufferSize, {.minInteger = -100, .maxInteger = 99});
-    ASSERT_TRUE(result0);
-    ASSERT_EQ(std::string{"-100"}, std::string{buffer});
-}
+// TEST_F(StringConverterTest, TestInteger_CustomRange)
+// {
+//     auto [result0, index0] = converter.IntegerToString(-100, buffer, BufferSize, {.min_integer = -100, .max_integer = 99});
+//     ASSERT_TRUE(result0 == StringConversionResult::SUCCESS);
+//     ASSERT_EQ(std::string{"-100"}, std::string{buffer});
+// }
 
 TEST_F(StringConverterTest, TestFloat) {
 
@@ -110,7 +110,7 @@ TEST_F(StringConverterTest, TestFloat) {
         auto [result, length] = converter.FloatToString(number, buffer, BufferSize);
 
 
-        ASSERT_TRUE(result);
+        ASSERT_TRUE(result == StringConversionResult::SUCCESS);
         ASSERT_EQ(std::string{buffer}, std::string{expected})
                                     << "Test number was " << number << " result is " << buffer << " and expected was "
                                     << expected << "\n";
