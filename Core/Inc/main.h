@@ -86,6 +86,16 @@ void Error_Handler(void);
 #define DHT_DATA_GPIO_Port GPIOC
 #define DEBUG_Pin GPIO_PIN_9
 #define DEBUG_GPIO_Port GPIOC
+#define LATCH_NOE_Pin GPIO_PIN_8
+#define LATCH_NOE_GPIO_Port GPIOA
+#define LATCH_NLE_Pin GPIO_PIN_9
+#define LATCH_NLE_GPIO_Port GPIOA
+#define D0_Pin GPIO_PIN_10
+#define D0_GPIO_Port GPIOA
+#define D1_Pin GPIO_PIN_11
+#define D1_GPIO_Port GPIOA
+#define D2_Pin GPIO_PIN_12
+#define D2_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

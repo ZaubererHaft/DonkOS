@@ -25,7 +25,7 @@ float ADC3Process::getADCRefVoltageInV() {
 }
 
 ADC3Process::ADC3Process(DiagramPageProcess *diagram)
-        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{},
+        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3988, getADCRefVoltageInV()}}, adc_dma_raw_values{},
           factor{1}, offset{0} {
 }
 
@@ -81,11 +81,11 @@ void ADC3Process::readSensors(float data[2]) {
         uint16_t rawValueTemp = adc_dma_raw_values[i * 2];
         uint16_t rawValueFoto = adc_dma_raw_values[i * 2 + 1];
 
-        if (rawValueTemp > adc_zero_offset) {
-            rawValueTemp -= adc_zero_offset;
-        } else {
-            rawValueTemp = 0;
-        }
+      //  if (rawValueTemp > adc_zero_offset) {
+      //      rawValueTemp -= adc_zero_offset;
+      //  } else {
+      //      rawValueTemp = 0;
+      //  }
 
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
         auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);

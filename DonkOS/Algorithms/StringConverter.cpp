@@ -54,7 +54,7 @@ StringConverter::FloatToString(float number, char *buffer, int bufflen, const Fl
         if (status != StringConversionResult::SUCCESS) {
             return {status, -1};
         }
-        // now continue with float part
+            // now continue with float part
         else {
             index = new_index;
 
@@ -136,16 +136,18 @@ StringConverter::IntegerToString(int number, char *buffer, int bufflen, const In
     // to fix the number that was cut off
     bool negative = number < 0;
     bool int_min = number == INT32_MIN;
+    int32_t add = 0;
+
     if (negative) {
         if (int_min) {
             number = INT32_MAX;
+            add = 1;
         } else {
             number *= -1;
         }
     }
 
     int32_t index = 0;
-    int32_t add = int_min ? 1 : 0;
 
     // now: fill buffers with individual places but in wrong order (the least significant first)
     do {

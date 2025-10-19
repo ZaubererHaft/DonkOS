@@ -11,6 +11,7 @@ set(Donkos_Sources
         Services/LedDisplay.cpp
         Services/NTCSensor.cpp
         Services/Lock.cpp
+        Services/Latch.cpp
 
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
