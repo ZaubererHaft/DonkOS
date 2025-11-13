@@ -1,4 +1,7 @@
 #include "Donkos.h"
+
+#include <cstdio>
+
 #include "Process7SegmentDisplay.h"
 #include "ProcessLed.h"
 #include "RoundRobinScheduler.h"
@@ -11,7 +14,8 @@
 #include "DHT11NonblockingProcess2.h"
 #include "dwt_delay.h"
 #include "DiagramPageProcess.h"
-
+#include "GPSProcess.h"
+#include "DonkosLogger.h"
 
 namespace {
 
@@ -25,28 +29,38 @@ namespace {
 
     ADC3Process adcProcess{&diagramProcess};
 
+    GPSProcess gps_process{&display};
+
     RoundRobinScheduler scheduler{};
 }
 
 extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart2;
 
 volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
 volatile int32_t CUBE_DBG_ACTIVE_SVC = -1;
 
 void Donkos_Main() {
+    Logger_Debug("[DBG] Donkos_Main...\n");
+
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();
 
 
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
+    gps_process.SetHandle(huart3);
+
+    Logger_Debug("[DBG] Starting processes...\n");
 
     Donkos_StartNewProcess(&mutexProcess);
     Donkos_StartNewProcess(&ledProcess);
     Donkos_StartNewProcess(&adcProcess);
     Donkos_StartNewProcess(&displayRefreshProcess);
+    Donkos_StartNewProcess(&gps_process);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -144,6 +158,8 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 
 
 void Donkos_KeyPressed(int32_t keyId) {
+    Logger_Debug("[DBG] Donkos_KeyPressed: keyId = %ld\n", keyId);
+
     if (display.GetCurrentPageIndex() == 1) {
         scheduler.RegisterProcess(&dht11NonblockingProcess2);
     } else if (display.GetCurrentPageIndex() == 2) {
@@ -172,3 +188,10 @@ void Donkos_ExternalInterruptReceived(int32_t id) {
     dht11NonblockingProcess2.InterruptReceived();
 }
 
+extern "C" int __io_putchar(int ch) __attribute__((weak));
+
+int __io_putchar(int ch)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 100);
+    return ch;
+}

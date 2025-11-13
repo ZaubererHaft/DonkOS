@@ -35,6 +35,8 @@ set(Donkos_Sources
         Processes/DisplayRefreshProcess.cpp
         #Processes/KeyboardProcess.cpp
         Processes/DiagramPageProcess.cpp
+        Processes/GPSProcess.cpp
+
 )
 
 add_library(DonkOSLib ${Donkos_Sources})

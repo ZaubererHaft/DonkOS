@@ -69,6 +69,10 @@ void Error_Handler(void);
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define GPS_TX_Pin GPIO_PIN_4
+#define GPS_TX_GPIO_Port GPIOC
+#define GPX_RX_Pin GPIO_PIN_5
+#define GPX_RX_GPIO_Port GPIOC
 #define NOE_Pin GPIO_PIN_1
 #define NOE_GPIO_Port GPIOB
 #define SER_Pin GPIO_PIN_2
