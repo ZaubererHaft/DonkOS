@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "DonkosInternal.h"
+#include "DonkosLogger.h"
 
 GPSProcess::GPSProcess(BaseDisplay *display) {
 }
@@ -16,7 +17,13 @@ void GPSProcess::Main() {
         std::memset(data, 0, sizeof(data));
 
         while (HAL_UART_Receive(&huart, (uint8_t *)data, sizeof(data), 100) == HAL_OK) {
-            int i = 0;
+        }
+
+        if (data[0] == 0) {
+            Logger_Debug("[WRN] GPS data empty.\n");
+        }
+        else {
+            Logger_Debug("[DBG] GPS data received.\n");
         }
 
         wait(1000);

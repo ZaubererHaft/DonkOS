@@ -37,7 +37,7 @@ namespace {
 extern ADC_HandleTypeDef hadc3;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
-extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart2;
 
 volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
@@ -52,7 +52,7 @@ void Donkos_Main() {
 
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
-    gps_process.SetHandle(huart3);
+    gps_process.SetHandle(huart4);
 
     Logger_Debug("[DBG] Starting processes...\n");
 

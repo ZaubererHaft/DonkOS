@@ -1,6 +1,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <cstdio>
+
 #ifdef DEBUG
 #define Logger_Trace(...) printf(__VA_ARGS__)
 #else
