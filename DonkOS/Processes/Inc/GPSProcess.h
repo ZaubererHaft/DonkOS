@@ -16,8 +16,10 @@ public:
     void Main() override;
 
     void SetHandle(const UART_HandleTypeDef &handle);
+
 private:
-    UART_HandleTypeDef huart;
+    UART_HandleTypeDef huart_handle;
+
 };
 
 
