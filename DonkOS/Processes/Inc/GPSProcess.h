@@ -20,6 +20,8 @@ public:
 private:
     UART_HandleTypeDef huart_handle;
 
+    bool restart();
+
 };
 
 
