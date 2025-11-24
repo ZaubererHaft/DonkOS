@@ -22,11 +22,17 @@ public:
     bool RestartCommunication();
 
 private:
-    static constexpr int32_t buffer_size = 82 * 12;
+    static constexpr int32_t line_size = 82;
+    static constexpr int32_t buffer_size = line_size * 12;
 
     int32_t ReceivedSize = 0;
     bool restart = false;
     uint8_t buffer[buffer_size];
+    char lineBuffer[line_size];
+
+    void parseNMEALine(int32_t size);
+
+    void parseNMEA();
 
 };
 
