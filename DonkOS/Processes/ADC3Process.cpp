@@ -25,7 +25,7 @@ float ADC3Process::getADCRefVoltageInV() {
 }
 
 ADC3Process::ADC3Process(DiagramPageProcess *diagram)
-        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3988, getADCRefVoltageInV()}}, adc_dma_raw_values{},
+        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{},
           factor{1}, offset{0} {
 }
 

@@ -9,8 +9,6 @@
 #include "DisplayRefreshProcess.h"
 #include "LedDisplay.h"
 #include "DonkosInternal.h"
-#include "DHT11Process.h"
-#include "DHT11NonblockingProcess.h"
 #include "DHT11NonblockingProcess2.h"
 #include "dwt_delay.h"
 #include "DiagramPageProcess.h"
@@ -18,7 +16,6 @@
 #include "DonkosLogger.h"
 
 namespace {
-
     Process7SegmentDisplay mutexProcess{};
     ProcessLed ledProcess{};
 
@@ -52,7 +49,6 @@ void Donkos_Main() {
 
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
-    gps_process.SetHandle(huart4);
 
     Logger_Debug("[DBG] Starting processes...\n");
 
@@ -190,8 +186,15 @@ void Donkos_ExternalInterruptReceived(int32_t id) {
 
 extern "C" int __io_putchar(int ch) __attribute__((weak));
 
-int __io_putchar(int ch)
-{
-    HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 100);
+int __io_putchar(int ch) {
+    HAL_UART_Transmit(&huart2, (uint8_t *) &ch, 1, 100);
     return ch;
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+    if (huart->Instance == huart4.Instance) {
+        gps_process.Reset();
+        gps_process.UartReceived(Size);
+        scheduler.RegisterProcess(&gps_process);
+    }
 }

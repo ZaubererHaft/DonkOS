@@ -8,18 +8,10 @@
 
 extern UART_HandleTypeDef huart4;
 
-namespace {
-    constexpr int32_t buffer_size = 82 * 12;
-    uint8_t buffer[buffer_size];
-    int32_t ReceivedSize = 0;
+GPSProcess::GPSProcess(BaseDisplay *display) : ReceivedSize{}, restart{true}, buffer{} {
 }
 
-GPSProcess::GPSProcess(BaseDisplay *display) {
-}
-
-bool GPSProcess::restart() {
-    Logger_Debug("[DBG] Try restarting IDLE UART...\n");
-
+bool GPSProcess::RestartCommunication() {
     std::memset(buffer, '\0', buffer_size);
 
     ReceivedSize = 0;
@@ -31,36 +23,34 @@ bool GPSProcess::restart() {
         status = HAL_UARTEx_ReceiveToIdle_IT(&huart4, buffer, buffer_size);
 
         if (status != HAL_OK) {
-            Logger_Debug("[WRN] Failed restarting IDLE UART, try another time\n");
             wait(10);
         }
         counter--;
-
-    }
-    while (status != HAL_OK && counter > 0);
+    } while (status != HAL_OK && counter > 0);
 
     return status == HAL_OK;
 }
 
 
 void GPSProcess::Main() {
-    restart();
-
-    while (true) {
-        if (ReceivedSize > 0) {
-            Logger_Debug("[DBG] GPS data received:\n%s\n", reinterpret_cast<char *>(buffer));
-            if (!restart()) {
-                Logger_Debug("[ERR] IDLE UART could not be restarted :/!\n");
-            }
+    if (restart) {
+        if (!RestartCommunication()) {
+            Logger_Debug("[ERR] Start GPS comm failed!\n");
         }
+        restart = false;
+    }
 
-        wait(10);
+    if (ReceivedSize > 0) {
+        Logger_Debug("[DBG] GPS data received:\n%s\n", reinterpret_cast<char *>(buffer));
+        if (!RestartCommunication()) {
+            Logger_Debug("[ERR] IDLE UART could not be restarted :/!\n");
+        }
+        restart = true;
     }
 }
 
-void GPSProcess::SetHandle(const UART_HandleTypeDef &handle) {
+
+void GPSProcess::UartReceived(uint16_t size) {
+    ReceivedSize = size;
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
-    ReceivedSize = Size;
-}

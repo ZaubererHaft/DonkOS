@@ -1,4 +1,7 @@
 #include "Process.h"
+
+#include <cstring>
+
 #include "DonkosInternal.h"
 
 extern "C" void load_context(uint32_t, uint32_t *);
@@ -145,6 +148,12 @@ void Process::SetPriority(uint8_t prio) {
 
 bool Process::operator<(Process *process) const {
     return priority < process->priority;
+}
+
+void Process::Reset() {
+    initStack();
+    std::memset(heap, 0, sizeof(heap));
+    state = ProcessState::CREATED;
 }
 
 uint32_t Process::GetStackStartAddress() {

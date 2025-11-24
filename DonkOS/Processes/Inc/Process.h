@@ -39,6 +39,8 @@ public:
 
     bool operator<(Process * process) const;
 
+    void Reset();
+
 protected:
     void wait(int32_t milliseconds);
 

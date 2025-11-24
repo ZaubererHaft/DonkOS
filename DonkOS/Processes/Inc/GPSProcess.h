@@ -17,10 +17,16 @@ public:
 
     void SetHandle(const UART_HandleTypeDef &handle);
 
-private:
-    UART_HandleTypeDef huart_handle;
+    void UartReceived(uint16_t size);
 
-    bool restart();
+    bool RestartCommunication();
+
+private:
+    static constexpr int32_t buffer_size = 82 * 12;
+
+    int32_t ReceivedSize = 0;
+    bool restart = false;
+    uint8_t buffer[buffer_size];
 
 };
 
