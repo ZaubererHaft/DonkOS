@@ -36,7 +36,7 @@ set(Donkos_Sources
         #Processes/KeyboardProcess.cpp
         Processes/DiagramPageProcess.cpp
         Processes/GPSProcess.cpp
-
+        Processes/WiFiProcess.cpp
 )
 
 add_library(DonkOSLib ${Donkos_Sources})

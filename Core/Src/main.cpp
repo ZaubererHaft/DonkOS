@@ -48,6 +48,7 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart4;
+UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -63,6 +64,7 @@ static void MX_ADC3_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_UART4_Init(void);
+static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,6 +109,7 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM7_Init();
   MX_UART4_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
   Donkos_Main();
   /* USER CODE END 2 */
@@ -360,6 +363,41 @@ static void MX_UART4_Init(void)
 }
 
 /**
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART5_Init(void)
+{
+
+  /* USER CODE BEGIN UART5_Init 0 */
+
+  /* USER CODE END UART5_Init 0 */
+
+  /* USER CODE BEGIN UART5_Init 1 */
+
+  /* USER CODE END UART5_Init 1 */
+  huart5.Instance = UART5;
+  huart5.Init.BaudRate = 115200;
+  huart5.Init.WordLength = UART_WORDLENGTH_8B;
+  huart5.Init.StopBits = UART_STOPBITS_1;
+  huart5.Init.Parity = UART_PARITY_NONE;
+  huart5.Init.Mode = UART_MODE_TX_RX;
+  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart5.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart5.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART5_Init 2 */
+
+  /* USER CODE END UART5_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -422,10 +460,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|LATCH_NOE_Pin|LATCH_NLE_Pin|D0_Pin
-                          |D1_Pin|D2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SRCLK_Pin|NSRCLR_Pin|SER_Pin|NOE_Pin
@@ -435,7 +473,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(DHT_DATA_GPIO_Port, DHT_DATA_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DEBUG_GPIO_Port, DEBUG_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, DEBUG_Pin|WIFI_RESET_Pin|WIFI_ENABLE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -443,12 +481,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin D0_Pin D1_Pin D2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|D0_Pin|D1_Pin|D2_Pin;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SRCLK_Pin NSRCLR_Pin SER_Pin NOE_Pin
                            RCLK_Pin */
@@ -479,12 +517,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(DEBUG_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LATCH_NOE_Pin LATCH_NLE_Pin */
-  GPIO_InitStruct.Pin = LATCH_NOE_Pin|LATCH_NLE_Pin;
+  /*Configure GPIO pins : WIFI_RESET_Pin WIFI_ENABLE_Pin */
+  GPIO_InitStruct.Pin = WIFI_RESET_Pin|WIFI_ENABLE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PAGESELECT_Pin */
   GPIO_InitStruct.Pin = PAGESELECT_Pin;

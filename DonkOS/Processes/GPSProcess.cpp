@@ -46,7 +46,7 @@ void GPSProcess::parseNMEA() {
     for (int32_t i = 0; i < buffer_size; i++) {
         char character = buffer[i];
         if (line) {
-            if (character == '\n' || character == '\r') {
+            if (character == '\n' || character == '\r' || character == '*') {
                 line = false;
                 character = '\0';
             } else {
