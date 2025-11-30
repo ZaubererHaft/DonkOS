@@ -3,6 +3,7 @@
 
 #include "Process.h"
 #include "main.h"
+#include "RingBuffer.h"
 
 extern UART_HandleTypeDef huart5;
 
@@ -13,8 +14,25 @@ public:
 
     void Main() override;
 
+    void PackageReceived();
+
+private:
+    static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 100;
+
+    bool enable();
+
+    bool sendString(const char *text);
+
+    bool doWaitFor(const char *text, int32_t size);
+
+    bool wait_for_min_size(int32_t size, int32_t timeout_in_10ms = DEFAULT_TIMEOUT_IN_10MS);
+
+    RingBuffer<uint8_t, 2048> buffer;
+    uint8_t working_data;
+    char ipv4_address[4 * 4 + 3 + 1]{};
 
 };
+
 
 
 #endif //DONKOS_WIFIPROCESS_H

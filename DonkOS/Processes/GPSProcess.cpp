@@ -80,7 +80,7 @@ void GPSProcess::Main() {
     }
 
     if (ReceivedSize > 0) {
-        Logger_Debug("[DBG] GPS data received:\n%s\n", reinterpret_cast<char *>(buffer));
+        Logger_Debug("[DBG] GPS data received:\n"); // %s\n", reinterpret_cast<char *>(buffer));
 
         parseNMEA();
 

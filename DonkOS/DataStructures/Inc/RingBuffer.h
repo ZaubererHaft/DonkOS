@@ -30,6 +30,15 @@ public:
         return !DataAvailable();
     }
 
+    bool Skip(int32_t length) {
+        if (length <= size) {
+            head = (head + length) % CAPACITY;
+            size -= length;
+            return true;
+        }
+        return false;
+    }
+
     bool Pop(TYPE *result) {
         if (DataAvailable()) {
             *result = buffer[head];
@@ -39,6 +48,22 @@ public:
         }
 
         return false;
+    }
+
+    const TYPE *read_ptr() {
+        return &buffer[head];
+    }
+
+    const TYPE *write_ptr() {
+        return &buffer[tail];
+    }
+
+    int32_t WriteCapacity() const {
+        return CAPACITY - size;
+    }
+
+    int32_t ReadLength() const {
+        return size;
     }
 
 private:

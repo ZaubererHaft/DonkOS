@@ -192,6 +192,15 @@ int __io_putchar(int ch) {
     return ch;
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if(huart->Instance==huart5.Instance)
+    {
+        wifi_process.PackageReceived();
+    }
+
+}
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
     if (huart->Instance == huart4.Instance) {
         gps_process.Reset();
