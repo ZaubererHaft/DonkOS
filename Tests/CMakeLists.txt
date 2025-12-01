@@ -14,13 +14,16 @@ enable_testing()
 add_executable(
         Tests
         StringConverterTest.cpp
+        NMEAParserTest.cpp
 
         ../DonkOS/Algorithms/StringConverter.cpp
+        ../DonkOS/Drivers/nmea/NMEParser.cpp
 )
 
 target_include_directories(
         Tests
         PRIVATE ../DonkOS/Algorithms/Inc
+                ../DonkOS/Drivers/nmea
 )
 
 target_link_libraries(

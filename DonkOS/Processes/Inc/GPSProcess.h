@@ -8,6 +8,7 @@
 #include "Process.h"
 #include "main.h"
 #include "BaseDisplay.h"
+#include "NMEAParser.h"
 
 class GPSProcess : public Process {
 public:
@@ -29,11 +30,8 @@ private:
     bool restart = false;
     uint8_t buffer[buffer_size];
     char lineBuffer[line_size];
-
-    void parseNMEALine(int32_t size);
-
-    void parseNMEA();
-
+    NMEAParsedMessage messages_buffer[10];
+    NMEAParser parser;
 };
 
 

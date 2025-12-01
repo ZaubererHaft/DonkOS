@@ -10,16 +10,15 @@ public:
         static_assert(CAPACITY > 0, "Capacity must be > 0");
     }
 
-    void Push(const TYPE &data) {
-        buffer[tail] = data;
-        tail = (tail + 1) % CAPACITY;
-
-        // In case the capacity of the buffer was reached we restart at the beginning and advance head as well
+    bool Push(const TYPE &data) {
         if (size < CAPACITY) {
+            buffer[tail] = data;
+            tail = (tail + 1) % CAPACITY;
             size++;
-        } else {
-            head = (head + 1) % CAPACITY;
+            return true;
         }
+
+        return false;
     }
 
     bool DataAvailable() const {

@@ -16,6 +16,16 @@ set(Donkos_Sources
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
         Drivers/dwt/dwt_delay.cpp;
+        Drivers/nmea/NMEParser.cpp
+        Drivers/epd/Fonts/font8.cpp
+        Drivers/epd/Fonts/font12.cpp
+        Drivers/epd/Fonts/font16.cpp
+        Drivers/epd/Fonts/font20.cpp
+        Drivers/epd/Fonts/font24.cpp
+        Drivers/epd/epd4in2.cpp
+        Drivers/epd/epdif.cpp
+        Drivers/epd/epdpaint.cpp
+        Drivers/epd/imagedata.cpp
 
         DataStructures/MemoryBlock.cpp
         DataStructures/MemoryListAllocator.cpp
@@ -37,6 +47,7 @@ set(Donkos_Sources
         Processes/DiagramPageProcess.cpp
         Processes/GPSProcess.cpp
         Processes/WiFiProcess.cpp
+        Processes/EPaperDisplayProcess.cpp
 )
 
 add_library(DonkOSLib ${Donkos_Sources})
@@ -49,6 +60,8 @@ target_include_directories(DonkOSLib PUBLIC
         DataStructures/Inc
         Drivers/SSD1306/Inc
         Drivers/dwt
+        Drivers/epd
+        Drivers/nmea
         Algorithms/Inc
 )
 

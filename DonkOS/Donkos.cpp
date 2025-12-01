@@ -14,6 +14,7 @@
 #include "DiagramPageProcess.h"
 #include "GPSProcess.h"
 #include "DonkosLogger.h"
+#include "EPaperDisplayProcess.h"
 #include "WiFiProcess.h"
 
 namespace {
@@ -27,6 +28,7 @@ namespace {
     ADC3Process adcProcess{&diagramProcess};
     GPSProcess gps_process{&display};
     WiFiProcess wifi_process{};
+    EPaperDisplayProcess epaperDisplayProcess{};
 
     RoundRobinScheduler scheduler{};
 }
@@ -58,6 +60,7 @@ void Donkos_Main() {
     Donkos_StartNewProcess(&displayRefreshProcess);
     Donkos_StartNewProcess(&gps_process);
     Donkos_StartNewProcess(&wifi_process);
+    Donkos_StartNewProcess(&epaperDisplayProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 

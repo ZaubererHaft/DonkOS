@@ -5,10 +5,12 @@
 
 #include "DonkosInternal.h"
 #include "DonkosLogger.h"
+#include "StringConverter.h"
 
 extern UART_HandleTypeDef huart4;
 
-GPSProcess::GPSProcess(BaseDisplay *display) : ReceivedSize{}, restart{true}, buffer{}, lineBuffer{} {
+GPSProcess::GPSProcess(BaseDisplay *display) : ReceivedSize{}, restart{true}, buffer{}, lineBuffer{}, messages_buffer{},
+                                               parser{} {
 }
 
 bool GPSProcess::RestartCommunication() {
@@ -31,45 +33,6 @@ bool GPSProcess::RestartCommunication() {
     return status == HAL_OK;
 }
 
-void GPSProcess::parseNMEALine(int32_t size) {
-    if (strcmp(&lineBuffer[0], "GPGGA") == 0) {
-        char *longitudinal = &lineBuffer[strlen("GPGGA") + 1];
-        //char *lattitude = longitudinal + strlen(longitudinal) + 1;
-        int i = 0;
-    }
-}
-
-void GPSProcess::parseNMEA() {
-    bool line = false;
-    int32_t lineIndex = 0;
-
-    for (int32_t i = 0; i < buffer_size; i++) {
-        char character = buffer[i];
-        if (line) {
-            if (character == '\n' || character == '\r' || character == '*') {
-                line = false;
-                character = '\0';
-            } else {
-                if (character == ',') {
-                    character = '\0';
-                }
-            }
-
-            lineBuffer[lineIndex] = character;
-            lineIndex++;
-
-            if (!line) {
-                parseNMEALine(lineIndex);
-                lineIndex = 0;
-                std::memset(lineBuffer, '\0', line_size);
-            }
-        }
-        if (character == '$') {
-            line = true;
-        }
-    }
-}
-
 
 void GPSProcess::Main() {
     if (restart) {
@@ -80,9 +43,28 @@ void GPSProcess::Main() {
     }
 
     if (ReceivedSize > 0) {
-        Logger_Debug("[DBG] GPS data received:\n"); // %s\n", reinterpret_cast<char *>(buffer));
+        Logger_Debug("[DBG] GPS data received: %s\n", reinterpret_cast<char *>(buffer));
 
-        parseNMEA();
+        auto status = parser.Parse(reinterpret_cast<char *>(buffer), messages_buffer, 10);
+        if (status == ParseResult::Okay) {
+            for (auto &message: messages_buffer) {
+                if (message.messageType == NMEAMessageType::GPGGA_GLOBAL_POSITIONING_FIXED_DATA) {
+                    auto gpgga = message.gpgga_message;
+
+                    float lat = gpgga.latitude.degree + gpgga.latitude.minute / 60.0;
+                    float lon = gpgga.longitude.degree + gpgga.longitude.minute / 60.0;
+
+                    StringConverter conv{};
+                    char latbuf[12]{};
+                    char longbuf[12]{};
+
+                    conv.FloatToString(lat, latbuf, 12, {.places_after_dot =  4});
+                    conv.FloatToString(lon, longbuf, 12, {.places_after_dot = 4});
+
+                    Logger_Debug("[DBG] Our position is: %s,%s \n", latbuf, longbuf);
+                }
+            }
+        }
 
         if (!RestartCommunication()) {
             Logger_Debug("[ERR] IDLE UART could not be restarted :/!\n");

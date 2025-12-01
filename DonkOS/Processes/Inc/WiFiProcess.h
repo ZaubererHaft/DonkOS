@@ -21,6 +21,8 @@ private:
 
     bool enable();
 
+    bool getWeatherData();
+
     bool sendString(const char *text);
 
     bool doWaitFor(const char *text, int32_t size);
@@ -30,6 +32,7 @@ private:
     RingBuffer<uint8_t, 2048> buffer;
     uint8_t working_data;
     char ipv4_address[4 * 4 + 3 + 1]{};
+    bool buffer_overflow;
 
 };
 

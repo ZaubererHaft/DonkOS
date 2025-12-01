@@ -3,28 +3,44 @@
 #include <cstring>
 
 #include "DonkosLogger.h"
-#include "../DonkosInternal.h"
+#include "DonkosInternal.h"
 
-WiFiProcess::WiFiProcess() : buffer{}, working_data{}, ipv4_address{} {
+WiFiProcess::WiFiProcess() : buffer{}, working_data{}, ipv4_address{}, buffer_overflow{} {
 }
 
 void WiFiProcess::Main() {
     Logger_Debug("[DBG] Enabling WiFi...\n");
     if (enable()) {
         Logger_Debug("[DBG] WiFi connected with IPv4 address: %s!\n", ipv4_address);
-    }
-    else {
+
+        Logger_Debug("[DBG] Try to get weather data...\n");
+        if (getWeatherData()) {
+            Logger_Debug("[DBG] Weather data available!\n");
+        } else {
+            Logger_Debug("[ERR] Failed to get weather data!\n");
+        }
+    } else {
         Logger_Debug("[ERR] Failed to enable WiFi!\n");
     }
 
     while (true) {
-        Donkos_YieldProcess(this);
+        if (buffer_overflow) {
+            Logger_Debug("[ERR] WiFi buffer overflow :(!");
+            Donkos_EndProcess(this);
+        } else {
+            Donkos_YieldProcess(this);
+        }
     }
 }
 
 void WiFiProcess::PackageReceived() {
-    buffer.Push(working_data);
-    HAL_UART_Receive_IT(&huart5, &working_data, 1);
+    if (buffer.Push(working_data)) {
+        if (HAL_UART_Receive_IT(&huart5, &working_data, 1) != HAL_OK) {
+            Error_Handler();
+        }
+    } else {
+        buffer_overflow = true;
+    }
 }
 
 bool WiFiProcess::sendString(const char *text) {
@@ -55,16 +71,6 @@ bool WiFiProcess::doWaitFor(const char *text, int32_t size) {
 
 #define wait_for_text(a) (doWaitFor(a, sizeof(a) - 1))
 
-#define wait_for_size_skip_and_compare_text(a, b, c) if (!wait_for_min_size(a)) { \
-                                                        return false; \
-                                                        } \
-                                                    if (!buffer.Skip(b)) { \
-                                                        return false; \
-                                                    } \
-                                                    if (!wait_for_text(c)) { \
-                                                        return false; \
-                                                    }
-
 bool WiFiProcess::enable() {
     HAL_UART_Receive_IT(&huart5, &working_data, 1);
 
@@ -87,7 +93,7 @@ bool WiFiProcess::enable() {
 
     // manual reset
     if (!sendString("AT+RST\r\n")) {
-       return false;
+        return false;
     }
     if (!wait_for_text("AT+RST\r\r\n\r\nOK\r\n")) {
         return false;
@@ -95,17 +101,18 @@ bool WiFiProcess::enable() {
 
     // send AT station mode
     if (!sendString("AT+CWMODE=1\r\n")) {
-       return false;
+        return false;
     }
     if (!wait_for_text("AT+CWMODE=1\r\r\n\r\nOK\r\n")) {
         return false;
     }
 
     // send Access Point and try to connect
-    if (!sendString("AT+CWJAP=\"\",\"\"\r\n")) {
+    if (!sendString("AT+CWJAP=\"LuwinaNET-2.4\",\"e=2,71828182845904\"\r\n")) {
         return false;
     }
-    if (!wait_for_min_size(334, 1000)) { // ToDo: subtract size of AP name and PW and make them variable via a function
+    if (!wait_for_min_size(334, 1000)) {
+        // ToDo: subtract size of AP name and PW and make them variable via a function
         return false;
     }
     if (!buffer.Skip(334 - 29)) {
@@ -120,6 +127,7 @@ bool WiFiProcess::enable() {
         return false;
     }
     if (!wait_for_min_size(82)) {
+        // ToDo subtract size of ip address
         return false;
     }
     if (!buffer.Skip(25)) {
@@ -128,11 +136,49 @@ bool WiFiProcess::enable() {
     int32_t index = 0;
     char character = '\0';
     bool success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
-    while (success && character != '\"') {
+    while (success && character != '\"' && index < sizeof(ipv4_address)) {
         ipv4_address[index] = character;
         success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
         index++;
     }
-    return success;
+    if (index >= sizeof(ipv4_address)) {
+        return false;
+    }
+    if (!buffer.Skip(buffer.ReadLength())) {
+        return false;
+    }
+
+    // Enable multiple connections
+    // if (!sendString("AT+CIPMUX=1\r\n")) {
+    //     return false;
+    // }
+    // if (!wait_for_text("AT+CIPMUX=1\r\r\n\r\nOK\r\n")) {
+    //     return false;
+    // }
+
+    return true;
+}
+
+bool WiFiProcess::getWeatherData() {
+    // send AT station mode
+    if (!sendString("AT+CIPSTART=\"TCP\",\"httpbin.org\",80\r\n")) {
+        return false;
+    }
+    wait(1000);
+
+    auto req = "AT+CIPSEND=57\r\n"
+               "GET /get HTTP/1.1\r\n"
+               "Host: httpbin.org\r\n"
+               "Connection: close\r\n";
+    if (!sendString(req)) {
+        return false;
+    }
+
+    wait(1000);
+
+    if (!sendString("AT+CIPCLOSE\r\n")) {
+        return false;
+    }
+    return true;
 }
 
