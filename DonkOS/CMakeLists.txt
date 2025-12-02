@@ -17,15 +17,17 @@ set(Donkos_Sources
         Drivers/SSD1306/ssd1306.cpp
         Drivers/dwt/dwt_delay.cpp;
         Drivers/nmea/NMEParser.cpp
+
+        Drivers/epd/e-Paper/EPD_4in2_V2.cpp
+        Drivers/epd/Examples/EPD_4in2_V2_test.cpp
+        Drivers/epd/GUI/GUI_Paint.cpp
         Drivers/epd/Fonts/font8.cpp
         Drivers/epd/Fonts/font12.cpp
         Drivers/epd/Fonts/font16.cpp
         Drivers/epd/Fonts/font20.cpp
         Drivers/epd/Fonts/font24.cpp
-        Drivers/epd/epd4in2.cpp
-        Drivers/epd/epdif.cpp
-        Drivers/epd/epdpaint.cpp
-        Drivers/epd/imagedata.cpp
+        Drivers/epd/Examples/ImageData.cpp
+        Drivers/epd/Config/DEV_Config.cpp
 
         DataStructures/MemoryBlock.cpp
         DataStructures/MemoryListAllocator.cpp
@@ -60,7 +62,10 @@ target_include_directories(DonkOSLib PUBLIC
         DataStructures/Inc
         Drivers/SSD1306/Inc
         Drivers/dwt
-        Drivers/epd
+        Drivers/epd/e-Paper
+        Drivers/epd/Config
+        Drivers/epd/Examples
+        Drivers/epd/GUI
         Drivers/nmea
         Algorithms/Inc
 )
