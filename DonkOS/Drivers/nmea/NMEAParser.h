@@ -118,6 +118,8 @@ enum class ParseResult {
     ParseBufferOverflow
 };
 
+const char * ParseResult_ToString(const ParseResult & result);
+
 class NMEAParser {
 public:
     ParseResult Parse(char *message, NMEAParsedMessage *buffer, int32_t buffer_len);

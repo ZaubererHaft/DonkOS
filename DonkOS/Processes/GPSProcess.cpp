@@ -35,15 +35,8 @@ bool GPSProcess::RestartCommunication() {
 
 
 void GPSProcess::Main() {
-    if (restart) {
-        if (!RestartCommunication()) {
-            Logger_Debug("[ERR] Start GPS comm failed!\n");
-        }
-        restart = false;
-    }
-
     if (ReceivedSize > 0) {
-        Logger_Debug("[DBG] GPS data received: %s\n", reinterpret_cast<char *>(buffer));
+        Logger_Debug("GPS data received: %s", reinterpret_cast<char *>(buffer));
 
         auto status = parser.Parse(reinterpret_cast<char *>(buffer), messages_buffer, 10);
         if (status == ParseResult::Okay) {
@@ -58,18 +51,21 @@ void GPSProcess::Main() {
                     char latbuf[12]{};
                     char longbuf[12]{};
 
-                    conv.FloatToString(lat, latbuf, 12, {.places_after_dot =  4});
+                    conv.FloatToString(lat, latbuf, 12, {.places_after_dot = 4});
                     conv.FloatToString(lon, longbuf, 12, {.places_after_dot = 4});
 
-                    Logger_Debug("[DBG] Our position is: %s,%s \n", latbuf, longbuf);
+                    Logger_Debug("Our position is: %s,%s", latbuf, longbuf);
                 }
             }
+        } else {
+            Logger_Debug("GPS data could not be parsed, reason %s", ParseResult_ToString(status));
         }
+    }
 
-        if (!RestartCommunication()) {
-            Logger_Debug("[ERR] IDLE UART could not be restarted :/!\n");
-        }
-        restart = true;
+    Logger_Debug("Trying to get out location...");
+
+    if (!RestartCommunication()) {
+        Logger_Error("IDLE UART could not be restarted, giving up :/!");
     }
 }
 

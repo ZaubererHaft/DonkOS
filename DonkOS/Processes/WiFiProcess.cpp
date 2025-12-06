@@ -9,23 +9,23 @@ WiFiProcess::WiFiProcess() : buffer{}, working_data{}, ipv4_address{}, buffer_ov
 }
 
 void WiFiProcess::Main() {
-    Logger_Debug("[DBG] Enabling WiFi...\n");
+    Logger_Debug("Enabling WiFi...");
     if (enable()) {
-        Logger_Debug("[DBG] WiFi connected with IPv4 address: %s!\n", ipv4_address);
+        Logger_Debug("WiFi connected with IPv4 address: %s!", ipv4_address);
 
-        Logger_Debug("[DBG] Try to get weather data...\n");
+        Logger_Debug("Try to get weather data...");
         if (getWeatherData()) {
-            Logger_Debug("[DBG] Weather data available!\n");
+            Logger_Debug("Weather data available!");
         } else {
-            Logger_Debug("[ERR] Failed to get weather data!\n");
+            Logger_Error("Failed to get weather data!");
         }
     } else {
-        Logger_Debug("[ERR] Failed to enable WiFi!\n");
+        Logger_Error("Failed to enable WiFi!");
     }
 
     while (true) {
         if (buffer_overflow) {
-            Logger_Debug("[ERR] WiFi buffer overflow :(!");
+            Logger_Error("WiFi buffer overflow :(!");
             Donkos_EndProcess(this);
         } else {
             Donkos_YieldProcess(this);
@@ -108,7 +108,7 @@ bool WiFiProcess::enable() {
     }
 
     // send Access Point and try to connect
-    if (!sendString("AT+CWJAP=\"LuwinaNET-2.4\",\"e=2,71828182845904\"\r\n")) {
+    if (!sendString("AT+CWJAP=\"LuwinaNET-2.4\",\"\"\r\n")) {
         return false;
     }
     if (!wait_for_min_size(334, 1000)) {

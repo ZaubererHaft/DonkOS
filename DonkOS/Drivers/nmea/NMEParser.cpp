@@ -2,6 +2,59 @@
 #include <cmath>
 #include <cstring>
 
+const char *ParseResult_ToString(const ParseResult &result) {
+    if (result == ParseResult::Okay) {
+        return "OK";
+    }
+    if (result == ParseResult::GPGAA_Invld_Age) {
+        return "GPGAA_Invld_Age";
+    }
+    if (result == ParseResult::GPGAA_Invld_Alt) {
+        return "GPGAA_Invld_Alt";
+    }
+    if (result == ParseResult::GPGAA_Invld_CRC) {
+        return "GPGAA_Invld_CRC";
+    }
+    if (result == ParseResult::GPGAA_Invld_DOP) {
+        return "GPGAA_Invld_DOP";
+    }
+    if (result == ParseResult::GPGAA_Invld_GeoidSep) {
+        return "GPGAA_Invld_GeoidSep";
+    }
+    if (result == ParseResult::GPGAA_Invld_GPS_Signal) {
+        return "GPGAA_Invld_GPS_Signal";
+    }
+    if (result == ParseResult::GPGAA_Invld_Lat) {
+        return "GPGAA_Invld_Lat";
+    }
+    if (result == ParseResult::GPGAA_Invld_Long) {
+        return "GPGAA_Invld_Long";
+    }
+    if (result == ParseResult::GPGAA_Invld_Lat_Orientation) {
+        return "GPGAA_Invld_Lat_Orientation";
+    }
+    if (result == ParseResult::GPGAA_Invld_Long_Orientation) {
+        return "GPGAA_Invld_Long_Orientation";
+    }
+    if (result == ParseResult::GPGAA_Invld_Ref) {
+        return "GPGAA_Invld_Ref";
+    }
+    if (result == ParseResult::GPGAA_Invld_Sat_Count) {
+        return "GPGAA_Invld_Sat_Count";
+    }
+    if (result == ParseResult::GPGAA_Invld_Time) {
+        return "GPGAA_Invld_Time";
+    }
+    if (result == ParseResult::Invld_Message_Length) {
+        return "Invld_Message_Length";
+    }
+    if (result == ParseResult::Invld_Message_Type) {
+        return "Invld_Message_Type";
+    }
+
+    return "Unknown";
+}
+
 ParseResult NMEAParser::Parse(char *message, NMEAParsedMessage *buffer, const int32_t buffer_len) {
     auto status = ParseResult::Okay;
     const auto full_size = static_cast<int32_t>(strlen(message));

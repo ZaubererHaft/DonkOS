@@ -43,7 +43,7 @@ volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
 volatile int32_t CUBE_DBG_ACTIVE_SVC = -1;
 
 void Donkos_Main() {
-    Logger_Debug("[DBG] Donkos_Main...\n");
+    Logger_Debug("Donkos_Main...");
 
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();
@@ -52,7 +52,7 @@ void Donkos_Main() {
     adcProcess.SetHandle(hadc3);
     display.SetHandle(hi2c1);
 
-    Logger_Debug("[DBG] Starting processes...\n");
+    Logger_Debug("Starting processes...");
 
     Donkos_StartNewProcess(&mutexProcess);
     Donkos_StartNewProcess(&ledProcess);
@@ -158,7 +158,7 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 
 
 void Donkos_KeyPressed(int32_t keyId) {
-    Logger_Debug("[DBG] Donkos_KeyPressed: keyId = %ld\n", keyId);
+    Logger_Debug("Donkos_KeyPressed: keyId = %ld", keyId);
 
     if (display.GetCurrentPageIndex() == 1) {
         scheduler.RegisterProcess(&dht11NonblockingProcess2);
