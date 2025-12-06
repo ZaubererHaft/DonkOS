@@ -48,6 +48,7 @@ bool WiFiProcess::sendString(const char *text) {
 }
 
 
+
 bool WiFiProcess::wait_for_min_size(int32_t size, int32_t timeout_in_10ms) {
     const int32_t wait_time_ms = 10;
     int32_t counter = 0;
@@ -64,12 +65,19 @@ bool WiFiProcess::doWaitFor(const char *text, int32_t size) {
     if (!wait_for_min_size(size)) {
         return false;
     }
-    auto res = strncmp(reinterpret_cast<const char *>(buffer.read_ptr()), text, size);
+    auto match = strequal(text, size);
     buffer.Skip(size);
-    return res == 0;
+    return match;
+}
+
+
+bool WiFiProcess::strequal(const char *str, int32_t size) {
+    return strncmp(reinterpret_cast<const char *>(buffer.read_ptr()), str, size) == 0;
 }
 
 #define wait_for_text(a) (doWaitFor(a, sizeof(a) - 1))
+
+#define strequal(a) (strequal(a, sizeof(a) - 1))
 
 bool WiFiProcess::enable() {
     HAL_UART_Receive_IT(&huart5, &working_data, 1);
@@ -81,10 +89,10 @@ bool WiFiProcess::enable() {
     HAL_GPIO_WritePin(WIFI_ENABLE_GPIO_Port, WIFI_ENABLE_Pin, GPIO_PIN_SET);
 
     // expect "ready"-string after enable microprocessor
-    if (!wait_for_min_size(318)) {
+    if (!wait_for_min_size(300)) {
         return false;
     }
-    if (!buffer.Skip(311)) {
+    if (!buffer.Skip(buffer.ReadLength() - 7)) {
         return false;
     }
     if (!wait_for_text("ready\r\n")) {
@@ -126,8 +134,7 @@ bool WiFiProcess::enable() {
     if (!sendString("AT+CIFSR\r\n")) {
         return false;
     }
-    if (!wait_for_min_size(82)) {
-        // ToDo subtract size of ip address
+    if (!wait_for_min_size(76)) {
         return false;
     }
     if (!buffer.Skip(25)) {
@@ -137,9 +144,14 @@ bool WiFiProcess::enable() {
     char character = '\0';
     bool success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
     while (success && character != '\"' && index < sizeof(ipv4_address)) {
-        ipv4_address[index] = character;
-        success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
-        index++;
+        if ((character >= '0' && character <= '9') || character == '.') {
+            ipv4_address[index] = character;
+            success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
+            index++;
+        }
+        else {
+            return false;
+        }
     }
     if (index >= sizeof(ipv4_address)) {
         return false;
@@ -147,14 +159,6 @@ bool WiFiProcess::enable() {
     if (!buffer.Skip(buffer.ReadLength())) {
         return false;
     }
-
-    // Enable multiple connections
-    // if (!sendString("AT+CIPMUX=1\r\n")) {
-    //     return false;
-    // }
-    // if (!wait_for_text("AT+CIPMUX=1\r\r\n\r\nOK\r\n")) {
-    //     return false;
-    // }
 
     return true;
 }

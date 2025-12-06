@@ -29,6 +29,8 @@ private:
 
     bool wait_for_min_size(int32_t size, int32_t timeout_in_10ms = DEFAULT_TIMEOUT_IN_10MS);
 
+    bool strequal(const char * str, int32_t size);
+
     RingBuffer<uint8_t, 2048> buffer;
     uint8_t working_data;
     char ipv4_address[4 * 4 + 3 + 1]{};
