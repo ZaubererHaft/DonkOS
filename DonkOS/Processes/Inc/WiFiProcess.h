@@ -31,6 +31,8 @@ private:
 
     bool strequal(const char * str, int32_t size);
 
+    bool do_wait_for_text_end(const char *str, int32_t size);
+
     RingBuffer<uint8_t, 2048> buffer;
     uint8_t working_data;
     char ipv4_address[4 * 4 + 3 + 1]{};
