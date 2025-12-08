@@ -1,9 +1,9 @@
-#include "Inc/WiFiProcess.h"
-
 #include <cstring>
 
+#include "WiFiProcess.h"
 #include "DonkosLogger.h"
 #include "DonkosInternal.h"
+
 
 #define wait_for_text_end(a) (do_wait_for_text_end(a, sizeof(a) - 1))
 
@@ -65,7 +65,7 @@ bool WiFiProcess::enable() {
             return false;
         }
     }
-    buffer.Skip(buffer.ReadLength());
+    buffer.SkipReadLength();
 
     // log firmware version
     if (!sendString("AT+GMR\r\n")) {
@@ -75,16 +75,15 @@ bool WiFiProcess::enable() {
         return false;
     }
     Logger_Debug("Firmware ESP %s", buffer.read_ptr());
-    buffer.Skip(buffer.ReadLength());
+    buffer.SkipReadLength();
 
     // send AT station mode
     if (!sendString("AT+CWMODE=1\r\n")) {
         return false;
     }
-    if (!wait_for_text_end("OK\r\n")) {
+    if (!wait_for_okay_and_skip()) {
         return false;
     }
-    buffer.Skip(buffer.ReadLength());
 
     // read our IP address
     if (!sendString("AT+CIFSR\r\n")) {
@@ -94,36 +93,39 @@ bool WiFiProcess::enable() {
         return false;
     }
     Logger_Debug("Connection information: %s", buffer.read_ptr());
-    buffer.Skip(buffer.ReadLength());
+    buffer.SkipReadLength();
 
 
     //Disable multiple connections
     if (!sendString("AT+CIPMUX=0\r\n")) {
         return false;
     }
-    if (!wait_for_text_end("OK\r\n")) {
+    if (!wait_for_okay_and_skip()) {
         return false;
     }
-    buffer.Skip(buffer.ReadLength());
 
     return true;
 }
 
 bool WiFiProcess::getWeatherData() {
+    // start connection to server
     if (!sendString("AT+CIPSTART=\"TCP\",\"httpbin.org\",80\r\n")) {
         return false;
     }
-    if (!wait_for_text_end("OK\r\n")) {
+    if (!wait_for_okay_and_skip()) {
         return false;
     }
-    buffer.Skip(buffer.ReadLength());
 
+    // Announce transmission of of bytes
     if (!sendString("AT+CIPSEND=59\r\n")) {
         return false;
     }
-    wait_for_text_end("> ");
-    buffer.Skip(buffer.ReadLength());
+    if (!wait_for_text_end("> ")) {
+        return false;
+    }
+    buffer.SkipReadLength();
 
+    // Send request
     const char httpGetRequest[] =
             "GET /get HTTP/1.1\r\n"
             "Host: httpbin.org\r\n"
@@ -132,11 +134,8 @@ bool WiFiProcess::getWeatherData() {
     if (!sendString(httpGetRequest)) {
         return false;
     }
-
     wait_for_text_end("CLOSED\r\n");
-    buffer.Skip(buffer.ReadLength());
-
-    //Now: Parse payload
+    buffer.SkipReadLength();
 
     return true;
 }
@@ -155,12 +154,10 @@ void WiFiProcess::PackageReceived() {
 
 bool WiFiProcess::wait_for_min_size(int32_t size) {
     int32_t counter = 0;
-
     while (buffer.ReadLength() < size && counter < DEFAULT_TIMEOUT_IN_10MS) {
         wait(TEN_MS);
         counter++;
     }
-
     return counter <= DEFAULT_TIMEOUT_IN_10MS && buffer.ReadLength() >= size;
 }
 

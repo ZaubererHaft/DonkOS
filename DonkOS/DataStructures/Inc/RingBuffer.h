@@ -29,6 +29,10 @@ public:
         return !DataAvailable();
     }
 
+    void SkipReadLength() {
+        Skip(ReadLength());
+    }
+
     bool Skip(int32_t length) {
         if (length <= size) {
             head = (head + length) % CAPACITY;
