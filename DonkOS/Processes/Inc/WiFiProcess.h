@@ -17,25 +17,24 @@ public:
     void PackageReceived();
 
 private:
-    static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 100;
+    static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
+     static constexpr int32_t TEN_MS = 10;
+
 
     bool enable();
 
     bool getWeatherData();
 
-    bool sendString(const char *text);
-
-    bool doWaitFor(const char *text, int32_t size);
-
-    bool wait_for_min_size(int32_t size, int32_t timeout_in_10ms = DEFAULT_TIMEOUT_IN_10MS);
-
-    bool strequal(const char * str, int32_t size);
+    bool wait_for_min_size(int32_t size);
 
     bool do_wait_for_text_end(const char *str, int32_t size);
 
-    RingBuffer<uint8_t, 2048> buffer;
+    bool wait_for_okay();
+
+    bool wait_for_okay_and_skip();
+
+    RingBuffer<char, 2048> buffer;
     uint8_t working_data;
-    char ipv4_address[4 * 4 + 3 + 1]{};
     bool buffer_overflow;
 
 };

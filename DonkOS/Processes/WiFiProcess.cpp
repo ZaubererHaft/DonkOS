@@ -5,13 +5,17 @@
 #include "DonkosLogger.h"
 #include "DonkosInternal.h"
 
-WiFiProcess::WiFiProcess() : buffer{}, working_data{}, ipv4_address{}, buffer_overflow{} {
+#define wait_for_text_end(a) (do_wait_for_text_end(a, sizeof(a) - 1))
+
+#define sendString(text) (HAL_UART_Transmit(&huart5, reinterpret_cast<const uint8_t *>(text), sizeof(text) - 1, 100) == HAL_OK)
+
+WiFiProcess::WiFiProcess() : buffer{}, working_data{}, buffer_overflow{} {
 }
 
 void WiFiProcess::Main() {
     Logger_Debug("Enabling WiFi...");
     if (enable()) {
-        Logger_Debug("WiFi connected with IPv4 address: %s!", ipv4_address);
+        Logger_Debug("WiFi connected!");
 
         Logger_Debug("Try to get weather data...");
         if (getWeatherData()) {
@@ -32,72 +36,6 @@ void WiFiProcess::Main() {
         }
     }
 }
-
-void WiFiProcess::PackageReceived() {
-    if (buffer.Push(working_data)) {
-        if (HAL_UART_Receive_IT(&huart5, &working_data, 1) != HAL_OK) {
-            Error_Handler();
-        }
-    } else {
-        buffer_overflow = true;
-    }
-}
-
-bool WiFiProcess::sendString(const char *text) {
-    return HAL_UART_Transmit(&huart5, reinterpret_cast<const uint8_t *>(text), strlen(text), 100) == HAL_OK;
-}
-
-
-bool WiFiProcess::wait_for_min_size(int32_t size, int32_t timeout_in_10ms) {
-    const int32_t wait_time_ms = 10;
-    int32_t counter = 0;
-
-    while (buffer.ReadLength() < size && counter < timeout_in_10ms) {
-        wait(wait_time_ms);
-        counter++;
-    }
-
-    return counter <= timeout_in_10ms && buffer.ReadLength() >= size;
-}
-
-bool WiFiProcess::doWaitFor(const char *text, int32_t size) {
-    if (!wait_for_min_size(size)) {
-        return false;
-    }
-    auto match = strequal(text, size);
-    return match;
-}
-
-
-bool WiFiProcess::strequal(const char *str, int32_t size) {
-    return strncmp(reinterpret_cast<const char *>(buffer.read_ptr()), str, size) == 0;
-}
-
-bool WiFiProcess::do_wait_for_text_end(const char *str, int32_t size) {
-    // Step 1: wait for buffer size to become at least test size for safe compare
-    if (wait_for_min_size(size)) {
-        int32_t counter = 0;
-
-        // Step 2: wait until end of buffer matches the text (with new timeout)
-        bool match;
-        do {
-            match = strncmp(reinterpret_cast<const char *>(&buffer.read_ptr()[buffer.ReadLength() - size]), str,
-                            size) == 0;
-            counter++;
-            wait(10);
-        } while (!match && counter < 1000);
-
-        return match;
-    }
-
-    return false;
-}
-
-#define wait_for_text_end(a) (do_wait_for_text_end(a, sizeof(a) - 1))
-
-#define wait_for_text(a) (doWaitFor(a, sizeof(a) - 1))
-
-#define strequal(a) (strequal(a, sizeof(a) - 1))
 
 bool WiFiProcess::enable() {
     HAL_UART_Receive_IT(&huart5, &working_data, 1);
@@ -133,7 +71,7 @@ bool WiFiProcess::enable() {
     if (!sendString("AT+GMR\r\n")) {
         return false;
     }
-    if (!wait_for_text_end("OK\r\n")) {
+    if (!wait_for_okay()) {
         return false;
     }
     Logger_Debug("Firmware ESP %s", buffer.read_ptr());
@@ -155,23 +93,8 @@ bool WiFiProcess::enable() {
     if (!wait_for_text_end("OK\r\n")) {
         return false;
     }
+    Logger_Debug("Connection information: %s", buffer.read_ptr());
     buffer.Skip(buffer.ReadLength());
-
-    int32_t index = 0;
-    char character = '\0';
-    bool success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
-    while (success && character != '\"' && index < sizeof(ipv4_address)) {
-        if ((character >= '0' && character <= '9') || character == '.') {
-            ipv4_address[index] = character;
-            success = buffer.Pop(reinterpret_cast<unsigned char *>(&character));
-            index++;
-        } else {
-            return false;
-        }
-    }
-    if (index >= sizeof(ipv4_address)) {
-        return false;
-    }
 
 
     //Disable multiple connections
@@ -187,7 +110,6 @@ bool WiFiProcess::enable() {
 }
 
 bool WiFiProcess::getWeatherData() {
-    // send AT station mode
     if (!sendString("AT+CIPSTART=\"TCP\",\"httpbin.org\",80\r\n")) {
         return false;
     }
@@ -196,19 +118,81 @@ bool WiFiProcess::getWeatherData() {
     }
     buffer.Skip(buffer.ReadLength());
 
-    if (!sendString("AT+CIPSEND=38\r\n")) {
+    if (!sendString("AT+CIPSEND=59\r\n")) {
         return false;
     }
     wait_for_text_end("> ");
-    if (!sendString("GET /get HTTP/1.1\r\nHost: httpbin.org\r\n\r\n")) {
+    buffer.Skip(buffer.ReadLength());
+
+    const char httpGetRequest[] =
+            "GET /get HTTP/1.1\r\n"
+            "Host: httpbin.org\r\n"
+            "Connection: close\r\n"
+            "\r\n";
+    if (!sendString(httpGetRequest)) {
         return false;
     }
 
-    wait(500);
-    if (!sendString("AT+CIPCLOSE\r\n")) {
-        return false;
-    }
+    wait_for_text_end("CLOSED\r\n");
+    buffer.Skip(buffer.ReadLength());
+
+    //Now: Parse payload
 
     return true;
 }
+
+
+void WiFiProcess::PackageReceived() {
+    if (buffer.Push(working_data)) {
+        if (HAL_UART_Receive_IT(&huart5, &working_data, 1) != HAL_OK) {
+            Error_Handler();
+        }
+    } else {
+        buffer_overflow = true;
+    }
+}
+
+
+bool WiFiProcess::wait_for_min_size(int32_t size) {
+    int32_t counter = 0;
+
+    while (buffer.ReadLength() < size && counter < DEFAULT_TIMEOUT_IN_10MS) {
+        wait(TEN_MS);
+        counter++;
+    }
+
+    return counter <= DEFAULT_TIMEOUT_IN_10MS && buffer.ReadLength() >= size;
+}
+
+
+bool WiFiProcess::do_wait_for_text_end(const char *str, int32_t size) {
+    // Step 1: wait for buffer size to become at least test size for safe comparisons
+    if (wait_for_min_size(size)) {
+        int32_t counter = 0;
+
+        // Step 2: wait until end of buffer matches the text (with new timeout)
+        bool match;
+        do {
+            match = strncmp(&buffer.read_ptr()[buffer.ReadLength() - size], str, size) == 0;
+            counter++;
+            wait(TEN_MS);
+        } while (!match && counter < DEFAULT_TIMEOUT_IN_10MS);
+
+        return match;
+    }
+
+    return false;
+}
+
+bool WiFiProcess::wait_for_okay() {
+    return wait_for_text_end("OK\r\n");
+}
+
+bool WiFiProcess::wait_for_okay_and_skip() {
+    if (!wait_for_text_end("OK\r\n")) {
+        return false;
+    }
+    return buffer.Skip(buffer.ReadLength());
+}
+
 
