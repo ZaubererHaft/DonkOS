@@ -7,8 +7,7 @@
 
 extern UART_HandleTypeDef huart5;
 
-class WiFiProcess : public Process{
-
+class WiFiProcess : public Process {
 public:
     WiFiProcess();
 
@@ -18,12 +17,13 @@ public:
 
 private:
     static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
-     static constexpr int32_t TEN_MS = 10;
-
+    static constexpr int32_t TEN_MS = 10;
 
     bool enable();
 
     bool getWeatherData();
+
+    bool parseWeatherData();
 
     bool wait_for_min_size(int32_t size);
 
@@ -33,12 +33,10 @@ private:
 
     bool wait_for_okay_and_skip();
 
-    RingBuffer<char, 2048> buffer;
+    RingBuffer<char, 1024> buffer;
     uint8_t working_data;
     bool buffer_overflow;
-
 };
-
 
 
 #endif //DONKOS_WIFIPROCESS_H

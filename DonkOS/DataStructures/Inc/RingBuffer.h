@@ -53,7 +53,7 @@ public:
         return false;
     }
 
-    const TYPE *read_ptr() {
+    const TYPE *read_ptr() const {
         return &buffer[head];
     }
 

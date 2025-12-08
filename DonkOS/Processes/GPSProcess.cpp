@@ -9,8 +9,8 @@
 
 extern UART_HandleTypeDef huart4;
 
-GPSProcess::GPSProcess(BaseDisplay *display) : ReceivedSize{}, restart{true}, buffer{}, lineBuffer{}, messages_buffer{},
-                                               parser{} {
+GPSProcess::GPSProcess(BaseDisplay *display) : ReceivedSize{}, buffer{}, lineBuffer{}, messages_buffer{},
+                                               parser{}, position_received{false} {
 }
 
 bool GPSProcess::RestartCommunication() {
@@ -44,8 +44,10 @@ void GPSProcess::Main() {
                 if (message.messageType == NMEAMessageType::GPGGA_GLOBAL_POSITIONING_FIXED_DATA) {
                     auto gpgga = message.gpgga_message;
 
-                    float lat = gpgga.latitude.degree + gpgga.latitude.minute / 60.0;
-                    float lon = gpgga.longitude.degree + gpgga.longitude.minute / 60.0;
+                    float lat = static_cast<float>(gpgga.latitude.degree) + gpgga.latitude.minute / 60.0f;
+                    float lon = static_cast<float>(gpgga.longitude.degree) + gpgga.longitude.minute / 60.0f;
+
+                    //ToDo: Send lat-long to WiFi process and read weather data
 
                     StringConverter conv{};
                     char latbuf[12]{};
@@ -54,6 +56,7 @@ void GPSProcess::Main() {
                     conv.FloatToString(lat, latbuf, 12, {.places_after_dot = 4});
                     conv.FloatToString(lon, longbuf, 12, {.places_after_dot = 4});
 
+                    position_received = true;
                     Logger_Debug("Our position is: %s,%s", latbuf, longbuf);
                 }
             }
@@ -62,10 +65,15 @@ void GPSProcess::Main() {
         }
     }
 
-    Logger_Debug("Trying to get out location...");
 
-    if (!RestartCommunication()) {
-        Logger_Error("IDLE UART could not be restarted, giving up :/!");
+    if (!position_received) {
+        Logger_Debug("No valid position available, trying to get our location...");
+
+        if (RestartCommunication()) {
+            Logger_Debug("IDLE UART successfully started!");
+        } else {
+            Logger_Error("IDLE UART could not be started, giving up :/!");
+        }
     }
 }
 

@@ -4,7 +4,6 @@
 #include "DonkosLogger.h"
 #include "DonkosInternal.h"
 
-
 #define wait_for_text_end(a) (do_wait_for_text_end(a, sizeof(a) - 1))
 
 #define sendString(text) (HAL_UART_Transmit(&huart5, reinterpret_cast<const uint8_t *>(text), sizeof(text) - 1, 100) == HAL_OK)
@@ -19,7 +18,13 @@ void WiFiProcess::Main() {
 
         Logger_Debug("Try to get weather data...");
         if (getWeatherData()) {
-            Logger_Debug("Weather data available!");
+            Logger_Debug("Weather data available, parsing data...");
+            if (parseWeatherData()) {
+                Logger_Debug("Weather data parsed successfully!");
+            }
+            else {
+                Logger_Error("Failed to parse weather data!");
+            }
         } else {
             Logger_Error("Failed to get weather data!");
         }
@@ -116,7 +121,7 @@ bool WiFiProcess::getWeatherData() {
         return false;
     }
 
-    // Announce transmission of of bytes
+    // Announce transmission of bytes
     if (!sendString("AT+CIPSEND=59\r\n")) {
         return false;
     }
@@ -134,9 +139,10 @@ bool WiFiProcess::getWeatherData() {
     if (!sendString(httpGetRequest)) {
         return false;
     }
-    wait_for_text_end("CLOSED\r\n");
-    buffer.SkipReadLength();
+    return wait_for_text_end("CLOSED\r\n");
+}
 
+bool WiFiProcess::parseWeatherData() {
     return true;
 }
 
