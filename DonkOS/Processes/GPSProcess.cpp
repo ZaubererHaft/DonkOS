@@ -56,8 +56,10 @@ void GPSProcess::Main() {
                     conv.FloatToString(lat, latbuf, 12, {.places_after_dot = 4});
                     conv.FloatToString(lon, longbuf, 12, {.places_after_dot = 4});
 
-                    position_received = true;
-                    Logger_Debug("Our position is: %s,%s", latbuf, longbuf);
+                    if (lat > 0.0f && lon > 0.0f) {
+                        position_received = true;
+                        Logger_Debug("Our position is: %s,%s", latbuf, longbuf);
+                    }
                 }
             }
         } else {

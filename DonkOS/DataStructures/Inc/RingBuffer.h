@@ -2,6 +2,7 @@
 #define DONKOS_RINGBUFFER_H
 
 #include <cstdint>
+#include <cstring>
 
 template<class TYPE, int32_t CAPACITY>
 class RingBuffer {
@@ -53,12 +54,53 @@ public:
         return false;
     }
 
-    const TYPE *read_ptr() const {
-        return &buffer[head];
+    bool CopyFromHeadAndSkip(uint8_t *target_buffer, int32_t target_buffer_length) {
+        if (Copy(target_buffer, target_buffer_length, head, ReadLength())) {
+            return Skip(ReadLength());
+        }
+        return false;
     }
 
-    const TYPE *write_ptr() {
-        return &buffer[tail];
+    bool CopyFromHead(uint8_t *target_buffer, int32_t target_buffer_length, int32_t length) const {
+        return Copy(target_buffer, target_buffer_length, head, length);
+    }
+
+    bool Copy(uint8_t *target_buffer, int32_t target_buffer_length, int32_t start, int32_t size_to_copy) const {
+        //valid params?
+        if (target_buffer == nullptr || size_to_copy <= 0 || start < 0 || start >= CAPACITY) {
+            return false;
+        }
+
+        // all buffers are sufficient?
+        if (size_to_copy > target_buffer_length || size_to_copy > size) {
+            return false;
+        }
+
+        // Range check - idea: rebuild continuous interval and then check again
+        // distance from head to index within the ring
+        auto offset = (start - head + CAPACITY) % CAPACITY;
+
+        // index must lie inside the valid data window
+        if (offset >= size)
+            return false;
+
+        // full range must fit inside the valid data window
+        if (offset + size_to_copy > size) {
+            return false;
+        }
+
+        // now: perform copy
+        auto head_tmp = start;
+        auto bytes_until_end = CAPACITY - head_tmp;
+        if (size_to_copy > bytes_until_end) {
+            std::memcpy(target_buffer, &buffer[head_tmp], bytes_until_end);
+            size_to_copy -= bytes_until_end;
+            head_tmp = 0;
+            target_buffer += bytes_until_end;
+        }
+
+        std::memcpy(target_buffer, &buffer[head_tmp], size_to_copy);
+        return true;
     }
 
     int32_t WriteCapacity() const {
@@ -67,6 +109,14 @@ public:
 
     int32_t ReadLength() const {
         return size;
+    }
+
+    int32_t Head() const {
+        return head;
+    }
+
+    int32_t Tail() const {
+        return tail;
     }
 
 private:

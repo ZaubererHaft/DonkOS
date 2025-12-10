@@ -41,8 +41,9 @@ public:
 
     void Reset();
 
-protected:
     void wait(int32_t milliseconds);
+
+protected:
 
     uint32_t GetStackStartAddress();
 

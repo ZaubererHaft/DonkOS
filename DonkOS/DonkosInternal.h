@@ -42,4 +42,6 @@ int32_t Donkos_GetSystemState();
 
 void Donkos_TimerElapsed(int32_t timerId);
 
+void Donkos_SleepCurrentProcess(int32_t ms);
+
 #endif //DONKOSINTERNAL_H

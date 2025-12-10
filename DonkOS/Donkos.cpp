@@ -38,6 +38,7 @@ extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart5;
 
 volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
 volatile int32_t CUBE_DBG_ACTIVE_SVC = -1;
@@ -182,6 +183,10 @@ void Donkos_ClearDisplay() {
 
 void Donkos_TimerElapsed(int32_t timerId) {
     //dht11NonblockingProcess.TimerInterruptReceived();
+}
+
+void Donkos_SleepCurrentProcess(int32_t ms) {
+    scheduler.GetCurrentProcess()->wait(ms);
 }
 
 void Donkos_ExternalInterruptReceived(int32_t id) {

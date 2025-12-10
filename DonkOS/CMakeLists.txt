@@ -13,6 +13,9 @@ set(Donkos_Sources
         Services/Lock.cpp
         Services/Latch.cpp
 
+        Drivers/at/AT.cpp
+        Drivers/at/AT_STM32HAL.cpp
+
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
         Drivers/dwt/dwt_delay.cpp;
@@ -67,6 +70,7 @@ target_include_directories(DonkOSLib PUBLIC
         Drivers/epd/Examples
         Drivers/epd/GUI
         Drivers/nmea
+        Drivers/at
         Algorithms/Inc
 )
 
