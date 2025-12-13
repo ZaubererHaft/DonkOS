@@ -44,7 +44,9 @@ volatile uint32_t CUBE_DBG_CURRENT_PROCESS = 0;
 volatile int32_t CUBE_DBG_ACTIVE_SVC = -1;
 
 void Donkos_Main() {
-    Logger_Debug("Donkos_Main...");
+    Logger_Debug("######################################################");
+    Logger_Debug("                    Donkos_Main");
+    Logger_Debug("######################################################");
 
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();

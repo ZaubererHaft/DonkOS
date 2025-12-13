@@ -12,6 +12,10 @@
 namespace {
     constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
     constexpr int32_t TEN_MS = 10;
+    constexpr int32_t HTTP_MAX_HOST_AND_PATH_SIZE = 40;
+    constexpr int32_t AP_AND_PW_MAX_LEN = 50;
+    constexpr int32_t WAIT_STRING_MAX_LEN = 20;
+    constexpr int32_t CHIP_ENABLE_WAIT_TIME_MS = 100;
 
     constexpr auto *AT_CIFSR = "AT+CIFSR\r\n";
     constexpr auto AT_CIFSR_SIZE = sizeof("AT+CIFSR\r\n") - 1;
@@ -104,9 +108,9 @@ ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &set
     }
 
     ATHAL_EnableChip();
-    ATHAL_Wait(100);
+    ATHAL_Wait(CHIP_ENABLE_WAIT_TIME_MS);
     ATHAL_DisableChip();
-    ATHAL_Wait(100);
+    ATHAL_Wait(CHIP_ENABLE_WAIT_TIME_MS);
     ATHAL_EnableChip();
 
     // manual reset
@@ -118,9 +122,10 @@ ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &set
     if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
         if (wait_for_text_end(AT_READY, AT_READY_SIZE)) {
             // send Access Point and try to connect
-            char command[50 + AT_CWJAP_OVERHEAD]{};
+            char command[AP_AND_PW_MAX_LEN + AT_CWJAP_OVERHEAD]{};
 
-            if (strnlen(settings.AccessPoint, 51) + strnlen(settings.Password, 51) + AT_CWJAP_OVERHEAD <= sizeof(
+            if (strnlen(settings.AccessPoint, AP_AND_PW_MAX_LEN + 1) + strnlen(
+                    settings.Password, AP_AND_PW_MAX_LEN + 1) + AT_CWJAP_OVERHEAD <= sizeof(
                     command)) {
                 sprintf(command, AT_CWJAP_PATTERN, settings.AccessPoint, settings.Password);
             } else {
@@ -156,9 +161,9 @@ ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &set
 }
 
 ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
-    char command[40 + AT_GET_REQUEST_OVERHEAD]{};
-    auto host_size = strnlen(settings.host, 41);
-    auto path_size = strnlen(settings.path, 41);
+    char command[HTTP_MAX_HOST_AND_PATH_SIZE + AT_GET_REQUEST_OVERHEAD]{};
+    auto host_size = strnlen(settings.host, HTTP_MAX_HOST_AND_PATH_SIZE + 1);
+    auto path_size = strnlen(settings.path, HTTP_MAX_HOST_AND_PATH_SIZE + 1);
 
     //Make sure buffer is large enough for the following requests (the other sprintf calls are safe then because the GET_REQUEST has the most overhead)
     if (host_size + path_size + AT_GET_REQUEST_OVERHEAD > sizeof(command)) {
@@ -175,13 +180,13 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     }
 
     // Announce transmission of bytes
-    auto bytes_to_send = host_size + AT_GET_REQUEST_OVERHEAD;
+    const auto bytes_to_send = host_size + AT_GET_REQUEST_OVERHEAD;
     std::memset(command, 0, sizeof(command));
     sprintf(command, AT_CIPSEND_PATTERN, bytes_to_send);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
         return ATResponseCode::TransmitFailed;
     }
-    if (!wait_for_text_end("> ", 2)) {
+    if (!wait_for_text_end("> ", sizeof("> ") - 1)) {
         return ATResponseCode::TimeoutWaitingForOkay;
     }
     buffer.SkipReadLength();
@@ -210,7 +215,7 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
 
     // FINALLY: Copy to buffer
     if (!buffer.CopyFromHead(reinterpret_cast<uint8_t *>(settings.response_buffer),
-                            settings.response_buffer_size, buffer.ReadLength() - AT_CLOSED_SIZE)) {
+                             settings.response_buffer_size, buffer.ReadLength() - AT_CLOSED_SIZE)) {
         return ATResponseCode::BufferInsufficient;
     }
     buffer.SkipReadLength();
@@ -241,10 +246,9 @@ bool AT::wait_for_min_size(const int32_t size) const {
 
 
 bool AT::wait_for_text_end(const char *str, const int32_t size) const {
-    if (size > 20) {
+    if (size > WAIT_STRING_MAX_LEN) {
         return false;
     }
-
 
     // Step 1: wait for buffer size to become at least test size for safe comparisons
     if (wait_for_min_size(size)) {
@@ -253,7 +257,8 @@ bool AT::wait_for_text_end(const char *str, const int32_t size) const {
         // Step 2: wait until end of buffer matches the text (with new timeout)
         bool match;
         do {
-            char copy_buffer[21]{};
+            //+1 because we require the string termination character '\0'
+            char copy_buffer[WAIT_STRING_MAX_LEN + 1]{};
             buffer.Copy(reinterpret_cast<uint8_t *>(copy_buffer), sizeof(copy_buffer), buffer.Tail() - size, size);
             match = strncmp(copy_buffer, str, size) == 0;
             counter++;

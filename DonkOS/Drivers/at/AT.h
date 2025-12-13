@@ -56,7 +56,9 @@ public:
     ATResponseCode PackageReceived();
 
 private:
-    RingBuffer<char, 1024> buffer;
+    static constexpr int32_t RINGBUFFER_SIZE = 1024;
+
+    RingBuffer<char, RINGBUFFER_SIZE> buffer;
     uint8_t working_data;
 
     ATConnectStatus connect_status;
