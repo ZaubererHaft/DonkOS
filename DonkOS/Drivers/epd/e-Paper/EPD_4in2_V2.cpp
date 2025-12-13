@@ -29,7 +29,6 @@
 #
 ******************************************************************************/
 #include "EPD_4in2_V2.h"
-#include "Debug.h"
 
 const unsigned char LUT_ALL[233]={							
 0x01,	0x0A,	0x1B,	0x0F,	0x03,	0x01,	0x01,	
@@ -114,11 +113,9 @@ parameter:
 ******************************************************************************/
 void EPD_4IN2_V2_ReadBusy(void)
 {
-    Debug("e-Paper busy\r\n");
     while(DEV_Digital_Read(EPD_BUSY_PIN) == 1) {      //LOW: idle, HIGH: busy
         DEV_Delay_ms(10);
     }
-    Debug("e-Paper busy release\r\n");
 }
 
 /******************************************************************************
@@ -524,7 +521,7 @@ void EPD_4IN2_V2_PartialDisplay(UBYTE *Image, UWORD Xstart, UWORD Ystart, UWORD 
     }
     
 
-    UWORD i, Width;
+    UWORD Width;
 	Width = Xend -  Xstart;
 	UWORD IMAGE_COUNTER = Width * (Yend-Ystart);
 
