@@ -12,7 +12,7 @@
 namespace {
     constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
     constexpr int32_t TEN_MS = 10;
-    constexpr int32_t HTTP_MAX_HOST_AND_PATH_SIZE = 40;
+    constexpr int32_t HTTP_MAX_HOST_AND_PATH_SIZE = 80;
     constexpr int32_t AP_AND_PW_MAX_LEN = 50;
     constexpr int32_t WAIT_STRING_MAX_LEN = 20;
     constexpr int32_t CHIP_ENABLE_WAIT_TIME_MS = 100;
@@ -49,6 +49,9 @@ namespace {
 
     constexpr auto *AT_CIPSTART_TCP_PATTERN = "AT+CIPSTART=\"TCP\",\"%s\",80\r\n";
     constexpr auto AT_CIPSTART_TCP_OVERHEAD = sizeof("AT+CIPSTART=\"TCP\",\"\",80\r\n") - 1;
+
+    constexpr auto *AT_CIPSTART_SSL_PATTERN = "AT+CIPSTART=\"SSL\",\"%s\",443\r\n";
+
 
     constexpr auto *AT_GET_REQUEST_PATTERN =
             "GET /%s HTTP/1.1\r\n"
@@ -171,7 +174,11 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     }
 
     // start connection to server
-    sprintf(command, AT_CIPSTART_TCP_PATTERN, settings.host);
+    auto *pattern = AT_CIPSTART_TCP_PATTERN;
+    if (settings.ssl) {
+        pattern = AT_CIPSTART_SSL_PATTERN;
+    }
+    sprintf(command, pattern, settings.host);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
         return ATResponseCode::TransmitFailed;
     }
