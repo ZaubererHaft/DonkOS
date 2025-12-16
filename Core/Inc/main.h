@@ -106,10 +106,10 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define WIFI_RESET_Pin GPIO_PIN_10
-#define WIFI_RESET_GPIO_Port GPIOC
-#define WIFI_ENABLE_Pin GPIO_PIN_11
+#define WIFI_ENABLE_Pin GPIO_PIN_10
 #define WIFI_ENABLE_GPIO_Port GPIOC
+#define WIFI_RESET_Pin GPIO_PIN_11
+#define WIFI_RESET_GPIO_Port GPIOC
 #define WIFI_TX_Pin GPIO_PIN_12
 #define WIFI_TX_GPIO_Port GPIOC
 #define WIFI_RX_Pin GPIO_PIN_2

@@ -510,7 +510,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LD2_Pin|EPD_CS_Pin|EPD_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, EPD_DC_Pin|DEBUG_Pin|WIFI_RESET_Pin|WIFI_ENABLE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, EPD_DC_Pin|DEBUG_Pin|WIFI_ENABLE_Pin|WIFI_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SRCLK_Pin|NSRCLR_Pin|SER_Pin|NOE_Pin
@@ -574,8 +574,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(DEBUG_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : WIFI_RESET_Pin WIFI_ENABLE_Pin */
-  GPIO_InitStruct.Pin = WIFI_RESET_Pin|WIFI_ENABLE_Pin;
+  /*Configure GPIO pins : WIFI_ENABLE_Pin WIFI_RESET_Pin */
+  GPIO_InitStruct.Pin = WIFI_ENABLE_Pin|WIFI_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
