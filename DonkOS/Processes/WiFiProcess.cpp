@@ -13,8 +13,14 @@ void WiFiProcess::Main() {
     if (enable()) {
         Logger_Debug("WiFi connected!");
 
+        ATVersionInfo info{};
+        if (at_interface.ReadFirmware(info) == ATResponseCode::Okay) {
+            Logger_Debug("Firmware version: %s", info.firmware);
+        }
+
         Logger_Debug("Try to get weather data...");
         if (getWeatherData()) {
+            Logger_Debug("Available data: %s\n", response_buffer);
             Logger_Debug("Weather data available, parsing data...");
             if (parseWeatherData()) {
                 Logger_Debug("Weather data parsed successfully!");
@@ -50,8 +56,9 @@ bool WiFiProcess::enable() {
 bool WiFiProcess::getWeatherData() {
     return at_interface.GetRequest(
                {
-                   .host = "httpbin.org",
-                   .path = "get",
+                   .ssl = true,
+                   .host = "api.open-meteo.com",
+                   .path = "v1/forecast?latitude=48.3&longitude=11.6&hourly=temperature_2m",
                    .response_buffer = response_buffer,
                    .response_buffer_size = sizeof(response_buffer)
                }

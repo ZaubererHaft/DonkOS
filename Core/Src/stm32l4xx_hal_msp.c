@@ -118,7 +118,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_GPIOC_CLK_ENABLE();
     /**ADC3 GPIO Configuration
     PC0     ------> ADC3_IN1
-    PC1     ------> ADC3_IN2
+    PC2     ------> ADC3_IN3
     */
     GPIO_InitStruct.Pin = TEMP_IN_Pin|LUMI_IN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
@@ -169,7 +169,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
     /**ADC3 GPIO Configuration
     PC0     ------> ADC3_IN1
-    PC1     ------> ADC3_IN2
+    PC2     ------> ADC3_IN3
     */
     HAL_GPIO_DeInit(GPIOC, TEMP_IN_Pin|LUMI_IN_Pin);
 

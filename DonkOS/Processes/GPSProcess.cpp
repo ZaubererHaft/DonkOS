@@ -69,8 +69,9 @@ void GPSProcess::Main() {
 
 
     if (!position_received) {
-        Logger_Debug("No valid position available, trying to get our location...");
+        wait(5000);
 
+        Logger_Debug("No valid position available, trying to get our location...");
         if (RestartCommunication()) {
             Logger_Debug("IDLE UART successfully started!");
         } else {

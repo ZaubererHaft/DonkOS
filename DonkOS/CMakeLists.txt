@@ -53,6 +53,8 @@ set(Donkos_Sources
         Processes/GPSProcess.cpp
         Processes/WiFiProcess.cpp
         Processes/EPaperDisplayProcess.cpp
+
+        Processes/epd_image.cpp
 )
 
 add_library(DonkOSLib ${Donkos_Sources})
@@ -60,6 +62,7 @@ add_library(DonkOSLib ${Donkos_Sources})
 target_include_directories(DonkOSLib PUBLIC
         Inc
         Processes/Inc
+        Processes
         Scheduler/Inc
         Services/Inc
         DataStructures/Inc
