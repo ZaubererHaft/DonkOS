@@ -42,7 +42,7 @@ public:
 
 
 private:
-    static constexpr int32_t count_pages = 4;
+    static constexpr int32_t count_pages = 5;
 
     I2C_HandleTypeDef hi2c;
 

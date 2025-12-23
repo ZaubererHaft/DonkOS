@@ -5,12 +5,15 @@
 #include "DonkosInternal.h"
 
 
-WiFiProcess::WiFiProcess() : at_interface{} {
+WiFiProcess::WiFiProcess() : response_buffer{}, at_interface{}, buffer_overflow{false} {
 }
 
 void WiFiProcess::Main() {
+    Donkos_Display(4, 3, "Suche WiFi...");
+
     Logger_Debug("Enabling WiFi...");
     if (enableWifi()) {
+        Donkos_Display(4, 3, "WiFi verbunden");
         Logger_Debug("WiFi connected!");
 
         ATVersionInfo info{};
@@ -80,6 +83,3 @@ void WiFiProcess::PackageReceived() {
     }
 }
 
-void WiFiProcess::Connected() const {
-
-}

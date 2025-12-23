@@ -35,6 +35,8 @@ bool GPSProcess::RestartCommunication() {
 
 
 void GPSProcess::Main() {
+    Donkos_Display(4, 2, "Suche GPS...");
+
     if (ReceivedSize > 0) {
         Logger_Debug("GPS data received: %s", reinterpret_cast<char *>(buffer));
 
@@ -58,7 +60,9 @@ void GPSProcess::Main() {
 
                     if (lat > 0.0f && lon > 0.0f) {
                         position_received = true;
+                        Donkos_Display(4, 2, "GPS verbunden");
                         Logger_Debug("Our position is: %s,%s", latbuf, longbuf);
+
                     }
                 }
             }

@@ -191,11 +191,6 @@ void Donkos_SleepCurrentProcess(int32_t ms) {
     scheduler.GetCurrentProcess()->wait(ms);
 }
 
-Connectivity Donkos_ConnectivityStatus() {
-   // auto wifiConnected = wifi_process.Connected();
-   // auto gpsConnected = gps_process.Connected();
-}
-
 void Donkos_ExternalInterruptReceived(int32_t id) {
     dht11NonblockingProcess2.InterruptReceived();
 }
@@ -207,13 +202,10 @@ int __io_putchar(int ch) {
     return ch;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if(huart->Instance==huart5.Instance)
-    {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == huart5.Instance) {
         wifi_process.PackageReceived();
     }
-
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {

@@ -26,6 +26,9 @@ void LedDisplay::Init() {
     strcpy(pages[1].lineBuffers[0], "Sensordaten");
 
     strcpy(pages[2].lineBuffers[0], "DHT-11 Test");
+
+    strcpy(pages[4].lineBuffers[0], "Status");
+
 }
 
 void LedDisplay::Clear() {

@@ -15,13 +15,13 @@ public:
 
     void PackageReceived();
 
-    void Connected() const;
-
 private:
     static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
     static constexpr int32_t TEN_MS = 10;
 
     char response_buffer[1024];
+    AT at_interface;
+    bool buffer_overflow;
 
     bool enableWifi();
 
@@ -29,9 +29,7 @@ private:
 
     bool parseWeatherData();
 
-    AT at_interface;
 
-    bool buffer_overflow;
 };
 
 
