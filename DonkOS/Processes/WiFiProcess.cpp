@@ -10,12 +10,17 @@ WiFiProcess::WiFiProcess() : at_interface{} {
 
 void WiFiProcess::Main() {
     Logger_Debug("Enabling WiFi...");
-    if (enable()) {
+    if (enableWifi()) {
         Logger_Debug("WiFi connected!");
 
         ATVersionInfo info{};
         if (at_interface.ReadFirmware(info) == ATResponseCode::Okay) {
             Logger_Debug("Firmware version: %s", info.firmware);
+        }
+
+        ATConnectStatus status{};
+        if (at_interface.ReadConnectionState(status) == ATResponseCode::Okay) {
+            Logger_Debug("Connection status: IP-Address: %s MAC-Address: %s", status.ipv4_address, status.mac_address);
         }
 
         Logger_Debug("Try to get weather data...");
@@ -44,13 +49,13 @@ void WiFiProcess::Main() {
     }
 }
 
-bool WiFiProcess::enable() {
-    auto status = at_interface.EnableAndStartWiFiConnection({
-        "LuwinaNET-2.4",
-        ""
-    });
-
-    return status == ATResponseCode::Okay;
+bool WiFiProcess::enableWifi() {
+    if (at_interface.Enable() == ATResponseCode::Okay) {
+        return at_interface.ConnectToWiFi({
+                   "LuwinaNET-2.4",
+               }) == ATResponseCode::Okay;
+    }
+    return false;
 }
 
 bool WiFiProcess::getWeatherData() {
@@ -73,4 +78,8 @@ void WiFiProcess::PackageReceived() {
     if (at_interface.PackageReceived() != ATResponseCode::Okay) {
         buffer_overflow = true;
     }
+}
+
+void WiFiProcess::Connected() const {
+
 }

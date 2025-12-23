@@ -54,18 +54,30 @@ public:
         return false;
     }
 
-    bool CopyFromHeadAndSkip(uint8_t *target_buffer, int32_t target_buffer_length) {
-        if (Copy(target_buffer, target_buffer_length, head, ReadLength())) {
-            return Skip(ReadLength());
+    bool PopIntoBufferUntilMatch(TYPE end_of_pop, TYPE *target_buffer, int32_t target_buffer_size) {
+        TYPE tmp;
+        bool success = Pop(&tmp);
+        int32_t index{};
+        while (tmp != end_of_pop && success && index <= target_buffer_size) {
+            target_buffer[index] = tmp;
+            index++;
+            success = Pop(&tmp);
         }
-        return false;
+
+        if (!success || tmp != end_of_pop) {
+            return false;
+        }
+
+        return true;
     }
 
-    bool CopyFromHead(uint8_t *target_buffer, int32_t target_buffer_length, int32_t length) const {
+
+    bool CopyFromHead(TYPE *target_buffer, int32_t target_buffer_length, int32_t length) const {
         return Copy(target_buffer, target_buffer_length, head, length);
     }
 
-    bool Copy(uint8_t *target_buffer, int32_t target_buffer_length, int32_t start, int32_t size_to_copy) const {
+
+    bool Copy(TYPE *target_buffer, int32_t target_buffer_length, int32_t start, int32_t size_to_copy) const {
         //valid params?
         if (target_buffer == nullptr || size_to_copy <= 0 || start < 0 || start >= CAPACITY) {
             return false;
@@ -81,8 +93,9 @@ public:
         auto offset = (start - head + CAPACITY) % CAPACITY;
 
         // index must lie inside the valid data window
-        if (offset >= size)
+        if (offset >= size) {
             return false;
+        }
 
         // full range must fit inside the valid data window
         if (offset + size_to_copy > size) {

@@ -7,8 +7,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "DonkosInternal.h"
-
 namespace {
     constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
     constexpr int32_t TEN_MS = 10;
@@ -48,7 +46,6 @@ namespace {
     constexpr auto AT_CLOSED_SIZE = sizeof("CLOSED\r\n") - 1;
 
     constexpr auto *AT_CIPSTART_TCP_PATTERN = "AT+CIPSTART=\"TCP\",\"%s\",80\r\n";
-    constexpr auto AT_CIPSTART_TCP_OVERHEAD = sizeof("AT+CIPSTART=\"TCP\",\"\",80\r\n") - 1;
 
     constexpr auto *AT_CIPSTART_SSL_PATTERN = "AT+CIPSTART=\"SSL\",\"%s\",443\r\n";
 
@@ -64,22 +61,49 @@ namespace {
                                                  "\r\n") - 1;
 
     constexpr auto *AT_CIPSEND_PATTERN = "AT+CIPSEND=%u\r\n";
-    constexpr auto AT_CIPSEND_OVERHEAD = sizeof("AT+CIPSEND=\r\n") - 1;
+    constexpr auto AT_CIFSR_STAIP_SIZE = sizeof("+CIFSR:STAIP") - 1;
+    constexpr auto AT_CIFSR_STAMAC_SIZE = sizeof("+CIFSR:STAMAC") - 1;
 }
 
-AT::AT() : buffer{}, working_data{}, connect_status{} {
+AT::AT() : buffer{}, working_data{} {
 }
 
 ATResponseCode AT::ReadConnectionState(ATConnectStatus &out_connectStatus) {
-    // read our IP address
     if (!sendString(AT_CIFSR, AT_CIFSR_SIZE)) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_okay()) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
-    //ToDo: parse to class
+    if (!buffer.Skip(AT_CIFSR_SIZE + 1)) {
+        // +1 because there is an additional \r character at the GMR response
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+
+    //read values of AT+STAIP
+    // +2 because of the following , and "
+    if (!buffer.Skip(AT_CIFSR_STAIP_SIZE + 2)) {
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+    std::memset(out_connectStatus.ipv4_address, 0, sizeof(out_connectStatus.ipv4_address));
+    if (!buffer.PopIntoBufferUntilMatch('"', out_connectStatus.ipv4_address,
+                                        sizeof(out_connectStatus.ipv4_address) - 1)) {
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+
+    //read values of AT+STAMAC
+    // +4 because of the following , and " as well as the \r\n from before
+    if (!buffer.Skip(AT_CIFSR_STAMAC_SIZE + 4)) {
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+    std::memset(out_connectStatus.mac_address, 0, sizeof(out_connectStatus.mac_address));
+    if (!buffer.PopIntoBufferUntilMatch('"', out_connectStatus.mac_address,
+                                        sizeof(out_connectStatus.mac_address) - 1)) {
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+
+    // remove remaining characters (like \r\n)
     buffer.SkipReadLength();
     return ATResponseCode::Okay;
 }
@@ -87,27 +111,36 @@ ATResponseCode AT::ReadConnectionState(ATConnectStatus &out_connectStatus) {
 ATResponseCode AT::ReadFirmware(ATVersionInfo &out_versionInfo) {
     // log firmware version
     if (!sendString(AT_GMR, AT_GMR_SIZE)) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_okay()) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
+    if (!buffer.Skip(AT_GMR_SIZE + 1)) {
+        // +1 because there is an additional \r character at the GMR response
+        return rollback_and_return(ATResponseCode::InvalidResponse);
+    }
+
+    // "<" and not "<=" because we want to add \0 termination at the end of the buffer
     if (buffer.ReadLength() < sizeof(out_versionInfo.firmware)) {
         std::memset(out_versionInfo.firmware, 0, sizeof(out_versionInfo.firmware));
-        if (buffer.CopyFromHeadAndSkip(reinterpret_cast<uint8_t *>(out_versionInfo.firmware),
-                                       sizeof(out_versionInfo.firmware))) {
+
+        if (buffer.CopyFromHead(out_versionInfo.firmware,
+                                sizeof(out_versionInfo.firmware),
+                                buffer.ReadLength() - static_cast<int32_t>(AT_OKAY_SIZE) - 2)) {
+            buffer.SkipReadLength();
             return ATResponseCode::Okay;
         }
-        return ATResponseCode::BufferInsufficient;
     }
 
-    return ATResponseCode::Okay;
+    return rollback_and_return(ATResponseCode::BufferInsufficient);
 }
 
-ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &settings) {
+
+ATResponseCode AT::Enable() {
     if (!ATHAL_StartUARTReceiveIT(&working_data)) {
-        return ATResponseCode::CouldNotInitTransmission;
+        return rollback_and_return(ATResponseCode::CouldNotInitTransmission);
     }
 
     ATHAL_EnableChip();
@@ -116,9 +149,13 @@ ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &set
     ATHAL_Wait(CHIP_ENABLE_WAIT_TIME_MS);
     ATHAL_EnableChip();
 
+    return ATResponseCode::Okay;
+}
+
+ATResponseCode AT::ConnectToWiFi(const ATWiFiConnectSettings &settings) {
     // manual reset
     if (!sendString(AT_RST, AT_RST_SIZE)) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
 
     // try to connect (skip if already connected)
@@ -127,41 +164,41 @@ ATResponseCode AT::EnableAndStartWiFiConnection(const ATWiFiConnectSettings &set
             // send Access Point and try to connect
             char command[AP_AND_PW_MAX_LEN + AT_CWJAP_OVERHEAD]{};
 
-            if (strnlen(settings.AccessPoint, AP_AND_PW_MAX_LEN + 1) + strnlen(
-                    settings.Password, AP_AND_PW_MAX_LEN + 1) + AT_CWJAP_OVERHEAD <= sizeof(
-                    command)) {
+            if (strnlen(settings.AccessPoint, AP_AND_PW_MAX_LEN + 1) + strnlen(settings.Password, AP_AND_PW_MAX_LEN + 1)
+                + AT_CWJAP_OVERHEAD <= sizeof(command)) {
                 sprintf(command, AT_CWJAP_PATTERN, settings.AccessPoint, settings.Password);
             } else {
-                return ATResponseCode::BufferInsufficient;
+                return rollback_and_return(ATResponseCode::BufferInsufficient);
             }
 
             if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
-                return ATResponseCode::CouldNotConnectToWiFi;
+                return rollback_and_return(ATResponseCode::CouldNotConnectToAccessPoint);
             }
         } else {
-            return ATResponseCode::ModuleNotReady;
+            return rollback_and_return(ATResponseCode::ModuleNotReady);
         }
     }
     buffer.SkipReadLength();
 
     // send AT in station mode
     if (!sendString(AT_CWMODE_STATION, AT_CWMODE_STATION_SIZE)) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
     //Disable multiple connections
     if (!sendString(AT_CIPMUX_SINGLE, AT_CIPMUX_SINGLE_SIZE)) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
     return ATResponseCode::Okay;
 }
+
 
 ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     char command[HTTP_MAX_HOST_AND_PATH_SIZE + AT_GET_REQUEST_OVERHEAD]{};
@@ -170,7 +207,7 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
 
     //Make sure buffer is large enough for the following requests (the other sprintf calls are safe then because the GET_REQUEST has the most overhead)
     if (host_size + path_size + AT_GET_REQUEST_OVERHEAD > sizeof(command)) {
-        return ATResponseCode::BufferInsufficient;
+        return rollback_and_return(ATResponseCode::BufferInsufficient);
     }
 
     // start connection to server
@@ -180,10 +217,10 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     }
     sprintf(command, pattern, settings.host);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
     // Announce transmission of bytes
@@ -191,10 +228,10 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     std::memset(command, 0, sizeof(command));
     sprintf(command, AT_CIPSEND_PATTERN, bytes_to_send);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_text_end("> ", sizeof("> ") - 1)) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
     buffer.SkipReadLength();
 
@@ -202,10 +239,10 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     std::memset(command, 0, sizeof(command));
     sprintf(command, AT_GET_REQUEST_PATTERN, settings.path, settings.host);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return ATResponseCode::TransmitFailed;
+        return rollback_and_return(ATResponseCode::TransmitFailed);
     }
     if (!wait_for_text_end(AT_CLOSED, AT_CLOSED_SIZE)) {
-        return ATResponseCode::TimeoutWaitingForOkay;
+        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
     }
 
     // Skip until IDP start was found
@@ -217,16 +254,17 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     // SKIP ' IPD,XXX: ', too
     result &= buffer.Skip(8);
     if (!result) {
-        return ATResponseCode::IllegalResponse;
+        return rollback_and_return(ATResponseCode::InvalidResponse);
     }
 
     // FINALLY: Copy to buffer
-    if (!buffer.CopyFromHead(reinterpret_cast<uint8_t *>(settings.response_buffer),
-                             settings.response_buffer_size, buffer.ReadLength() - AT_CLOSED_SIZE)) {
-        return ATResponseCode::BufferInsufficient;
+    if (!buffer.CopyFromHead(settings.response_buffer,
+                             settings.response_buffer_size,
+                             buffer.ReadLength() - static_cast<int32_t>(AT_CLOSED_SIZE))) {
+        return rollback_and_return(ATResponseCode::BufferInsufficient);
     }
-    buffer.SkipReadLength();
 
+    buffer.SkipReadLength();
     return ATResponseCode::Okay;
 }
 
@@ -235,10 +273,10 @@ ATResponseCode AT::PackageReceived() {
         if (ATHAL_StartUARTReceiveIT(&working_data)) {
             return ATResponseCode::Okay;
         }
-        return ATResponseCode::CouldNotInitTransmission;
+        return rollback_and_return(ATResponseCode::CouldNotInitTransmission);
     }
 
-    return ATResponseCode::RingBufferFull;
+    return rollback_and_return(ATResponseCode::RingBufferFull);
 }
 
 
@@ -266,7 +304,7 @@ bool AT::wait_for_text_end(const char *str, const int32_t size) const {
         do {
             //+1 because we require the string termination character '\0'
             char copy_buffer[WAIT_STRING_MAX_LEN + 1]{};
-            buffer.Copy(reinterpret_cast<uint8_t *>(copy_buffer), sizeof(copy_buffer), buffer.Tail() - size, size);
+            buffer.Copy(copy_buffer, sizeof(copy_buffer), buffer.Tail() - size, size);
             match = strncmp(copy_buffer, str, size) == 0;
             counter++;
             ATHAL_Wait(TEN_MS);
@@ -291,6 +329,11 @@ bool AT::wait_for_okay_and_skip() {
 }
 
 bool AT::sendString(const char *string, std::size_t len) {
-    return ATHAL_Transmit(reinterpret_cast<const uint8_t *>(string), len);
+    return ATHAL_Transmit(reinterpret_cast<const uint8_t *>(string), static_cast<int32_t>(len));
+}
+
+ATResponseCode AT::rollback_and_return(ATResponseCode code) {
+    buffer.SkipReadLength();
+    return code;
 }
 

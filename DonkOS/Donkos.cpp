@@ -191,6 +191,11 @@ void Donkos_SleepCurrentProcess(int32_t ms) {
     scheduler.GetCurrentProcess()->wait(ms);
 }
 
+Connectivity Donkos_ConnectivityStatus() {
+   // auto wifiConnected = wifi_process.Connected();
+   // auto gpsConnected = gps_process.Connected();
+}
+
 void Donkos_ExternalInterruptReceived(int32_t id) {
     dht11NonblockingProcess2.InterruptReceived();
 }

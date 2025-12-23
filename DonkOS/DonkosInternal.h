@@ -12,6 +12,13 @@ enum class ServiceCall : int32_t
     MARKER_END
 };
 
+enum class Connectivity {
+    NO_CONNECTION,
+    WIFI_CONNECTED_NO_GPS,
+    GPS_CONNECTED_NO_WIFI,
+    GPS_AND_WIFI_CONNECTED,
+};
+
 void Donkos_GenericProcessMain();
 
 void Donkos_StartNewProcess(Process *process);
@@ -43,5 +50,7 @@ int32_t Donkos_GetSystemState();
 void Donkos_TimerElapsed(int32_t timerId);
 
 void Donkos_SleepCurrentProcess(int32_t ms);
+
+Connectivity Donkos_ConnectivityStatus();
 
 #endif //DONKOSINTERNAL_H

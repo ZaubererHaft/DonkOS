@@ -7,12 +7,12 @@ enum class ATResponseCode {
     Okay,
     TransmitFailed,
     BufferInsufficient,
-    CouldNotConnectToWiFi,
+    CouldNotConnectToAccessPoint,
     ModuleNotReady,
     TimeoutWaitingForOkay,
     RingBufferFull,
     CouldNotInitTransmission,
-    IllegalResponse
+    InvalidResponse
 };
 
 class ATVersionInfo {
@@ -45,23 +45,23 @@ class AT {
 public:
     AT();
 
-    ATResponseCode ReadConnectionState(ATConnectStatus &out_connectStatus);
+    ATResponseCode Enable();
 
-    ATResponseCode ReadFirmware(ATVersionInfo &out_versionInfo);
-
-    ATResponseCode EnableAndStartWiFiConnection(const ATWiFiConnectSettings &settings);
+    ATResponseCode ConnectToWiFi(const ATWiFiConnectSettings &settings);
 
     ATResponseCode GetRequest(const ATHTTPRequestSettings &settings);
 
     ATResponseCode PackageReceived();
+
+    ATResponseCode ReadConnectionState(ATConnectStatus &out_connectStatus);
+
+    ATResponseCode ReadFirmware(ATVersionInfo &out_versionInfo);
 
 private:
     static constexpr int32_t RINGBUFFER_SIZE = 1024;
 
     RingBuffer<char, RINGBUFFER_SIZE> buffer;
     uint8_t working_data;
-
-    ATConnectStatus connect_status;
 
     bool wait_for_min_size(int32_t size) const;
 
@@ -72,6 +72,8 @@ private:
     bool wait_for_okay_and_skip();
 
     static bool sendString(const char *string, std::size_t len);
+
+    ATResponseCode rollback_and_return(ATResponseCode code);
 };
 
 #endif //DONKOS_ATHTTPCLIENT_H
