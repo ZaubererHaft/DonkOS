@@ -133,6 +133,8 @@ void DHT11NonblockingProcess2::comm_error_state() {
     state = DHT_STATE::RESTART;
 }
 
+#define DHT22
+
 void DHT11NonblockingProcess2::process_data_state() {
     uint32_t hum1 = data_received[0];
     uint32_t hum2 = data_received[1];
@@ -140,16 +142,26 @@ void DHT11NonblockingProcess2::process_data_state() {
     uint32_t temp2 = data_received[3];
     uint32_t check = data_received[4];
 
-    if (check == hum1 + hum2 + temp1 + temp2) {
+    uint32_t crc_expected = (hum1 + hum2 + temp1 + temp2) % 256;
+
+    if (check == crc_expected) {
+
+#ifdef DHT22
+        float temp = ((temp1<<8)|temp2) / 10.0f;
+        float hum = ((hum1<<8)|hum2) / 10.0f;
+#else
+        float temp = temp1;
+        float hum = hum1;
+#endif
 
         StringConverter converter{};
-        char output_temperature_string[11] = "T: ";
-        char output_humidity_string[11] = "H: ";
+        char output_temperature_string[14] = "T: ";
+        char output_humidity_string[14] = "H: ";
 
         int32_t string_start_index = 3U;
         int32_t string_max_len = 11 - string_start_index - 2;
 
-        auto [success1, index1] = converter.IntegerToString(static_cast<int32_t>(temp1),
+        auto [success1, index1] = converter.FloatToString(temp,
                                                             &output_temperature_string[string_start_index],
                                                             string_max_len);
         index1 += string_start_index;
@@ -158,7 +170,7 @@ void DHT11NonblockingProcess2::process_data_state() {
         output_temperature_string[index1 + 2] = 'C';
         output_temperature_string[index1 + 3] = '\0';
 
-        auto [success2, index2] = converter.IntegerToString(static_cast<int32_t>(hum1),
+        auto [success2, index2] = converter.FloatToString(hum,
                                                             &output_humidity_string[string_start_index],
                                                             string_max_len);
         index2 += string_start_index;
