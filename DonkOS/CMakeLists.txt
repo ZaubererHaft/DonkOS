@@ -12,13 +12,19 @@ set(Donkos_Sources
         Services/NTCSensor.cpp
         Services/Lock.cpp
         Services/Latch.cpp
+        Services/MockDisplay.cpp
 
         Drivers/at/AT.cpp
         Drivers/at/AT_STM32HAL.cpp
 
+        Drivers/bme688/bme68x.cpp
+        Drivers/bme688/bme68x_necessary_functions.cpp
+
         Drivers/SSD1306/fonts.cpp
         Drivers/SSD1306/ssd1306.cpp
+
         Drivers/dwt/dwt_delay.cpp;
+
         Drivers/nmea/NMEParser.cpp
 
         Drivers/epd/e-Paper/EPD_4in2_V2.cpp
@@ -48,6 +54,7 @@ set(Donkos_Sources
         Processes/DHT11NonblockingProcess.cpp
         Processes/DHT11NonblockingProcess2.cpp
         Processes/DisplayRefreshProcess.cpp
+        Processes/BME68xProcess.cpp
         #Processes/KeyboardProcess.cpp
         Processes/DiagramPageProcess.cpp
         Processes/GPSProcess.cpp
@@ -66,6 +73,8 @@ target_include_directories(DonkOSLib PUBLIC
         Scheduler/Inc
         Services/Inc
         DataStructures/Inc
+        Drivers/bme688
+        Drivers/bme688/Inc
         Drivers/SSD1306/Inc
         Drivers/dwt
         Drivers/epd/e-Paper

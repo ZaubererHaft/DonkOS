@@ -3,16 +3,14 @@
 #include "ssd1306.h"
 #include "StringConverter.h"
 
-LedDisplay::LedDisplay() : hi2c{}, pages{}, currentPageIndex{},
+extern I2C_HandleTypeDef hi2c1;
+
+LedDisplay::LedDisplay() :  pages{}, currentPageIndex{},
                            nextPageIndex{}, enforce_clear{false} {
 }
 
-void LedDisplay::SetHandle(I2C_HandleTypeDef handle) {
-    hi2c = handle;
-}
-
 void LedDisplay::Init() {
-    if (ssd1306_Init(&hi2c) != 0) {
+    if (ssd1306_Init(&hi2c1) != 0) {
         Error_Handler();
     }
 
@@ -68,7 +66,7 @@ void LedDisplay::Refresh() {
             ssd1306_WriteString(getCurrentPage().lineBuffers[i], Font_7x10, White);
         }
 
-        ssd1306_UpdateScreen(&hi2c);
+        ssd1306_UpdateScreen(&hi2c1);
         getCurrentPage().dirty = false;
     }
     lock.Unlock();

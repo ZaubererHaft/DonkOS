@@ -6,10 +6,11 @@
 
 namespace {
     constexpr float ADC_MAX = 4095.0f;
-    constexpr uint16_t adc_zero_offset = 30;
+    constexpr uint16_t adc_zero_offset = 1;
 }
 
 volatile float CUBE_DBG_TEMP_FLOAT = 0;
+extern ADC_HandleTypeDef hadc3;
 
 float ADC3Process::getADCRefVoltageInV() {
 
@@ -25,13 +26,10 @@ float ADC3Process::getADCRefVoltageInV() {
 }
 
 ADC3Process::ADC3Process(DiagramPageProcess *diagram)
-        : diagram{diagram}, hadc3{}, sensor{{10'000.0f, 3835.51, getADCRefVoltageInV()}}, adc_dma_raw_values{},
-          factor{1}, offset{0} {
+        : diagram{diagram}, sensor{{10'000.0f, 3988, getADCRefVoltageInV()}}, adc_dma_raw_values{},
+          factor{1.045f}, offset{0} {
 }
 
-void ADC3Process::SetHandle(ADC_HandleTypeDef handle) {
-    hadc3 = handle;
-}
 
 void ADC3Process::Main() {
     if (HAL_ADCEx_Calibration_Start(&hadc3, ADC_SINGLE_ENDED) != HAL_OK) {
@@ -81,11 +79,11 @@ void ADC3Process::readSensors(float data[2]) {
         uint16_t rawValueTemp = adc_dma_raw_values[i * 2];
         uint16_t rawValueFoto = adc_dma_raw_values[i * 2 + 1];
 
-      //  if (rawValueTemp > adc_zero_offset) {
-      //      rawValueTemp -= adc_zero_offset;
-      //  } else {
-      //      rawValueTemp = 0;
-      //  }
+        if (rawValueTemp > adc_zero_offset) {
+            rawValueTemp -= adc_zero_offset;
+        } else {
+            rawValueTemp = 0;
+        }
 
         auto voltageTemperature = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueTemp);
         auto voltageFoto = (getADCRefVoltageInV() / ADC_MAX) * static_cast<float>(rawValueFoto);

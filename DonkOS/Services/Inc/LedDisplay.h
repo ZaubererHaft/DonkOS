@@ -28,23 +28,18 @@ public:
 
     void Clear() override;
 
-    void SetCurrentPageDirty();
+    void SetCurrentPageDirty() override;
 
     void DrawPixel(int32_t x, int32_t y) override;
 
     std::pair<int32_t, int32_t> GetDimensions() override;
 
-    void SetHandle(I2C_HandleTypeDef handle);
+    int32_t GetCurrentPageIndex() const override;
 
-    int32_t GetCurrentPageIndex() const;
-
-    void WriteAt(int32_t x, int32_t y, const char *text);
-
+    void WriteAt(int32_t x, int32_t y, const char *text) override;
 
 private:
     static constexpr int32_t count_pages = 5;
-
-    I2C_HandleTypeDef hi2c;
 
     Page pages[count_pages];
 

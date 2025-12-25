@@ -10,8 +10,6 @@ class ADC3Process : public Process {
 public:
     explicit ADC3Process(DiagramPageProcess *diagram);
 
-    void SetHandle(ADC_HandleTypeDef handle);
-
     void Main() override;
 
 
@@ -21,7 +19,6 @@ private:
 
     DiagramPageProcess *diagram;
 
-    ADC_HandleTypeDef hadc3;
     NTCSensor sensor;
     uint16_t adc_dma_raw_values[countSamples * 2];
 

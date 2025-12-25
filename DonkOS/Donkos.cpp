@@ -6,6 +6,7 @@
 #include "ProcessLed.h"
 #include "RoundRobinScheduler.h"
 #include "ADC3Process.h"
+#include "BME68xProcess.h"
 #include "DisplayRefreshProcess.h"
 #include "LedDisplay.h"
 #include "DonkosInternal.h"
@@ -15,26 +16,28 @@
 #include "GPSProcess.h"
 #include "DonkosLogger.h"
 #include "EPaperDisplayProcess.h"
+#include "MockDisplay.h"
 #include "WiFiProcess.h"
 
 namespace {
-    Process7SegmentDisplay mutexProcess{};
-    ProcessLed ledProcess{};
+    MockDisplay mockDisplay{};
+    LedDisplay ledDisplay{};
+    BaseDisplay *currDisplay = &ledDisplay;
 
-    LedDisplay display{};
-    DisplayRefreshProcess displayRefreshProcess{&display};
+    ProcessLed ledProcess{};
+    Process7SegmentDisplay mutexProcess{};
+    DisplayRefreshProcess displayRefreshProcess{currDisplay};
     DHT11NonblockingProcess2 dht11NonblockingProcess2{};
-    DiagramPageProcess diagramProcess{&display};
+    DiagramPageProcess diagramProcess{currDisplay};
     ADC3Process adcProcess{&diagramProcess};
-    GPSProcess gps_process{&display};
+    GPSProcess gps_process{currDisplay};
     WiFiProcess wifi_process{};
     EPaperDisplayProcess epaperDisplayProcess{};
+    BME68xProcess bme68xProcess{};
 
     RoundRobinScheduler scheduler{};
 }
 
-extern ADC_HandleTypeDef hadc3;
-extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim7;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart2;
@@ -51,10 +54,6 @@ void Donkos_Main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
     DWT_Init();
 
-
-    adcProcess.SetHandle(hadc3);
-    display.SetHandle(hi2c1);
-
     Logger_Debug("Starting processes...");
 
     Donkos_StartNewProcess(&mutexProcess);
@@ -64,6 +63,7 @@ void Donkos_Main() {
     Donkos_StartNewProcess(&gps_process);
     Donkos_StartNewProcess(&wifi_process);
     Donkos_StartNewProcess(&epaperDisplayProcess);
+   // Donkos_StartNewProcess(&bme68xProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -132,7 +132,7 @@ void Donkos_EndProcess(Process *process) {
 
 
 void Donkos_Display(int32_t page, int32_t line, const char *text) {
-    display.Display(page, line, text);
+    currDisplay->Display(page, line, text);
 }
 
 void Donkos_GenericProcessMain() {
@@ -163,16 +163,16 @@ void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process) {
 void Donkos_KeyPressed(int32_t keyId) {
     Logger_Debug("Donkos_KeyPressed: keyId = %ld", keyId);
 
-    if (display.GetCurrentPageIndex() == 1) {
+    if (currDisplay->GetCurrentPageIndex() == 1) {
         scheduler.RegisterProcess(&dht11NonblockingProcess2);
-    } else if (display.GetCurrentPageIndex() == 2) {
+    } else if (currDisplay->GetCurrentPageIndex() == 2) {
         scheduler.UnregisterProcess(&dht11NonblockingProcess2);
         scheduler.RegisterProcess(&diagramProcess);
-    } else if (display.GetCurrentPageIndex() == 3) {
+    } else if (currDisplay->GetCurrentPageIndex() == 3) {
         scheduler.UnregisterProcess(&diagramProcess);
     }
 
-    display.NextPage();
+    currDisplay->NextPage();
 }
 
 int32_t Donkos_GetSystemState() {
@@ -180,7 +180,7 @@ int32_t Donkos_GetSystemState() {
 }
 
 void Donkos_ClearDisplay() {
-    display.Clear();
+    currDisplay->Clear();
 }
 
 void Donkos_TimerElapsed(int32_t timerId) {

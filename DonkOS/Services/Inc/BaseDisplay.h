@@ -19,6 +19,12 @@ public:
     virtual void DrawPixel(int32_t x, int32_t y) = 0;
 
     virtual std::pair<int32_t, int32_t> GetDimensions() = 0;
+
+    virtual int32_t GetCurrentPageIndex() const = 0;
+
+    virtual void WriteAt(int32_t x, int32_t y, const char *text) = 0;
+
+    virtual void SetCurrentPageDirty() = 0;
 };
 
 

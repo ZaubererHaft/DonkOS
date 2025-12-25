@@ -1,7 +1,7 @@
 #include <valarray>
 #include "DiagramPageProcess.h"
 
-DiagramPageProcess::DiagramPageProcess(LedDisplay *display) : display{display}, temp_data_over_time{}, index{} {
+DiagramPageProcess::DiagramPageProcess(BaseDisplay *display) : display{display}, temp_data_over_time{}, index{} {
     for (float &i: temp_data_over_time) {
         i = std::numeric_limits<float>::quiet_NaN();
     }

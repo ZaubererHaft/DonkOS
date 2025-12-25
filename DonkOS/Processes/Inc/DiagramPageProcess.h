@@ -6,7 +6,7 @@
 
 class DiagramPageProcess : public Process {
 public:
-    explicit DiagramPageProcess(LedDisplay *display);
+    explicit DiagramPageProcess(BaseDisplay *display);
 
     void Main() override;
 
@@ -16,7 +16,7 @@ private:
     static constexpr int32_t offset = 20;
     static constexpr int32_t data_capacity = 128 - offset;
 
-    LedDisplay *display;
+    BaseDisplay *display;
     float temp_data_over_time[data_capacity];
     int32_t index;
 };
