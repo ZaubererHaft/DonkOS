@@ -51,5 +51,7 @@ void Donkos_TimerElapsed(int32_t timerId);
 
 void Donkos_SleepCurrentProcess(int32_t ms);
 
+void Donkos_YieldCurrentProcess();
+
 
 #endif //DONKOSINTERNAL_H

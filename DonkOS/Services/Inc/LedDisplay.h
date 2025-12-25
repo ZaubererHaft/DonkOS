@@ -16,9 +16,9 @@ public:
 
 class LedDisplay : public BaseDisplay {
 public:
-    LedDisplay();
+    LedDisplay(SimpleLock *i2c_lock);
 
-    void Init() override;
+    bool Init() override;
 
     void Display(int32_t page, int32_t line, const char *text) override;
 
@@ -40,12 +40,13 @@ public:
 
 private:
     static constexpr int32_t count_pages = 5;
+    static constexpr int32_t lock_id = 1;
 
     Page pages[count_pages];
 
     int32_t currentPageIndex;
     int32_t nextPageIndex;
-    SimpleLock lock;
+    SimpleLock *lock;
     bool enforce_clear;
 
     bool needsPageChange() const;

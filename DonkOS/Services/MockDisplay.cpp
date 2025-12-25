@@ -1,6 +1,7 @@
 #include "MockDisplay.h"
 
-void MockDisplay::Init() {
+bool MockDisplay::Init() {
+    return true;
 }
 
 void MockDisplay::Display(int32_t page, int32_t line, const char *text) {

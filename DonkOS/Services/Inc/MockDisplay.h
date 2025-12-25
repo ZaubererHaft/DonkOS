@@ -5,7 +5,7 @@
 
 class MockDisplay : public BaseDisplay {
 public:
-    void Init() override;
+    bool Init() override;
 
     void Display(int32_t page, int32_t line, const char *text) override;
 

@@ -8,16 +8,17 @@ class SimpleLock
 public:
     SimpleLock();
 
-    void Lock();
+    void SpinLock(uint16_t with_id);
 
-    void Unlock();
+    void YieldLock(uint16_t with_id);
+
+    bool Lock(uint16_t with_id);
+
+    void Unlock(uint16_t from_id);
 
 private:
     uint32_t lockObject;
-
-    static void doLock(volatile uint32_t *lock);
-
-    static void doUnlock(volatile uint32_t *lock);
+    int32_t owner;
 };
 
 

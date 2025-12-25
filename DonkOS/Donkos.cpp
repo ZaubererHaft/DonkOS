@@ -20,8 +20,10 @@
 #include "WiFiProcess.h"
 
 namespace {
+    SimpleLock lock;
+
     MockDisplay mockDisplay{};
-    LedDisplay ledDisplay{};
+    LedDisplay ledDisplay{&lock};
     BaseDisplay *currDisplay = &ledDisplay;
 
     ProcessLed ledProcess{};
@@ -33,7 +35,7 @@ namespace {
     GPSProcess gps_process{currDisplay};
     WiFiProcess wifi_process{};
     EPaperDisplayProcess epaperDisplayProcess{};
-    BME68xProcess bme68xProcess{};
+    BME68xProcess bme68xProcess{&lock};
 
     RoundRobinScheduler scheduler{};
 }
@@ -63,7 +65,7 @@ void Donkos_Main() {
     Donkos_StartNewProcess(&gps_process);
     Donkos_StartNewProcess(&wifi_process);
     Donkos_StartNewProcess(&epaperDisplayProcess);
-   // Donkos_StartNewProcess(&bme68xProcess);
+    Donkos_StartNewProcess(&bme68xProcess);
 
     scheduler.SetInitialProcess(&mutexProcess);
 
@@ -189,6 +191,10 @@ void Donkos_TimerElapsed(int32_t timerId) {
 
 void Donkos_SleepCurrentProcess(int32_t ms) {
     scheduler.GetCurrentProcess()->wait(ms);
+}
+
+void Donkos_YieldCurrentProcess() {
+    Donkos_YieldProcess(scheduler.GetCurrentProcess());
 }
 
 void Donkos_ExternalInterruptReceived(int32_t id) {
