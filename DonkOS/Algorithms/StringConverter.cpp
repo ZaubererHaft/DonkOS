@@ -46,79 +46,79 @@ StringConverter::FloatToString(float number, char *buffer, int bufflen, const Fl
             }
         }
     }
-        // if not, perform regular conversion
+    // if not, perform regular conversion
     else {
         // convert integer part: -12.23 | "-12"
-        auto [status, new_index] = IntegerToString((int) number, buffer, bufflen, settings);
+        auto [status, new_index] = IntegerToString(static_cast<int>(number), buffer, bufflen,
+                                                   {settings.string_termination});
 
         if (status != StringConversionResult::SUCCESS) {
             return {status, -1};
         }
-            // now continue with float part
-        else {
-            index = new_index;
+        // now continue with float part
 
-            //negativity has already been dealt with in the integer conversion. continue with positive number: -12.23 -> 12.23 | "-12"
-            if (number < 0) {
-                number *= -1;
-            }
+        index = new_index;
 
-            // remove places before decimal dot: 12.23 -> 0.23 | "-12" ).
-            // remark: adds additional conversion error dut to float manipulation and narrowing
-            number = number - ((uint32_t) number);
+        //negativity has already been dealt with in the integer conversion. continue with positive number: -12.23 -> 12.23 | "-12"
+        if (number < 0) {
+            number *= -1;
+        }
 
-            // decimal dot if space for it is available: 0.23 | "-12."
-            if (index < bufflen) {
-                buffer[index] = settings.use_decimal_comma ? ',' : '.';
-                index++;
-            } else {
-                return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_DECIMAL_DOT, -1};
-            }
+        // remove places before decimal dot: 12.23 -> 0.23 | "-12" ).
+        // remark: adds additional conversion error dut to float manipulation and narrowing
+        number = number - ((uint32_t) number);
 
-            auto places_after_dot = settings.places_after_dot;
+        // decimal dot if space for it is available: 0.23 | "-12."
+        if (index < bufflen) {
+            buffer[index] = settings.use_decimal_comma ? ',' : '.';
+            index++;
+        } else {
+            return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_DECIMAL_DOT, -1};
+        }
 
-            // get all places after the decimal dot
-            // idea: Multiply by 10 to extract the next decimal digit
-            // then cut off float part and convert digit to number and add it to the buffer
-            // repeat as long as the original floating point is not (close to) zero
-            // remark: adds additional conversion error dut to float manipulation and narrowing
-            // In the example: 1) 0.23 -> 2.3 -> 0.3 | "-12.2"
-            //                 2) 0.3  -> 3.0 -> 0.0 | "-12.23"
-            // (ideal sequence)
-            //
-            // now a while (not do-while) loop because "number" might already be zero (in case of an integer value stored in a float)
-            while (number > zero_threshold && index < bufflen && places_after_dot > 0) {
-                number = number * 10.0f;
-                uint32_t place = number;
-                buffer[index] = '0' + place;
-                number -= place;
+        auto places_after_dot = settings.places_after_dot;
+
+        // get all places after the decimal dot
+        // idea: Multiply by 10 to extract the next decimal digit
+        // then cut off float part and convert digit to number and add it to the buffer
+        // repeat as long as the original floating point is not (close to) zero
+        // remark: adds additional conversion error dut to float manipulation and narrowing
+        // In the example: 1) 0.23 -> 2.3 -> 0.3 | "-12.2"
+        //                 2) 0.3  -> 3.0 -> 0.0 | "-12.23"
+        // (ideal sequence)
+        //
+        // now a while (not do-while) loop because "number" might already be zero (in case of an integer value stored in a float)
+        while (number > zero_threshold && index < bufflen && places_after_dot > 0) {
+            number = number * 10.0f;
+            uint32_t place = number;
+            buffer[index] = '0' + place;
+            number -= place;
+            index++;
+            places_after_dot--;
+        }
+
+        // exited loop regularly? (it might be that number is still positive because we only want to display a part of it.
+        // it might also be possible that places_after_dot is greater than zero in the case number got zero before, and we need to fill up the remaining places))
+        if (index < bufflen) {
+            // ... try to fill remaining places with missing zeros, if necessary
+            while (places_after_dot > 0 && index < bufflen) {
+                buffer[index] = '0';
                 index++;
                 places_after_dot--;
             }
 
-            // exited loop regularly? (it might be that number is still positive because we only want to display a part of it.
-            // it might also be possible that places_after_dot is greater than zero in the case number got zero before, and we need to fill up the remaining places))
-            if (index < bufflen) {
-                // ... try to fill remaining places with missing zeros, if necessary
-                while (places_after_dot > 0 && index < bufflen) {
-                    buffer[index] = '0';
-                    index++;
-                    places_after_dot--;
-                }
-
-                if (places_after_dot == 0) {
-                    // add line termination if requested and space available
-                    if (settings.string_termination) {
-                        if (index < bufflen) {
-                            buffer[index] = '\0';
-                        } else {
-                            return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_TERMINATION, -1};
-                        }
+            if (places_after_dot == 0) {
+                // add line termination if requested and space available
+                if (settings.string_termination) {
+                    if (index < bufflen) {
+                        buffer[index] = '\0';
+                    } else {
+                        return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_TERMINATION, -1};
                     }
                 }
-            } else {
-                return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_DIGITS_AFTER_DOT, -1};
             }
+        } else {
+            return {StringConversionResult::BUFFER_INSUFFICIENT_FOR_DIGITS_AFTER_DOT, -1};
         }
     }
 

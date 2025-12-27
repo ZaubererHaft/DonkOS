@@ -3,22 +3,26 @@
 
 #include <cstdint>
 
+#include "Process.h"
+#include "Queue.h"
+
 class SimpleLock
 {
 public:
     SimpleLock();
 
-    void SpinLock(uint16_t with_id);
+    bool AutoLock(Process* process);
 
-    void YieldLock(uint16_t with_id);
+    bool Lock(Process* process);
 
-    bool Lock(uint16_t with_id);
-
-    void Unlock(uint16_t from_id);
+    void Unlock(const Process* process);
 
 private:
+    static constexpr int32_t MAX_PROCESSES_TO_WAIT_FOR_LOCK = 10;
     uint32_t lockObject;
-    int32_t owner;
+    Process* owner;
+
+    Queue<Process *, MAX_PROCESSES_TO_WAIT_FOR_LOCK> wait_queue;
 };
 
 

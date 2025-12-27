@@ -121,7 +121,6 @@ void Process::UpdateTimer() {
  */
 void Process::wait(int32_t milliseconds) {
     timer = milliseconds;
-    state = ProcessState::WAITING;
     Donkos_BlockProcess(this);
 }
 
@@ -157,11 +156,11 @@ void Process::Reset() {
 }
 
 uint32_t Process::GetStackStartAddress() {
-    return (uint32_t) &stack[0];
+    return reinterpret_cast<uint32_t>(&stack[0]);
 }
 
 uint32_t Process::GetDataStartAddress() {
-    return (uint32_t) &heap[0];
+    return reinterpret_cast<uint32_t>(&heap[0]);
 }
 
 uint32_t Process::GetStackSizeInBytes() {

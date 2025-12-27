@@ -11,7 +11,7 @@ public:
 
     }
 
-    T Push(const T &value) {
+    void Push(const T &value) {
         data[end] = value;
         end = (end + 1) % L;
     }
@@ -24,7 +24,7 @@ public:
 
     uint32_t Length() const {
         return end - start;
-    };
+    }
 
     uint32_t Capacity() const {
         return L;

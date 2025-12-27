@@ -1,5 +1,7 @@
 #include <cstring>
 #include "LedDisplay.h"
+
+#include "DonkosInternal.h"
 #include "ssd1306.h"
 #include "StringConverter.h"
 
@@ -17,16 +19,18 @@ LedDisplay::LedDisplay(SimpleLock *i2c_lock) : pages{}, currentPageIndex{},
     strcpy(pages[2].lineBuffers[0], "DHT-11/22 Test");
 
     strcpy(pages[4].lineBuffers[0], "Status");
+
+    strcpy(pages[5].lineBuffers[0], "BME688");
 }
 
 bool LedDisplay::Init() {
     bool ret = false;
-    lock->YieldLock(lock_id);
+    lock->AutoLock(Donkos_GetCurrentProcess());
     if (ssd1306_Init(&hi2c1) == 0) {
         ssd1306_Fill(Black);
         ret = true;
     }
-    lock->Unlock(lock_id);
+    lock->Unlock(Donkos_GetCurrentProcess());
     return ret;
 }
 
@@ -39,14 +43,14 @@ void LedDisplay::Display(int32_t page, int32_t line, const char *text) {
     //ToDo add checks, error handling
     // consider to synchronize writing to this buffer with refreshing to make sure that no partially filled buffers are getting visible when the refresh process interrupts
     // the process calling this method
-    lock->YieldLock(lock_id);
+    lock->AutoLock(Donkos_GetCurrentProcess());
     strcpy(pages[page].lineBuffers[line], text);
     pages[page].dirty = true;
-    lock->Unlock(lock_id);
+    lock->Unlock(Donkos_GetCurrentProcess());
 }
 
 void LedDisplay::Refresh() {
-    lock->YieldLock(lock_id);
+    lock->AutoLock(Donkos_GetCurrentProcess());
     if (enforce_clear) {
         ssd1306_Fill(Black);
         enforce_clear = false;
@@ -70,7 +74,7 @@ void LedDisplay::Refresh() {
         ssd1306_UpdateScreen(&hi2c1);
         getCurrentPage().dirty = false;
     }
-    lock->Unlock(lock_id);
+    lock->Unlock(Donkos_GetCurrentProcess());
 }
 
 void LedDisplay::NextPage() {
@@ -92,9 +96,9 @@ int32_t LedDisplay::GetCurrentPageIndex() const {
 }
 
 void LedDisplay::DrawPixel(int32_t x, int32_t y) {
-    lock->YieldLock(lock_id);
+    lock->AutoLock(Donkos_GetCurrentProcess());
     ssd1306_DrawPixel(x, y, SSD1306_COLOR::White);
-    lock->Unlock(lock_id);
+    lock->Unlock(Donkos_GetCurrentProcess());
 }
 
 std::pair<int32_t, int32_t> LedDisplay::GetDimensions() {
@@ -102,10 +106,10 @@ std::pair<int32_t, int32_t> LedDisplay::GetDimensions() {
 }
 
 void LedDisplay::WriteAt(int32_t x, int32_t y, const char *text) {
-    lock->YieldLock(lock_id);
+    lock->AutoLock(Donkos_GetCurrentProcess());
     ssd1306_SetCursor(x, y);
     ssd1306_WriteString(text, Font_7x10, White);
-    lock->Unlock(lock_id);
+    lock->Unlock(Donkos_GetCurrentProcess());
 }
 
 void LedDisplay::SetCurrentPageDirty() {

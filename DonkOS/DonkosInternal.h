@@ -4,8 +4,7 @@
 #include "Process.h"
 #include "RoundRobinScheduler.h"
 
-enum class ServiceCall : int32_t
-{
+enum class ServiceCall : int32_t {
     UNREGISTER_RESCHEDULE,
     RESCHEDULE,
     START_PROCESS,
@@ -29,7 +28,7 @@ void Donkos_BlockProcess(Process *process);
 
 void Donkos_EndProcess(Process *process);
 
-void Donkos_Display(int32_t page, int32_t line, const char* text);
+void Donkos_Display(int32_t page, int32_t line, const char *text);
 
 void Donkos_ClearDisplay();
 
@@ -39,7 +38,7 @@ void Donkos_ContextSwitch(uint32_t *regArray);
 
 void Donkos_Tick();
 
-void Donkos_ServiceHandler(ServiceCall svcNumber , Process * process);
+void Donkos_ServiceHandler(ServiceCall svcNumber, Process *process);
 
 void Donkos_KeyPressed(int32_t keyId);
 
@@ -53,5 +52,8 @@ void Donkos_SleepCurrentProcess(int32_t ms);
 
 void Donkos_YieldCurrentProcess();
 
+Process *Donkos_GetCurrentProcess();
+
+void Donkos_WakeUp(Process *process);
 
 #endif //DONKOSINTERNAL_H

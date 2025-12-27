@@ -12,8 +12,6 @@ public:
     void Main() override;
 
 private:
-    static constexpr int32_t lock_id = 2;
-
     SimpleLock *lock;
     bme68x_data data;
 };

@@ -8,8 +8,9 @@ public:
     bool string_termination = true;
 };
 
-class FloatToStringSettings : public IntToStringSettings {
+class FloatToStringSettings {
 public:
+    bool string_termination = true;
     int32_t places_after_dot = 2;
     bool use_decimal_comma = false;
 };

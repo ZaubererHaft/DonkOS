@@ -2,26 +2,31 @@
 #include "main.h"
 #include "DonkosInternal.h"
 
-SimpleLock::SimpleLock() : lockObject{}, owner{-1} {
+SimpleLock::SimpleLock() : lockObject{}, owner{nullptr}, wait_queue{} {
 }
 
-void SimpleLock::SpinLock(uint16_t with_id) {
-    while (!Lock(with_id)) {
+bool SimpleLock::AutoLock(Process *process) {
+    bool ret = true;
+    if (!Lock(process)) {
+        if (wait_queue.Length() < wait_queue.Capacity()) {
+            wait_queue.Push(process);
+
+            //The current process is now frozen in this function call
+            Donkos_BlockProcess(process);
+
+        } else {
+            ret = false;
+        }
     }
+    return ret;
 }
 
-void SimpleLock::YieldLock(uint16_t with_id) {
-    while (!Lock(with_id)) {
-        Donkos_YieldCurrentProcess();
-    }
-}
-
-bool SimpleLock::Lock(uint16_t with_id) {
+bool SimpleLock::Lock(Process *process) {
     if (lockObject == 0) {
         if (__LDREXW(&lockObject) == 0) {
             if (__STREXW(1, &lockObject) == 0) {
                 __DMB(); // Ensure lock is seen before writing owner
-                owner = with_id;
+                owner = process;
                 __DMB(); // Ensure owner is seen before entering critical section
                 return true;
             }
@@ -35,11 +40,15 @@ bool SimpleLock::Lock(uint16_t with_id) {
 }
 
 
-void SimpleLock::Unlock(uint16_t from_id) {
-    if (from_id == owner) {
+void SimpleLock::Unlock(const Process *process) {
+    if (process == owner) {
         __DMB(); // Ensure memory operations complete before releasing
-        owner = -1;
+        owner = nullptr;
         lockObject = 0;
+        if (wait_queue.Length() > 0) {
+            auto *process_to_wakeup = wait_queue.Pop();
+            Donkos_WakeUp(process_to_wakeup);
+        }
         __DMB();
     }
 }

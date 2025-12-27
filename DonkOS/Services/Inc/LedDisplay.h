@@ -39,8 +39,7 @@ public:
     void WriteAt(int32_t x, int32_t y, const char *text) override;
 
 private:
-    static constexpr int32_t count_pages = 5;
-    static constexpr int32_t lock_id = 1;
+    static constexpr int32_t count_pages = 6;
 
     Page pages[count_pages];
 

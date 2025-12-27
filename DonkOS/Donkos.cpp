@@ -112,9 +112,10 @@ void Donkos_YieldProcess(Process *process) {
 }
 
 void Donkos_BlockProcess(Process *process) {
+    process->SetState(ProcessState::WAITING);
     asm("SVC #0x1;\n");
 
-    // now wait until interrupt has been served
+    // now wait until interrupt has been served (not necessary as SVC is immediately served)
     // process will not be scheduled again until the resource the process was waiting for was freed
     // it will then continue executing after the while loop
     while (process->GetState() == ProcessState::WAITING) {
@@ -196,6 +197,15 @@ void Donkos_SleepCurrentProcess(int32_t ms) {
 void Donkos_YieldCurrentProcess() {
     Donkos_YieldProcess(scheduler.GetCurrentProcess());
 }
+
+Process * Donkos_GetCurrentProcess() {
+    return scheduler.GetCurrentProcess();
+}
+
+void Donkos_WakeUp(Process *process) {
+    process->SetState(ProcessState::READY);
+}
+
 
 void Donkos_ExternalInterruptReceived(int32_t id) {
     dht11NonblockingProcess2.InterruptReceived();
