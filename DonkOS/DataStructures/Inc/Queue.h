@@ -11,19 +11,25 @@ public:
 
     }
 
-    void Push(const T &value) {
+    bool Push(const T &value) {
+        if (size == L)
+            return false; // full
+
         data[end] = value;
         end = (end + 1) % L;
+        ++size;
+        return true;
     }
 
     T Pop() {
-        T ret = data[start];
+        T out = data[start];
         start = (start + 1) % L;
-        return ret;
+        --size;
+        return out;
     }
 
     uint32_t Length() const {
-        return end - start;
+        return size;
     }
 
     uint32_t Capacity() const {
@@ -34,6 +40,7 @@ private:
     T data[L];
     uint32_t start;
     uint32_t end;
+    uint32_t size;
 };
 
 #endif //TEST_QUEUE_H

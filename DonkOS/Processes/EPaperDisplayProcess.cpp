@@ -30,18 +30,18 @@ void EPaperDisplayProcess::Main() {
 
     Paint_DrawBitMap(epd_image);
 
-    Paint_DrawString_EN(5, 5, "Outdoor", &Font20, WHITE, BLACK);
-    Paint_DrawString_EN(140, 5, "Forecast", &Font20, WHITE, BLACK);
-    Paint_DrawString_EN(275, 5, "Indoor", &Font20, WHITE, BLACK);
-
-    Paint_DrawString_EN(5, 35, "3.50 C", &Font24, WHITE, BLACK);
-    Paint_DrawString_EN(5, 65, "80%", &Font24, WHITE, BLACK);
-
-    Paint_DrawString_EN(140, 35, "10.20 C", &Font24, WHITE, BLACK);
-    Paint_DrawString_EN(140, 65, "60%", &Font24, WHITE, BLACK);
-
-    Paint_DrawString_EN(275, 35, "18.10 C", &Font24, WHITE, BLACK);
-    Paint_DrawString_EN(275, 65, "55%", &Font24, WHITE, BLACK);
+   // Paint_DrawString_EN(5, 5, "Outdoor", &Font20, WHITE, BLACK);
+   // Paint_DrawString_EN(140, 5, "Forecast", &Font20, WHITE, BLACK);
+   // Paint_DrawString_EN(275, 5, "Indoor", &Font20, WHITE, BLACK);
+//
+   // Paint_DrawString_EN(5, 35, "3.50 C", &Font24, WHITE, BLACK);
+   // Paint_DrawString_EN(5, 65, "80%", &Font24, WHITE, BLACK);
+//
+   // Paint_DrawString_EN(140, 35, "10.20 C", &Font24, WHITE, BLACK);
+   // Paint_DrawString_EN(140, 65, "60%", &Font24, WHITE, BLACK);
+//
+   // Paint_DrawString_EN(275, 35, "18.10 C", &Font24, WHITE, BLACK);
+   // Paint_DrawString_EN(275, 65, "55%", &Font24, WHITE, BLACK);
 
     //Paint_DrawRectangle(5, 5, 105, 105, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
     EPD_4IN2_V2_Display(BlackImage);

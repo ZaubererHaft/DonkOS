@@ -19,7 +19,7 @@ private:
     static constexpr int32_t DEFAULT_TIMEOUT_IN_10MS = 1000;
     static constexpr int32_t TEN_MS = 10;
 
-    char response_buffer[1024];
+    char response_buffer[8192];
     AT at_interface;
     bool buffer_overflow;
 

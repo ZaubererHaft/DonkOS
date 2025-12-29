@@ -27,6 +27,9 @@ namespace {
     constexpr auto *AT_OKAY = "OK\r\n";
     constexpr auto AT_OKAY_SIZE = sizeof("OK\r\n") - 1;
 
+    constexpr auto *AT_CIPDNS = "AT+CIPDNS_CUR=1,\"8.8.8.8\",\"1.1.1.1\"\r\n";
+    constexpr auto AT_CIPDNS_SIZE = sizeof("AT+CIPDNS_CUR=1,\"8.8.8.8\",\"1.1.1.1\"\r\n") - 1;
+
     constexpr auto AT_CWJAP_PATTERN = "AT+CWJAP=\"%s\",\"%s\"\r\n";
     constexpr auto AT_CWJAP_OVERHEAD = sizeof("AT+CWJAP=\"\",\"\"\r\n") - 1;
 
@@ -55,7 +58,7 @@ namespace {
             "Host: %s\r\n"
             "Connection: close\r\n"
             "\r\n";
-    constexpr auto AT_GET_REQUEST_OVERHEAD = sizeof("GET /get HTTP/1.1\r\n"
+    constexpr auto AT_GET_REQUEST_OVERHEAD = sizeof("GET / HTTP/1.1\r\n"
                                                  "Host: \r\n"
                                                  "Connection: close\r\n"
                                                  "\r\n") - 1;
@@ -63,63 +66,72 @@ namespace {
     constexpr auto *AT_CIPSEND_PATTERN = "AT+CIPSEND=%u\r\n";
     constexpr auto AT_CIFSR_STAIP_SIZE = sizeof("+CIFSR:STAIP") - 1;
     constexpr auto AT_CIFSR_STAMAC_SIZE = sizeof("+CIFSR:STAMAC") - 1;
+
+    constexpr auto *AT_CIPSSLSIZE = "AT+CIPSSLSIZE=8192\r\n";
+    constexpr auto AT_CIPSSLSIZE_SIZE = sizeof("AT+CIPSSLSIZE=8192\r\n") - 1;
+
+    constexpr auto *AT_CIPSNTP = "AT+CIPSNTPCFG=1,1,\"ptbtime1.ptb.de\"\r\n";
+    constexpr auto AT_CIPSNTP_SIZE = sizeof("AT+CIPSNTPCFG=1,1,\"ptbtime1.ptb.de\"\r\n") - 1;
+
+}
+
+const char *ATResponseCode_ToString(const ATResponseCode &code) {
+    return ATResponseStringMap[static_cast<int32_t>(code)];
 }
 
 AT::AT() : buffer{}, working_data{} {
 }
 
 ATResponseCode AT::ReadConnectionState(ATConnectStatus &out_connectStatus) {
+    // Request the connection state
     if (!sendString(AT_CIFSR, AT_CIFSR_SIZE)) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::CIFSR_TransmitFailed);
     }
     if (!wait_for_okay()) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::CIFSR_TimeoutWaitingForOkay);
+    }
+    if (!buffer.Skip(AT_CIFSR_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIFSR_UnexpectedResponse);
     }
 
-    if (!buffer.Skip(AT_CIFSR_SIZE + 1)) {
-        // +1 because there is an additional \r character at the GMR response
-        return rollback_and_return(ATResponseCode::InvalidResponse);
-    }
-
-    //read values of AT+STAIP
+    // read values of AT+STAIP
     // +2 because of the following , and "
     if (!buffer.Skip(AT_CIFSR_STAIP_SIZE + 2)) {
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::CIFSR_UnexpectedResponse);
     }
     std::memset(out_connectStatus.ipv4_address, 0, sizeof(out_connectStatus.ipv4_address));
     if (!buffer.PopIntoBufferUntilMatch('"', out_connectStatus.ipv4_address,
                                         sizeof(out_connectStatus.ipv4_address) - 1)) {
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::CIFSR_UnexpectedResponse);
     }
 
-    //read values of AT+STAMAC
+    // read values of AT+STAMAC
     // +4 because of the following , and " as well as the \r\n from before
     if (!buffer.Skip(AT_CIFSR_STAMAC_SIZE + 4)) {
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::CIFSR_UnexpectedResponse);
     }
     std::memset(out_connectStatus.mac_address, 0, sizeof(out_connectStatus.mac_address));
     if (!buffer.PopIntoBufferUntilMatch('"', out_connectStatus.mac_address,
                                         sizeof(out_connectStatus.mac_address) - 1)) {
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::CIFSR_UnexpectedResponse);
     }
 
-    // remove remaining characters (like \r\n)
+    // finally: remove remaining characters (like \r\n)
     buffer.SkipReadLength();
     return ATResponseCode::Okay;
 }
 
 ATResponseCode AT::ReadFirmware(ATVersionInfo &out_versionInfo) {
-    // log firmware version
+    // request firmware version
     if (!sendString(AT_GMR, AT_GMR_SIZE)) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::GMR_TransmitFailed);
     }
     if (!wait_for_okay()) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::GMR_TimeoutWaitingForOkay);
     }
-
+    // +1 because there is an additional \r character at the GMR response
     if (!buffer.Skip(AT_GMR_SIZE + 1)) {
-        // +1 because there is an additional \r character at the GMR response
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::GMR_UnexpectedResponse);
     }
 
     // "<" and not "<=" because we want to add \0 termination at the end of the buffer
@@ -134,13 +146,13 @@ ATResponseCode AT::ReadFirmware(ATVersionInfo &out_versionInfo) {
         }
     }
 
-    return rollback_and_return(ATResponseCode::BufferInsufficient);
+    return rollback_and_return(ATResponseCode::GMR_BufferInsufficientForData);
 }
 
 
 ATResponseCode AT::Enable() {
     if (!ATHAL_StartUARTReceiveIT(&working_data)) {
-        return rollback_and_return(ATResponseCode::CouldNotInitTransmission);
+        return rollback_and_return(ATResponseCode::UART_CommunicationInitFailed);
     }
 
     ATHAL_EnableChip();
@@ -148,6 +160,9 @@ ATResponseCode AT::Enable() {
     ATHAL_DisableChip();
     ATHAL_Wait(CHIP_ENABLE_WAIT_TIME_MS);
     ATHAL_EnableChip();
+    ATHAL_Wait(CHIP_ENABLE_WAIT_TIME_MS);
+
+    buffer.SkipReadLength();
 
     return ATResponseCode::Okay;
 }
@@ -155,45 +170,68 @@ ATResponseCode AT::Enable() {
 ATResponseCode AT::ConnectToWiFi(const ATWiFiConnectSettings &settings) {
     // manual reset
     if (!sendString(AT_RST, AT_RST_SIZE)) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::RST_TransmitFailed);
     }
+
 
     // try to connect (skip if already connected)
     if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
-        if (wait_for_text_end(AT_READY, AT_READY_SIZE)) {
-            // send Access Point and try to connect
-            char command[AP_AND_PW_MAX_LEN + AT_CWJAP_OVERHEAD]{};
+        // send AT in station mode
+        if (!sendString(AT_CWMODE_STATION, AT_CWMODE_STATION_SIZE)) {
+            return rollback_and_return(ATResponseCode::CWMODE_TransmitFailed);
+        }
+        if (!wait_for_okay_and_skip()) {
+            return rollback_and_return(ATResponseCode::CWMODE_TimeoutWaitingForOkay);
+        }
 
-            if (strnlen(settings.AccessPoint, AP_AND_PW_MAX_LEN + 1) + strnlen(settings.Password, AP_AND_PW_MAX_LEN + 1)
-                + AT_CWJAP_OVERHEAD <= sizeof(command)) {
-                sprintf(command, AT_CWJAP_PATTERN, settings.AccessPoint, settings.Password);
-            } else {
-                return rollback_and_return(ATResponseCode::BufferInsufficient);
-            }
+        //Disable multiple connections
+        if (!sendString(AT_CIPMUX_SINGLE, AT_CIPMUX_SINGLE_SIZE)) {
+            return rollback_and_return(ATResponseCode::CIPMUX_TransmitFailed);
+        }
+        if (!wait_for_okay_and_skip()) {
+            return rollback_and_return(ATResponseCode::CIPMUX_TimeoutWaitingForOkay);
+        }
 
-            if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
-                return rollback_and_return(ATResponseCode::CouldNotConnectToAccessPoint);
-            }
+        // send Access Point and try to connect
+        char command[AP_AND_PW_MAX_LEN + AT_CWJAP_OVERHEAD]{};
+        if (strnlen(settings.AccessPoint, AP_AND_PW_MAX_LEN + 1) + strnlen(settings.Password, AP_AND_PW_MAX_LEN + 1)
+            + AT_CWJAP_OVERHEAD <= sizeof(command)) {
+            sprintf(command, AT_CWJAP_PATTERN, settings.AccessPoint, settings.Password);
         } else {
-            return rollback_and_return(ATResponseCode::ModuleNotReady);
+            return rollback_and_return(ATResponseCode::CWJAP_BufferInsufficientForSettings);
+        }
+        if (!sendString(command, strnlen(command, sizeof(command)))) {
+            return rollback_and_return(ATResponseCode::CWJAP_TransmitFailed);
+        }
+        if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
+            return rollback_and_return(ATResponseCode::CWJAP_CouldNotConnectToAccessPoint);
         }
     }
+
     buffer.SkipReadLength();
 
-    // send AT in station mode
-    if (!sendString(AT_CWMODE_STATION, AT_CWMODE_STATION_SIZE)) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+    // configure default DNS server
+    if (!sendString(AT_CIPDNS, AT_CIPDNS_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIPDNS_TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::CIPDNS_TimeoutWaitingForOkay);
     }
 
-    //Disable multiple connections
-    if (!sendString(AT_CIPMUX_SINGLE, AT_CIPMUX_SINGLE_SIZE)) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+    // Configure SNTP server
+    if (!sendString(AT_CIPSNTP, AT_CIPSNTP_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIPSNTP_TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::CIPSNTP_TimeoutWaitingForOkay);
+    }
+
+    // Increase SSL buffer
+    if (!sendString(AT_CIPSSLSIZE, AT_CIPSSLSIZE_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIPSSLSIZE_TransmitFailed);
+    }
+    if (!wait_for_okay_and_skip()) {
+        return rollback_and_return(ATResponseCode::CIPSSLSIZE_TimeoutWaitingForOkay);
     }
 
     return ATResponseCode::Okay;
@@ -207,7 +245,7 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
 
     //Make sure buffer is large enough for the following requests (the other sprintf calls are safe then because the GET_REQUEST has the most overhead)
     if (host_size + path_size + AT_GET_REQUEST_OVERHEAD > sizeof(command)) {
-        return rollback_and_return(ATResponseCode::BufferInsufficient);
+        return rollback_and_return(ATResponseCode::GET_REQUEST_BufferInsufficientForHostAndPath);
     }
 
     // start connection to server
@@ -217,51 +255,53 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     }
     sprintf(command, pattern, settings.host);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::CIPSTART_TransmitFailed);
     }
     if (!wait_for_okay_and_skip()) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::CIPSTART_TimeoutWaitingForOkay);
     }
 
-    // Announce transmission of bytes
-    const auto bytes_to_send = host_size + AT_GET_REQUEST_OVERHEAD;
     std::memset(command, 0, sizeof(command));
+
+    // Announce transmission of bytes
+    const auto bytes_to_send = host_size + path_size + AT_GET_REQUEST_OVERHEAD;
     sprintf(command, AT_CIPSEND_PATTERN, bytes_to_send);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::CIPSEND_TransmitFailed);
     }
     if (!wait_for_text_end("> ", sizeof("> ") - 1)) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::CIPSEND_TimeoutWaitingForByteStart);
     }
     buffer.SkipReadLength();
 
-    // Send request & copy response
     std::memset(command, 0, sizeof(command));
+
+    // Send request & copy response
     sprintf(command, AT_GET_REQUEST_PATTERN, settings.path, settings.host);
     if (!sendString(command, strnlen(command, sizeof(command)))) {
-        return rollback_and_return(ATResponseCode::TransmitFailed);
+        return rollback_and_return(ATResponseCode::GET_REQUEST_TransmitFailed);
     }
     if (!wait_for_text_end(AT_CLOSED, AT_CLOSED_SIZE)) {
-        return rollback_and_return(ATResponseCode::TimeoutWaitingForOkay);
+        return rollback_and_return(ATResponseCode::GET_REQUEST_TimeoutWaitingForConnectionClose);
     }
 
-    // Skip until IDP start was found
+    // Skip until IDP start "+" was found
     char character;
     bool result;
     do {
         result = buffer.Pop(&character);
     } while (result && character != '+');
-    // SKIP ' IPD,XXX: ', too
+    // Skip ' IPD,XXX: ', too
     result &= buffer.Skip(8);
     if (!result) {
-        return rollback_and_return(ATResponseCode::InvalidResponse);
+        return rollback_and_return(ATResponseCode::GET_REQUEST_InvalidResponse);
     }
 
     // FINALLY: Copy to buffer
     if (!buffer.CopyFromHead(settings.response_buffer,
                              settings.response_buffer_size,
                              buffer.ReadLength() - static_cast<int32_t>(AT_CLOSED_SIZE))) {
-        return rollback_and_return(ATResponseCode::BufferInsufficient);
+        return rollback_and_return(ATResponseCode::GET_REQUEST_ResponseBufferInsufficient);
     }
 
     buffer.SkipReadLength();
@@ -273,10 +313,10 @@ ATResponseCode AT::PackageReceived() {
         if (ATHAL_StartUARTReceiveIT(&working_data)) {
             return ATResponseCode::Okay;
         }
-        return rollback_and_return(ATResponseCode::CouldNotInitTransmission);
+        return rollback_and_return(ATResponseCode::UART_CommunicationInitFailed);
     }
 
-    return rollback_and_return(ATResponseCode::RingBufferFull);
+    return rollback_and_return(ATResponseCode::UART_RingBufferFull);
 }
 
 

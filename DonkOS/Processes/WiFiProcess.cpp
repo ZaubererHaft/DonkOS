@@ -53,24 +53,32 @@ void WiFiProcess::Main() {
 }
 
 bool WiFiProcess::enableWifi() {
-    if (at_interface.Enable() == ATResponseCode::Okay) {
-        return at_interface.ConnectToWiFi({
-                   "LuwinaNET-2.4",
-               }) == ATResponseCode::Okay;
+    auto ret = false;
+    auto result = at_interface.Enable();
+    if (result == ATResponseCode::Okay) {
+        result = at_interface.ConnectToWiFi({
+            "LuwinaNET-2.4",
+        });
+        if (result == ATResponseCode::Okay) {
+            ret = true;
+        }
     }
-    return false;
+
+    Logger_Debug("AT module returns: %s", ATResponseCode_ToString(result));
+    return ret;
 }
 
 bool WiFiProcess::getWeatherData() {
-    return at_interface.GetRequest(
-               {
-                   .ssl = true,
-                   .host = "api.open-meteo.com",
-                   .path = "v1/forecast?latitude=48.3&longitude=11.6&hourly=temperature_2m",
-                   .response_buffer = response_buffer,
-                   .response_buffer_size = sizeof(response_buffer)
-               }
-           ) == ATResponseCode::Okay;
+    auto status = at_interface.GetRequest(
+        {
+            .host = "api.open-meteo.com",
+            .path = "v1/forecast?latitude=48.3&longitude=11.6&hourly=temperature_2m",
+            .response_buffer = response_buffer,
+            .response_buffer_size = sizeof(response_buffer)
+        }
+    );
+    Logger_Debug("AT module returns: %s", ATResponseCode_ToString(status));
+    return status == ATResponseCode::Okay;
 }
 
 bool WiFiProcess::parseWeatherData() {
