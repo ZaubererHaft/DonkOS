@@ -70,6 +70,8 @@ namespace {
     constexpr auto *AT_CIPSNTP = "AT+CIPSNTPCFG=1,1,\"ptbtime1.ptb.de\"\r\n";
     constexpr auto AT_CIPSNTP_SIZE = sizeof("AT+CIPSNTPCFG=1,1,\"ptbtime1.ptb.de\"\r\n") - 1;
 
+    constexpr auto *AT_CIPSNTPTIME = "AT+CIPSNTPTIME?\r\n";
+    constexpr auto AT_CIPSNTPTIME_SIZE = sizeof("AT+CIPSNTPTIME?\r\n") - 1;
 }
 
 
@@ -143,6 +145,118 @@ ATResponseCode AT::ReadFirmware(ATVersionInfo &out_versionInfo) {
     return rollback_and_return(ATResponseCode::GMR_BufferInsufficientForData);
 }
 
+ATResponseCode AT::GetTime(ATSNTPTime &out_time) {
+    if (!sendString(AT_CIPSNTPTIME, AT_CIPSNTPTIME_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_TransmitFailed);
+    }
+    if (!wait_for_okay()) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_TimeoutWaitingForOkay);
+    }
+    if (!buffer.Skip(AT_CIPSNTPTIME_SIZE)) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    if (!buffer.SkipUntilMatch(':')) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+
+    char buf[5]{};
+
+    buffer.CopyFromHead(buf, sizeof(buf), 3);
+    if (strncmp(buf, "Mon", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Monday;
+    } else if (strncmp(buf, "Tue", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Tuesday;
+    } else if (strncmp(buf, "Wed", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Wednesday;
+    } else if (strncmp(buf, "Thu", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Thursday;
+    } else if (strncmp(buf, "Fri", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Friday;
+    } else if (strncmp(buf, "Sat", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Saturday;
+    } else if (strncmp(buf, "Sun", 3) == 0) {
+        out_time.day_of_week = ATDayOfWeek::Sunday;
+    } else {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+
+    if (!buffer.Skip(4)) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    std::memset(buf, 0, sizeof(buf));
+
+    buffer.CopyFromHead(buf, sizeof(buf), 3);
+    if (strncmp(buf, "Jan", 3) == 0) {
+        out_time.month = ATMonth::January;
+    } else if (strncmp(buf, "Feb", 3) == 0) {
+        out_time.month = ATMonth::February;
+    } else if (strncmp(buf, "Mar", 3) == 0) {
+        out_time.month = ATMonth::March;
+    } else if (strncmp(buf, "Apr", 3) == 0) {
+        out_time.month = ATMonth::April;
+    } else if (strncmp(buf, "May", 3) == 0) {
+        out_time.month = ATMonth::May;
+    } else if (strncmp(buf, "Jun", 3) == 0) {
+        out_time.month = ATMonth::June;
+    } else if (strncmp(buf, "Jul", 3) == 0) {
+        out_time.month = ATMonth::July;
+    } else if (strncmp(buf, "Aug", 3) == 0) {
+        out_time.month = ATMonth::August;
+    } else if (strncmp(buf, "Sep", 3) == 0) {
+        out_time.month = ATMonth::September;
+    } else if (strncmp(buf, "Oct", 3) == 0) {
+        out_time.month = ATMonth::October;
+    } else if (strncmp(buf, "Nov", 3) == 0) {
+        out_time.month = ATMonth::November;
+    } else if (strncmp(buf, "Dec", 3) == 0) {
+        out_time.month = ATMonth::December;
+    } else {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+
+    if (!buffer.Skip(4)) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    std::memset(buf, 0, sizeof(buf));
+
+    if (!buffer.PopIntoBufferUntilMatch(' ', buf, sizeof(buf))) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    out_time.day = strtol(buf, nullptr, 10);
+
+    std::memset(buf, 0, sizeof(buf));
+
+    if (!buffer.PopIntoBufferUntilMatch(':', buf, sizeof(buf))) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    out_time.hours = strtol(buf, nullptr, 10);
+
+    std::memset(buf, 0, sizeof(buf));
+
+    if (!buffer.PopIntoBufferUntilMatch(':', buf, sizeof(buf))) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    out_time.minutes = strtol(buf, nullptr, 10);
+
+    std::memset(buf, 0, sizeof(buf));
+
+    if (!buffer.PopIntoBufferUntilMatch(' ', buf, sizeof(buf))) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    out_time.seconds = strtol(buf, nullptr, 10);
+
+    std::memset(buf, 0, sizeof(buf));
+
+    if (!buffer.PopIntoBufferUntilMatch('\r', buf, sizeof(buf))) {
+        return rollback_and_return(ATResponseCode::CIPSNTPTIME_UnexpectedResponse);
+    }
+    out_time.year = strtol(buf, nullptr, 10);
+
+    buffer.SkipReadLength();
+
+    return ATResponseCode::Okay;
+}
+
 
 ATResponseCode AT::Enable() {
     if (!ATHAL_StartUARTReceiveIT(&working_data)) {
@@ -166,7 +280,6 @@ ATResponseCode AT::ConnectToWiFi(const ATWiFiConnectSettings &settings) {
     if (!sendString(AT_RST, AT_RST_SIZE)) {
         return rollback_and_return(ATResponseCode::RST_TransmitFailed);
     }
-
 
     // try to connect (skip if already connected)
     if (!wait_for_text_end(AT_WIFI_GOT_IP, AT_WIFI_GOT_IP_SIZE)) {
@@ -280,11 +393,10 @@ ATResponseCode AT::GetRequest(const ATHTTPRequestSettings &settings) {
     }
 
     // Skip until IDP start "+" was found
-    char character;
-    bool result;
-    do {
-        result = buffer.Pop(&character);
-    } while (result && character != '+');
+    auto result = buffer.SkipUntilMatch('+');
+    if (!result) {
+        return rollback_and_return(ATResponseCode::GET_REQUEST_InvalidResponse);
+    }
     // Skip ' IPD,XXX: ', too
     result &= buffer.Skip(8);
     if (!result) {

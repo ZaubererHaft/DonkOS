@@ -31,6 +31,25 @@ public:
     int32_t response_buffer_size;
 };
 
+enum class ATMonth {
+    January, February, March, April, May, June, July, August, September, October, November, December
+};
+
+enum class ATDayOfWeek {
+    Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+};
+
+class ATSNTPTime {
+public:
+    uint16_t year;
+    ATMonth month;
+    uint8_t day;
+    ATDayOfWeek day_of_week;
+    uint8_t hours;
+    uint8_t minutes;
+    uint8_t seconds;
+};
+
 class AT {
 public:
     AT();
@@ -46,6 +65,8 @@ public:
     ATResponseCode ReadConnectionState(ATConnectStatus &out_connectStatus);
 
     ATResponseCode ReadFirmware(ATVersionInfo &out_versionInfo);
+
+    ATResponseCode GetTime(ATSNTPTime &out_time);
 
 private:
     static constexpr int32_t RINGBUFFER_SIZE = 8192;

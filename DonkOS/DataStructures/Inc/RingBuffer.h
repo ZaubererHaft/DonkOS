@@ -43,6 +43,18 @@ public:
         return false;
     }
 
+    bool SkipUntilMatch(TYPE end_of_skip) {
+        TYPE tmp;
+        bool success = Pop(&tmp);
+        while (tmp != end_of_skip && success) {
+            success = Pop(&tmp);
+        }
+        if (!success || tmp != end_of_skip) {
+            return false;
+        }
+        return true;
+    }
+
     bool Pop(TYPE *result) {
         if (DataAvailable()) {
             *result = buffer[head];

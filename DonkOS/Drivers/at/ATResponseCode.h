@@ -35,6 +35,9 @@ constexpr const char* ATResponseStringMap[] = {
     "CIPSNTP_TimeoutWaitingForOkay",
     "CIPSSLSIZE_TransmitFailed",
     "CIPSSLSIZE_TimeoutWaitingForOkay",
+    "CIPSNTPTIME_TransmitFailed",
+    "CIPSNTPTIME_TimeoutWaitingForOkay",
+    "CIPSNTPTIME_UnexpectedResponse",
 };
 
 enum class ATResponseCode {
@@ -71,6 +74,9 @@ enum class ATResponseCode {
     CIPSNTP_TimeoutWaitingForOkay,
     CIPSSLSIZE_TransmitFailed,
     CIPSSLSIZE_TimeoutWaitingForOkay,
+    CIPSNTPTIME_TransmitFailed,
+    CIPSNTPTIME_TimeoutWaitingForOkay,
+    CIPSNTPTIME_UnexpectedResponse,
 };
 
 const char *ATResponseCode_ToString(const ATResponseCode &code);
