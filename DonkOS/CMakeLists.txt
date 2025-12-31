@@ -16,6 +16,7 @@ set(Donkos_Sources
 
         Drivers/at/AT.cpp
         Drivers/at/AT_STM32HAL.cpp
+        Drivers/at/ATResponseCode.cpp
 
         Drivers/bme688/bme68x.cpp
         Drivers/bme688/bme68x_necessary_functions.cpp

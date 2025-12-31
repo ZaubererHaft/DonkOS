@@ -36,9 +36,6 @@ namespace {
     constexpr auto *AT_WIFI_GOT_IP = "WIFI GOT IP\r\n";
     constexpr auto AT_WIFI_GOT_IP_SIZE = sizeof("WIFI GOT IP\r\n") - 1;
 
-    constexpr auto *AT_READY = "ready\r\n";
-    constexpr auto AT_READY_SIZE = sizeof("ready\r\n") - 1;
-
     constexpr auto AT_CWMODE_STATION = "AT+CWMODE=1\r\n";
     constexpr auto AT_CWMODE_STATION_SIZE = sizeof("AT+CWMODE=1\r\n") - 1;
 
@@ -75,9 +72,6 @@ namespace {
 
 }
 
-const char *ATResponseCode_ToString(const ATResponseCode &code) {
-    return ATResponseStringMap[static_cast<int32_t>(code)];
-}
 
 AT::AT() : buffer{}, working_data{} {
 }
